@@ -1,16 +1,20 @@
-// controllers/admin.controller.ts
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Types } from "mongoose";
 import bcrypt from "bcryptjs";
-import Site from "../models/site.model.js";
-import User from "../models/user.model.js";
+import User, { IUser } from "../models/user.model.js";
+import Site, { ISite } from "../models/site.model.js";
 import Tree from "../models/tree.model.js";
 import { sendEmail } from "../utils/email.util";
 
+// --------------------
+// Admin Controllers
+// --------------------
+
+// Get all sites (with team members)
 export const getAllSites = async (req: Request, res: Response) => {
   try {
-    const sites = await Site.find().populate("members", "name email role");
+    const sites = await Site.find().populate("teamMembers", "-password");
     res.status(StatusCodes.OK).json(sites);
   } catch (err) {
     console.error(err);
@@ -20,6 +24,7 @@ export const getAllSites = async (req: Request, res: Response) => {
   }
 };
 
+// Add a new site
 export const addSite = async (req: Request, res: Response) => {
   try {
     const { name, address, image, coordinates, status, type } = req.body;
@@ -42,18 +47,25 @@ export const addSite = async (req: Request, res: Response) => {
   }
 };
 
+// Get team for a site
 export const getTeamForSite = async (req: Request, res: Response) => {
   try {
     const siteId = req.query.siteId as string;
     if (!siteId)
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "siteId required" });
+        .json({ message: "Missing siteId" });
 
-    const users = await User.find({
-      siteId: new Types.ObjectId(siteId),
-    }).select("name email role designation gender");
-    res.status(StatusCodes.OK).json(users);
+    const site = await Site.findById(siteId).populate(
+      "teamMembers",
+      "-password"
+    );
+    if (!site)
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Site not found" });
+
+    res.status(StatusCodes.OK).json(site.teamMembers);
   } catch (err) {
     console.error(err);
     res
@@ -62,57 +74,63 @@ export const getTeamForSite = async (req: Request, res: Response) => {
   }
 };
 
+// Add a team member (user/admin) and send email
 export const addTeamMember = async (req: Request, res: Response) => {
   try {
     const { name, email, role, siteId, gender, designation } = req.body;
-
-    if (!name || !email || !role || !siteId) {
+    if (!name || !email || !role || !siteId || !designation)
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing required fields" });
-    }
 
     const existing = await User.findOne({ email });
-    if (existing) {
+    if (existing)
       return res
         .status(StatusCodes.CONFLICT)
-        .json({ message: "Email already exists" });
-    }
+        .json({ message: "Email already registered" });
 
-    // Generate a random password
-    const plainPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    const password = Math.random().toString(36).slice(-8); // generate random password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const user = await User.create({
       name,
       email,
       role,
       siteId: new Types.ObjectId(siteId),
+      password: hashedPassword,
       gender: gender || "other",
       designation,
-      password: hashedPassword,
     });
 
-    // Send email to the new user
-    await sendEmail(
-      newUser.email,
-      "Your account has been created",
-      `<p>Hello ${newUser.name},</p>
-       <p>Your account has been created with role <strong>${role}</strong> for site ID <strong>${siteId}</strong>.</p>
-       <p>Username: ${newUser.email}<br>Password: ${plainPassword}</p>
-       <p>Please change your password after first login.</p>`
-    );
+    // Add user to site's teamMembers
+    await Site.findByIdAndUpdate(siteId, { $push: { teamMembers: user._id } });
+
+    // Send credentials via email
+    const site = await Site.findById(siteId);
+    if (site) {
+      const html = `
+        <h3>Welcome to ${site.name}</h3>
+        <p>Your account has been created by the admin.</p>
+        <ul>
+          <li>Email: ${email}</li>
+          <li>Password: ${password}</li>
+          <li>Role: ${role}</li>
+        </ul>
+        <p>Please login and change your password.</p>
+      `;
+      await sendEmail(email, `Your account for ${site.name}`, html);
+    }
 
     res.status(StatusCodes.CREATED).json({
       message: "User created and email sent successfully",
       user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        siteId: newUser.siteId,
-        gender: newUser.gender,
-        designation: newUser.designation,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        siteId: user.siteId,
+        gender: user.gender,
+        designation: user.designation,
       },
     });
   } catch (err) {
@@ -123,26 +141,26 @@ export const addTeamMember = async (req: Request, res: Response) => {
   }
 };
 
+// Verify a tree
 export const verifyTree = async (req: Request, res: Response) => {
   try {
     const { treeId } = req.params;
     if (!treeId)
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "treeId required" });
+        .json({ message: "Missing treeId" });
 
-    const tree = await Tree.findById(treeId);
+    const tree = await Tree.findByIdAndUpdate(
+      treeId,
+      { status: "verified" },
+      { new: true }
+    );
     if (!tree)
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
 
-    tree.status = "verified";
-    await tree.save();
-
-    res
-      .status(StatusCodes.OK)
-      .json({ message: "Tree verified successfully", tree });
+    res.status(StatusCodes.OK).json(tree);
   } catch (err) {
     console.error(err);
     res
