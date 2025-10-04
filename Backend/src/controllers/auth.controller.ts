@@ -6,9 +6,6 @@ import { z } from "zod";
 import User, { type IUser } from "../models/user.model";
 import { Types } from "mongoose";
 
-// --------------------
-// Validation Schemas
-// --------------------
 const signupSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
@@ -23,11 +20,6 @@ const signinSchema = z.object({
   password: z.string().min(1),
 });
 
-// --------------------
-// Controllers
-// --------------------
-
-// Signup (manual master admin creation)
 export const signup = async (req: Request, res: Response) => {
   try {
     const parsed = signupSchema.safeParse(req.body);
@@ -50,7 +42,7 @@ export const signup = async (req: Request, res: Response) => {
       name,
       email,
       password: hashedPassword,
-      role: "admin", // master admin manually created
+      role: "admin",
       siteId: new Types.ObjectId(siteId),
       gender: gender || "other",
       designation,
@@ -72,7 +64,6 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
-// Signin
 export const signin = async (req: Request, res: Response) => {
   try {
     const parsed = signinSchema.safeParse(req.body);
@@ -105,7 +96,6 @@ export const signin = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user
 export const getMe = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user as IUser;
@@ -123,9 +113,6 @@ export const getMe = async (req: Request, res: Response) => {
   }
 };
 
-// --------------------
-// Helpers
-// --------------------
 const generateToken = (
   user: IUser,
   secret: string,
@@ -146,7 +133,7 @@ const cookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
 const filterUser = (user: IUser) => ({

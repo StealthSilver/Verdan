@@ -47,7 +47,6 @@ export const addSite = async (req: Request, res: Response) => {
   }
 };
 
-// Get team for a site
 export const getTeamForSite = async (req: Request, res: Response) => {
   try {
     const siteId = req.query.siteId as string;
@@ -74,7 +73,6 @@ export const getTeamForSite = async (req: Request, res: Response) => {
   }
 };
 
-// Add a team member (user/admin) and send email
 export const addTeamMember = async (req: Request, res: Response) => {
   try {
     const { name, email, role, siteId, gender, designation } = req.body;
@@ -89,7 +87,7 @@ export const addTeamMember = async (req: Request, res: Response) => {
         .status(StatusCodes.CONFLICT)
         .json({ message: "Email already registered" });
 
-    const password = Math.random().toString(36).slice(-8); // generate random password
+    const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -102,10 +100,8 @@ export const addTeamMember = async (req: Request, res: Response) => {
       designation,
     });
 
-    // Add user to site's teamMembers
     await Site.findByIdAndUpdate(siteId, { $push: { teamMembers: user._id } });
 
-    // Send credentials via email
     const site = await Site.findById(siteId);
     if (site) {
       const html = `
@@ -141,7 +137,6 @@ export const addTeamMember = async (req: Request, res: Response) => {
   }
 };
 
-// Verify a tree
 export const verifyTree = async (req: Request, res: Response) => {
   try {
     const { treeId } = req.params;

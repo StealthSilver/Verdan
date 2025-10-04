@@ -6,9 +6,6 @@ import Tree from "../models/tree.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { Types } from "mongoose";
 
-// --------------------------------------
-// GET /user/dashboard
-// --------------------------------------
 export const getUserDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -41,9 +38,6 @@ export const getUserDashboard = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// --------------------------------------
-// GET /user/profile
-// --------------------------------------
 export const getUserProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -67,9 +61,6 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// --------------------------------------
-// GET /user/site/dashboard
-// --------------------------------------
 export const getSiteDashboard = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -97,9 +88,6 @@ export const getSiteDashboard = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// --------------------------------------
-// GET /user/site/dashboard/:treeId
-// --------------------------------------
 export const getTreeDetails = async (req: AuthRequest, res: Response) => {
   try {
     const { treeId } = req.params;
@@ -123,9 +111,6 @@ export const getTreeDetails = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// --------------------------------------
-// POST /user/site/dashboard/add
-// --------------------------------------
 export const addTree = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
