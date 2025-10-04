@@ -7,10 +7,6 @@ import Site, { ISite } from "../models/site.model.js";
 import Tree from "../models/tree.model.js";
 import { sendEmail } from "../utils/email.util";
 
-// --------------------
-// Admin Controllers
-// --------------------
-
 // Get all sites (with team members)
 export const getAllSites = async (req: Request, res: Response) => {
   try {
