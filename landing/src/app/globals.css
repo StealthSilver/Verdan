@@ -70,6 +70,6 @@
 ------------------------------------------------------ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --glow-color: rgba(46, 139, 87, 0.2); /* Subtle green glow */
+    --glow-color: #cd934d66; /* Subtle green glow */
   }
 }

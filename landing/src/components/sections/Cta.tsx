@@ -11,38 +11,68 @@ const CTA = () => {
   return (
     <section
       id="cta"
-      className="overflow-x-hidden overflow-y-hidden relative py-30 px-4 mt-4 flex flex-col items-center justify-center 
-                 max-w-7xl mx-auto rounded-2xl gap-12"
+      className="relative overflow-hidden py-30 px-6 mt-10 flex flex-col items-center justify-center
+                  mx-auto rounded-2xl text-center"
+      style={{
+        backgroundColor: "var(--background)",
+        color: "var(--color-font)",
+        fontFamily: "var(--font-primary)",
+      }}
     >
-      {/* Radial glow */}
       <div
-        className="absolute top-[270px] left-1/2 w-[500px] h-[500px] -translate-x-1/2 -translate-y-1/2 
-             rounded-full pointer-events-none z-0"
+        className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
         aria-hidden="true"
-        style={{
-          background:
-            "radial-gradient(circle, var(--glow-color) 0%, transparent 80%)",
-          filter: "blur(20px)",
-        }}
-      />
+      >
+        <div
+          className="w-[400px] h-[400px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, var(--glow-color) 0%, transparent 80%)",
+            filter: "blur(60px)",
+          }}
+        />
+      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-2">
-        <h1 className="md:text-6xl text-4xl pt-20 font-[var(--font-primary)] text-center relative z-10">
+      <div className="relative z-10 flex flex-col items-center justify-center gap-4">
+        <h1
+          className="text-4xl md:text-6xl font-semibold leading-tight"
+          style={{
+            fontFamily: "var(--font-primary)",
+            color: "var(--color-font)",
+          }}
+        >
           Protect your plants, get started
         </h1>
 
-        <h1 className="md:text-6xl text-4xl pt-4 font-[var(--font-primary)] text-center">
+        <h2
+          className="text-4xl md:text-6xl font-semibold leading-tight"
+          style={{
+            fontFamily: "var(--font-primary)",
+            color: "var(--color-font)",
+          }}
+        >
           today with Verdan
-        </h1>
+        </h2>
 
         <Link
           href="https://dev.dn03fv11bz1ey.amplifyapp.com/"
-          className="mt-10
-    rounded-full border px-18 py-1.5 transition-all duration-300
-    bg-[var(--color-primary)] text-[var(--background)] dark:text-[var(--foreground)] border-[var(--color-primary)]
-    hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
-  "
+          className="mt-10 inline-block rounded-full border px-14 py-2 text-xl font-bold transition-all duration-300"
+          style={{
+            backgroundColor: "var(--color-primary)",
+            color: "var(--foreground)",
+            borderColor: "var(--color-primary)",
+            fontFamily: "var(--font-secondary)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--background)";
+            e.currentTarget.style.color = "var(--color-font)";
+            e.currentTarget.style.borderColor = "var(--foreground)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--color-primary)";
+            e.currentTarget.style.color = "var(--foreground)";
+            e.currentTarget.style.borderColor = "var(--color-primary)";
+          }}
         >
           Login
         </Link>
