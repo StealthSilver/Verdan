@@ -1,11 +1,5 @@
-import React from 'react'
-
 const AddSites = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default AddSites
+export default AddSites;

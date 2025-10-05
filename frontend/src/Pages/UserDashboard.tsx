@@ -25,7 +25,7 @@ interface Site {
 }
 
 export default function UserDashboard() {
-  const { username, token, logout } = useAuth();
+  const { token, logout } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,10 @@ export default function UserDashboard() {
   // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -77,7 +80,9 @@ export default function UserDashboard() {
         setSites(res.data);
       } catch (err: any) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch assigned sites");
+        setError(
+          err?.response?.data?.message || "Failed to fetch assigned sites"
+        );
       } finally {
         setLoading(false);
       }
@@ -85,7 +90,8 @@ export default function UserDashboard() {
     fetchSites();
   }, [token]);
 
-  if (loading) return <p className="text-center mt-10 text-gray-700">Loading...</p>;
+  if (loading)
+    return <p className="text-center mt-10 text-gray-700">Loading...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
   const handleProfile = () => navigate("/profile");
@@ -94,12 +100,12 @@ export default function UserDashboard() {
     logout();
     navigate("/");
   };
-  const handleAdd = ()=>{
-    navigate("/admin/add")
-  }
-  const handleUpdate = ()=>{
-    navigate("/admin/update")
-  }
+  const handleAdd = () => {
+    navigate("/admin/add");
+  };
+  const handleUpdate = () => {
+    navigate("/admin/update");
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
@@ -123,12 +129,29 @@ export default function UserDashboard() {
             <div className="absolute right-0 mt-3 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-fade-in">
               <div className="px-4 py-3 border-b border-gray-200">
                 <p className="text-sm font-semibold">{user?.name || "User"}</p>
-                <p className="text-xs text-gray-500">{user?.email || "user@verdan.com"}</p>
+                <p className="text-xs text-gray-500">
+                  {user?.email || "user@verdan.com"}
+                </p>
               </div>
               <ul className="flex flex-col text-sm">
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={handleProfile}>Profile</li>
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={handleSetting}>Settings</li>
-                <li className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer" onClick={handleLogout}>Logout</li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={handleProfile}
+                >
+                  Profile
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={handleSetting}
+                >
+                  Settings
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </li>
               </ul>
             </div>
           )}
@@ -152,14 +175,30 @@ export default function UserDashboard() {
                   <div className="flex flex-col md:flex-row md:gap-10 md:py-5">
                     <p className="text-sm text-gray-500">ID: {site._id}</p>
                     <p className="text-sm text-gray-500">{site.address}</p>
-                    <p className={`text-sm font-medium ${site.status === "active" ? "text-green-600" : "text-red-600"}`}>
+                    <p
+                      className={`text-sm font-medium ${
+                        site.status === "active"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
                       {site.status}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 md:flex-row md:gap-10 md:py-5 items-center">
-                  <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition" onClick={handleAdd}>Add</button>
-                  <button className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition" onClick={handleUpdate}>Update</button>
+                  <button
+                    className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                    onClick={handleAdd}
+                  >
+                    Add
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
+                    onClick={handleUpdate}
+                  >
+                    Update
+                  </button>
                 </div>
               </div>
             ))}
