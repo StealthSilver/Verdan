@@ -132,11 +132,16 @@ export const addTree = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing fields" });
 
+    const normalizedCoordinates = {
+      lat: coordinates.lat || coordinates.latitude,
+      lng: coordinates.lng || coordinates.longitude,
+    };
+
     const tree = await Tree.create({
       treeName,
-      coordinates,
+      coordinates: normalizedCoordinates,
       image,
-      addedBy: new Types.ObjectId(userId),
+      plantedBy: new Types.ObjectId(userId),
       siteId: new Types.ObjectId(user.siteId),
       datePlanted: new Date(),
       status: status || "healthy",
