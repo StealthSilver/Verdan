@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
+/* Dark variant */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Utility: Hide scrollbar */
+@utility no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 :root {
+  --color-font: #141414;
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #141414;
+  --hover-dark: oklch(20.8% 0.042 265.755); /* darker hover for light theme */
+  --hover-light: oklch(92.9% 0.013 255.508); /* lighter hover for dark theme */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Theme variables */
+@theme {
+  --color-primary: oklch(43.2% 0.232 292.759);
+  --color-secondary: oklch(72.3% 0.219 149.579);
+
+  /* Default (light mode) */
+  --color-font: #141414;
+  --background: #ffffff;
+  --foreground: #141414;
+  --hover-dark: oklch(20.8% 0.042 265.755);
+  --hover-light: oklch(92.9% 0.013 255.508);
+
+  /* Font families */
+  --font-primary: var(--font-geist, "Geist", sans-serif);
+  --font-secondary: var(--font-dm-sans, "DM Sans", sans-serif);
+}
+
+/* Dark mode overrides */
+.dark {
+  --background: #000000;
+  --foreground: #e9edf0;
+  --color-font: #e9edf0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --glow-color: rgba(186, 127, 252, 0.3);
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
