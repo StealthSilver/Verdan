@@ -98,9 +98,9 @@ export default function Navbar() {
             href="#footer"
             className="
               rounded-full border px-6 py-1.5 transition-all duration-300
-              bg-[var(--color-primary)] text-[var(--foreground)]
-              hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
-              dark:text-[var(--foreground)]
+              bg-[var(--color-primary)] text-[var(--background)] 
+              hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)] dark:hover:border-border-[var(--foreground)]
+              dark:text-[var(--foreground)] dark:border-0
             "
           >
             Get Started

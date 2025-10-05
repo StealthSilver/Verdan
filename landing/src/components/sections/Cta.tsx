@@ -35,7 +35,7 @@ const CTA = () => {
 
       <div className="relative z-10 flex flex-col items-center justify-center gap-4">
         <h1
-          className="text-4xl md:text-6xl font-semibold leading-tight"
+          className="text-4xl md:text-5xl leading-tight"
           style={{
             fontFamily: "var(--font-primary)",
             color: "var(--color-font)",
@@ -45,7 +45,7 @@ const CTA = () => {
         </h1>
 
         <h2
-          className="text-4xl md:text-6xl font-semibold leading-tight"
+          className="text-4xl md:text-5xl leading-tight"
           style={{
             fontFamily: "var(--font-primary)",
             color: "var(--color-font)",
@@ -56,10 +56,10 @@ const CTA = () => {
 
         <Link
           href="https://dev.dn03fv11bz1ey.amplifyapp.com/"
-          className="mt-10 inline-block rounded-full border px-14 py-2 text-xl font-bold transition-all duration-300"
+          className="mt-10 inline-block rounded-full border px-14 py-2 text-xl transition-all duration-300"
           style={{
             backgroundColor: "var(--color-primary)",
-            color: "var(--foreground)",
+            color: "var(--background)",
             borderColor: "var(--color-primary)",
             fontFamily: "var(--font-secondary)",
           }}
@@ -74,7 +74,7 @@ const CTA = () => {
             e.currentTarget.style.borderColor = "var(--color-primary)";
           }}
         >
-          Login
+          Get Started
         </Link>
       </div>
     </section>
