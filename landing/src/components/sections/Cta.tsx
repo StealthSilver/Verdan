@@ -14,24 +14,6 @@ const CTA = () => {
       className="overflow-x-hidden overflow-y-hidden relative py-30 px-4 mt-4 flex flex-col items-center justify-center 
                  max-w-7xl mx-auto rounded-2xl gap-12"
     >
-      {/* Background grid */}
-      <div
-        className="absolute inset-0 w-full bg-grid pointer-events-none rounded-2xl"
-        aria-hidden="true"
-        style={{
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-          maskImage:
-            "linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%)",
-        }}
-      />
-
-      {/* Background */}
-      <div
-        className={`absolute inset-0 w-full h-full rounded-2xl opacity-90 transparent`}
-        aria-hidden="true"
-      />
-
       {/* Radial glow */}
       <div
         className="absolute top-[270px] left-1/2 w-[500px] h-[500px] -translate-x-1/2 -translate-y-1/2 
@@ -47,11 +29,11 @@ const CTA = () => {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-2">
         <h1 className="md:text-6xl text-4xl pt-20 font-[var(--font-primary)] text-center relative z-10">
-          Your All-in-one Learning
+          Protect your plants, get started
         </h1>
 
         <h1 className="md:text-6xl text-4xl pt-4 font-[var(--font-primary)] text-center">
-          Companion
+          today with Verdan
         </h1>
 
         <Link
