@@ -35,7 +35,6 @@ export default function Navbar() {
       "
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
-        {/* Logo */}
         <Link href="/" className="flex items-center cursor-pointer">
           <motion.img
             key={mounted ? theme : "default"}
@@ -54,7 +53,6 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Desktop Nav */}
         <div
           className="hidden md:flex items-center gap-8 font-[var(--font-secondary)] relative"
           onMouseLeave={() => setHovered(null)}
@@ -93,7 +91,6 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Desktop Buttons */}
         <div className="hidden md:flex items-center gap-6 font-[var(--font-secondary)]">
           <ThemeToggle />
           <a
@@ -109,7 +106,6 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile Menu Toggle */}
         <div className="md:hidden flex items-center gap-3">
           <div className="scale-90">
             <ThemeToggle />
@@ -124,7 +120,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div
           className="
