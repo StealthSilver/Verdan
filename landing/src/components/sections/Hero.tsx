@@ -44,7 +44,7 @@ const Hero = () => {
             text-[var(--color-font)] opacity-90
           "
         >
-          A super fast peer-to-peer learning platform
+          With Verdan, you can record, photograph, and follow the
         </p>
         <p
           className="
@@ -52,7 +52,7 @@ const Hero = () => {
             text-[var(--color-font)] opacity-90
           "
         >
-          Find the teacher that matches your learning style
+          life of every tree — turning data into a forest of impact.
         </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center pt-12 gap-4 md:gap-12">
