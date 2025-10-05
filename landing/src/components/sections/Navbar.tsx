@@ -27,12 +27,13 @@ export default function Navbar() {
   return (
     <nav
       className="
-        sticky top-0 z-50 w-full px-4 sm:px-6 py-4
-        border-b border-[var(--foreground)]/40
-        bg-[var(--background)]/80 backdrop-blur-md
-        text-[var(--color-font)] transition-colors duration-300
-        font-[var(--font-primary)]
-      "
+    sticky z-50 rounded-full top-4 py-2 max-w-7xl px-10 justify-center align-items-center mx-auto
+    border border-[var(--foreground)]/20
+    bg-[var(--background)]/40
+    backdrop-blur-2xl backdrop-saturate-150 shadow-lg
+    text-[var(--color-font)] font-[var(--font-primary)]
+    transition-all duration-500
+  "
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center cursor-pointer">
