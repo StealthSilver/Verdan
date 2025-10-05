@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc -b",
     "start": "node dist/server.js",
     "dev": "npm run build && node dist/server.js"
