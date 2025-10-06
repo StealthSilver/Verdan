@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------
+   🌞 Base Theme Variables (Light Mode Defaults)
+   -----------------------------------------------------
+   These variables define the base colors and tones used
+   throughout the site. Accessible via var(--variable-name).
+------------------------------------------------------ */
+:root {
+  --color-font: #0e0e0e; /* Default text color */
+  --background: #f2f7f4; /* Page background */
+  --foreground: #0e0e0e; /* Foreground or content color */
+
+  /* --hover-dark: oklch(20.8% 0.042 265.755);  Dark hover shade */
+  /*--hover-light: oklch(92.9% 0.013 255.508); Light hover shade */
+}
+
+/* -----------------------------------------------------
+   🎨 Theme Configuration for Tailwind
+   -----------------------------------------------------
+   Defines design tokens (colors, fonts, etc.) that can be
+   used throughout the Tailwind system. Ideal for consistent
+   theming across light and dark modes.
+------------------------------------------------------ */
+@theme {
+  /* Brand colors */
+  --color-primary: #2e8b57; /* Purple-blue hue */
+  --color-secondary: #cd934d; /* Soft green hue */
+
+  /* Light mode defaults */
+  --color-font: #0e0e0e;
+  --background: #f2f7f4;
+  --foreground: #0e0e0e;
+  /* --hover-dark: oklch(20.8% 0.042 265.755);
+  --hover-light: oklch(92.9% 0.013 255.508); */
+
+  /* Font families */
+  --font-primary: var(--font-ibm-plex-sans, "IBM Plex Sans", sans-serif);
+  --font-secondary: var(--font-manrope, "Manrope", sans-serif);
+}
+
+/* -----------------------------------------------------
+   🌚 Dark Mode Overrides
+   -----------------------------------------------------
+   When `.dark` class is present, these variables replace
+   the light mode ones to provide a dark UI theme.
+------------------------------------------------------ */
+.dark {
+  --background: #0e0e0e; /* Background becomes black */
+  --foreground: #f2f7f4; /* Light gray text and accents */
+  --color-font: #f2f7f4; /* Main font color in dark mode */
+}
+
+/* -----------------------------------------------------
+   🖥️ System Dark Mode Detection
+   -----------------------------------------------------
+   Automatically applies extra styling when user’s OS is
+   in dark mode, even if `.dark` class is not set.
+------------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glow-color: #cd934d66; /* Subtle green glow */
+  }
+}
