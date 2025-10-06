@@ -55,7 +55,7 @@ const CTA = () => {
         </h2>
 
         <Link
-          href="https://dev.dn03fv11bz1ey.amplifyapp.com/"
+          href="https://dev.dt8mvbuq4t843.amplifyapp.com/"
           className="mt-10 inline-block rounded-full border px-14 py-2 text-xl transition-all duration-300"
           style={{
             backgroundColor: "var(--color-primary)",

@@ -16,42 +16,27 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="
+      className={`
         relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden
-        text-[var(--color-font)] bg-[var(--background)] transition-colors duration-500
-      "
+        text-[var(--color-font)] transition-colors duration-500
+        ${isDark ? "bg-neutral-900" : "bg-white"}
+      `}
     >
-      <div className=" z-10 max-w-6xl mx-auto flex flex-col items-center justify-center  px-4 text-center">
-        <h1
-          className="
-            text-4xl md:text-6xl font-[var(--font-primary)] leading-tight
-          "
-        >
+      <div className="absolute inset-0 bg-gradient-to-b from-yellow-200/90 via-transparent to-transparent dark:from-yellow-500/40" />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center justify-center px-4 text-center">
+        <h1 className="text-4xl md:text-6xl font-[var(--font-primary)] leading-tight">
           Fastest and most efficient
         </h1>
-        <h2
-          className="
-            text-4xl md:text-6xl font-[var(--font-primary)] leading-tight
-            mt-2
-          "
-        >
+        <h2 className="text-4xl md:text-6xl font-[var(--font-primary)] leading-tight mt-2">
           way to grow plants
         </h2>
 
-        <p
-          className="
-            md:text-xl text-base font-[var(--font-secondary)] mt-8
-            text-[var(--color-font)] opacity-90
-          "
-        >
+        <p className="md:text-xl text-base font-[var(--font-secondary)] mt-8 text-[var(--color-font)] opacity-90">
           With Verdan, you can record, photograph, and follow the
         </p>
-        <p
-          className="
-            md:text-xl text-base font-[var(--font-secondary)] mt-1
-            text-[var(--color-font)] opacity-90
-          "
-        >
+        <p className="md:text-xl text-base font-[var(--font-secondary)] mt-1 text-[var(--color-font)] opacity-90">
           life of every tree — turning data into a forest of impact.
         </p>
 
