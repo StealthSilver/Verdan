@@ -42,7 +42,7 @@ const Hero = () => {
 
         <div className="flex flex-col md:flex-row items-center justify-center pt-12 gap-4 md:gap-12">
           <Link
-            href="https://dev.dn03fv11bz1ey.amplifyapp.com/"
+            href="https://dev.dt8mvbuq4t843.amplifyapp.com"
             className="
               rounded-full border border-[var(--color-primary)]
               bg-[var(--color-primary)] text-[var(--background)]
