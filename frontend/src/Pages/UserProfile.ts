@@ -1,5 +1,7 @@
-const UserProfile = () => {
-  return;
-};
+import React from 'react'
 
-export default UserProfile;
+const UserProfile = () => {
+  return
+}
+
+export default UserProfile
