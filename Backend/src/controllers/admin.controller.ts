@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import User, { IUser } from "../models/user.model.js";
 import Site, { ISite } from "../models/site.model.js";
 import Tree from "../models/tree.model.js";
-import { sendEmail } from "../utils/email.util";
+import { sendEmail } from "../utils/email.util.js";
 
 export const getAllSites = async (req: Request, res: Response) => {
   try {

@@ -108,47 +108,54 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900">
-      {/* Navbar */}
-      <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center sm:px-20 md:px-50">
-        <h1 className="text-xl font-semibold tracking-wide">Verdan</h1>
+    <div className="min-h-screen bg-gray-200 text-gray-900">
+      {/* ✅ Custom Navbar */}
+      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
+        {/* Brand */}
+        <div className="flex items-center space-x-2">
+          <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
+            Verdan
+          </span>
+        </div>
 
         {/* Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
-          <div
-            className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition cursor-pointer"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+          <button
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200 transition shadow-sm"
           >
             <FaUserCircle className="text-3xl text-gray-700" />
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-gray-800">
               Hi, {user?.name || "User"}
             </span>
-          </div>
+          </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-fade-in">
-              <div className="px-4 py-3 border-b border-gray-200">
-                <p className="text-sm font-semibold">{user?.name || "User"}</p>
+            <div className="absolute right-0 mt-3 w-60 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <p className="text-sm font-semibold text-gray-800">
+                  {user?.name || "User"}
+                </p>
                 <p className="text-xs text-gray-500">
                   {user?.email || "user@verdan.com"}
                 </p>
               </div>
-              <ul className="flex flex-col text-sm">
+              <ul className="py-1">
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={handleProfile}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
                 >
                   Profile
                 </li>
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={handleSetting}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
                 >
                   Settings
                 </li>
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                   onClick={handleLogout}
+                  className="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer transition font-medium border-t border-gray-100"
                 >
                   Logout
                 </li>
@@ -158,50 +165,74 @@ export default function UserDashboard() {
         </div>
       </nav>
 
-      {/* Assigned Sites */}
+      {/* ✅ Sites Table */}
       <div className="p-6 sm:px-20 md:px-50">
         <h1 className="text-2xl font-bold mb-6">Assigned Sites</h1>
+
         {sites.length === 0 ? (
           <p>No sites assigned to you.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
-            {sites.map((site) => (
-              <div
-                key={site._id}
-                className="p-4 rounded-xl shadow-sm bg-white border border-gray-200 flex justify-between items-center"
-              >
-                <div>
-                  <h2 className="text-lg font-semibold">{site.name}</h2>
-                  <div className="flex flex-col md:flex-row md:gap-10 md:py-5">
-                    <p className="text-sm text-gray-500">ID: {site._id}</p>
-                    <p className="text-sm text-gray-500">{site.address}</p>
-                    <p
-                      className={`text-sm font-medium ${
-                        site.status === "active"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {site.status}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 md:flex-row md:gap-10 md:py-5 items-center">
-                  <button
-                    className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                    onClick={handleAdd}
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-xl border border-gray-200 shadow-sm">
+              <thead className="bg-gray-100 text-left border-b">
+                <tr>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Address
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sites.map((site) => (
+                  <tr
+                    key={site._id}
+                    className="hover:bg-gray-50 border-b last:border-none"
                   >
-                    Add
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
-                    onClick={handleUpdate}
-                  >
-                    Update
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <td className="px-6 py-3">{site.name}</td>
+                    <td className="px-6 py-3">{site._id}</td>
+                    <td className="px-6 py-3">{site.address}</td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={
+                          site.status === "active"
+                            ? "text-green-600 font-medium"
+                            : "text-red-600 font-medium"
+                        }
+                      >
+                        {site.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                          onClick={handleAdd}
+                        >
+                          Add
+                        </button>
+                        <button
+                          className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
+                          onClick={handleUpdate}
+                        >
+                          Update
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
