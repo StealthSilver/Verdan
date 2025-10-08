@@ -28,7 +28,7 @@ const AddTeam = () => {
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
 
   if (!token) {
-    navigate("/signin");
+    navigate("/");
     return null;
   }
 

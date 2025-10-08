@@ -42,7 +42,7 @@ const SiteDashboard = () => {
         fetchTeam();
     }, [token, siteId]);
 
-    if (!token) return navigate("/signin");
+    if (!token) return navigate("/");
     if (loading) return <p className="text-center mt-10 text-gray-700">Loading...</p>;
     if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 

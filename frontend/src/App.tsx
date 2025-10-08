@@ -8,6 +8,7 @@ import ProtectedRoute from "./ProtectedRoute"
 import UpdateSite from "./Pages/UpdateSite"
 import AddTeam from "./Pages/AddTeam"
 import SiteDashboard from "./Pages/SiteDashboard"
+import UserProfile from "./Pages/UserProfile"
 // import UserProfile from "./Pages/UserProfile"
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/admin/site/update/:siteId" element={<UpdateSite />} />
         <Route path="/admin/site/:siteId/add-team" element={<AddTeam />} />
         <Route path="/admin/site/:siteId" element={<SiteDashboard />} />
+        <Route path="/profile" element = {<UserProfile/>}></Route>
 
         {/* </Route> */}
         {/* <Route path="*" element={<Navigate to="/signin" replace />} /> */}
