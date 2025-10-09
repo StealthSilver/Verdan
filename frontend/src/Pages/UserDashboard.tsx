@@ -109,16 +109,13 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-200 text-gray-900">
-      {/* ✅ Custom Navbar */}
       <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
-        {/* Brand */}
         <div className="flex items-center space-x-2">
           <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
             Verdan
           </span>
         </div>
 
-        {/* Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
@@ -165,7 +162,6 @@ export default function UserDashboard() {
         </div>
       </nav>
 
-      {/* ✅ Sites Table */}
       <div className="p-6 sm:px-20 md:px-50">
         <h1 className="text-2xl font-bold mb-6">Assigned Sites</h1>
 
