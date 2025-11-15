@@ -517,7 +517,7 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getTreeById = async (req: Request, res: Response) => {
+export const getTreeById = async (req: AuthRequest, res: Response) => {
   try {
     const { treeId } = req.params;
     if (!treeId)
@@ -545,6 +545,8 @@ export const getTreeById = async (req: Request, res: Response) => {
 
 export const addTreeRecord = async (req: AuthRequest, res: Response) => {
   try {
+    console.log("addTreeRecord called with treeId:", req.params.treeId);
+    console.log("Request body:", req.body);
     const { treeId } = req.params;
     const { image, coordinates, timestamp, status, remarks } = req.body;
 

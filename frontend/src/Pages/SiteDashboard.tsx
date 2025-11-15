@@ -201,7 +201,7 @@ export default function SiteDashboard() {
   };
 
   const handleUpdateTree = (treeId: string) => {
-    navigate(`/admin/dashboard/${siteId}/${treeId}`);
+    navigate(`/admin/dashboard/${siteId}/${treeId}/update`);
   };
 
   if (loading)
