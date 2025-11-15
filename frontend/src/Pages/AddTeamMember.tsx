@@ -19,6 +19,7 @@ export default function AddTeamMember() {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [form, setForm] = useState<TeamMemberForm>({
     name: "",
     email: "",
@@ -78,7 +79,7 @@ export default function AddTeamMember() {
     }
 
     try {
-      await API.post(
+      const response = await API.post(
         "/admin/site/team/add",
         {
           name: form.name,
@@ -95,14 +96,32 @@ export default function AddTeamMember() {
         }
       );
 
-      // Navigate back to team dashboard with refresh flag
-      navigate(`/admin/Dashboard/${siteId}/team`, { state: { refresh: true } });
+      // Show success message
+      setSuccess(true);
+      setError("");
+      setLoading(false);
+      
+      // Reset form
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        role: "user",
+        gender: "other",
+        designation: "",
+        organization: "",
+      });
+
+      // Navigate back to team dashboard after a short delay to show success message
+      setTimeout(() => {
+        navigate(`/admin/Dashboard/${siteId}/team`, { state: { refresh: true } });
+      }, 1500);
     } catch (err: any) {
       console.error(err);
+      setSuccess(false);
       setError(
         err?.response?.data?.message || "Failed to add team member. Please try again."
       );
-    } finally {
       setLoading(false);
     }
   };
@@ -128,6 +147,12 @@ export default function AddTeamMember() {
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+              Team member added successfully! Redirecting...
             </div>
           )}
 

@@ -85,6 +85,12 @@ export default function UserDashboard() {
         const res = await API.get<Site[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        // Log site IDs for debugging
+        console.log("UserDashboard - Sites received:", res.data.map(s => ({
+          id: s._id,
+          idType: typeof s._id,
+          name: s.name
+        })));
         setSites(res.data);
       } catch (err: any) {
         console.error(err);
@@ -281,7 +287,7 @@ export default function UserDashboard() {
                     className="hover:bg-gray-50 border-b last:border-none"
                   >
                     <td className="px-6 py-3">{site.name}</td>
-                    <td className="px-6 py-3">{site._id}</td>
+                    <td className="px-6 py-3" title={`Type: ${typeof site._id}`}>{String(site._id)}</td>
                     <td className="px-6 py-3">{site.address}</td>
                     <td className="px-6 py-3">
                       <span
@@ -298,7 +304,11 @@ export default function UserDashboard() {
                       <div className="flex gap-2">
                         <button
                           className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                          onClick={handleAdd}
+                          onClick={() => {
+                            const siteIdStr = String(site._id);
+                            console.log("Navigating to site dashboard with siteId:", siteIdStr);
+                            navigate(`/admin/dashboard/${siteIdStr}`);
+                          }}
                         >
                           Add
                         </button>
