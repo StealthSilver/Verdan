@@ -106,8 +106,8 @@ export const getTeamForSite = async (req: Request, res: Response) => {
 
 export const addTeamMember = async (req: Request, res: Response) => {
   try {
-    const { name, email, role, siteId, gender, designation } = req.body;
-    if (!name || !email || !role || !siteId || !designation)
+    const { name, email, password, role, siteId, gender, designation, organization } = req.body;
+    if (!name || !email || !password || !role || !siteId || !designation)
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing required fields" });
@@ -118,7 +118,6 @@ export const addTeamMember = async (req: Request, res: Response) => {
         .status(StatusCodes.CONFLICT)
         .json({ message: "Email already registered" });
 
-    const password = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -129,27 +128,13 @@ export const addTeamMember = async (req: Request, res: Response) => {
       password: hashedPassword,
       gender: gender || "other",
       designation,
+      organization: organization || "",
     });
 
     await Site.findByIdAndUpdate(siteId, { $push: { teamMembers: user._id } });
 
-    const site = await Site.findById(siteId);
-    if (site) {
-      const html = `
-        <h3>Welcome to ${site.name}</h3>
-        <p>Your account has been created by the admin.</p>
-        <ul>
-          <li>Email: ${email}</li>
-          <li>Password: ${password}</li>
-          <li>Role: ${role}</li>
-        </ul>
-        <p>Please login and change your password.</p>
-      `;
-      await sendEmail(email, `Your account for ${site.name}`, html);
-    }
-
     res.status(StatusCodes.CREATED).json({
-      message: "User created and email sent successfully",
+      message: "Team member created successfully",
       user: {
         id: user._id,
         name: user.name,
@@ -158,6 +143,7 @@ export const addTeamMember = async (req: Request, res: Response) => {
         siteId: user.siteId,
         gender: user.gender,
         designation: user.designation,
+        organization: user.organization,
       },
     });
   } catch (err) {

@@ -36,6 +36,7 @@ export default function AddSite() {
   // Check if we're in edit mode (site data passed via location state)
   const editSite = location.state?.site as Site | undefined;
   const isEditMode = !!editSite;
+  const [createdSiteId, setCreatedSiteId] = useState<string | null>(null);
 
   const [form, setForm] = useState<SiteForm>({
     name: editSite?.name || "",
@@ -138,7 +139,7 @@ export default function AddSite() {
         );
       } else {
         // Create new site
-        await API.post(
+        const response = await API.post<Site>(
           "/admin/sites/add",
           {
             name: form.name,
@@ -154,10 +155,19 @@ export default function AddSite() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        // Store the created site ID to show Add Team button
+        if (response.data?._id) {
+          setCreatedSiteId(response.data._id);
+          setLoading(false);
+          // Don't navigate away, let user see the Add Team button
+          return;
+        }
       }
 
-      // Navigate back to dashboard with refresh flag
-      navigate("/admin/Dashboard", { state: { refresh: true } });
+      // Navigate back to dashboard with refresh flag (only for updates)
+      if (isEditMode) {
+        navigate("/admin/Dashboard", { state: { refresh: true } });
+      }
     } catch (err: any) {
       console.error(err);
       setError(
@@ -330,6 +340,35 @@ export default function AddSite() {
                 {loading ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Site" : "Save Site")}
               </button>
             </div>
+
+            {(isEditMode && editSite?._id) || createdSiteId ? (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
+                  {createdSiteId ? "Site created successfully! You can now add team members." : ""}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const siteId = editSite?._id || createdSiteId;
+                    if (siteId) {
+                      navigate(`/admin/Dashboard/${siteId}/team`);
+                    }
+                  }}
+                  className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium"
+                >
+                  Add Team
+                </button>
+                {createdSiteId && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/Dashboard", { state: { refresh: true } })}
+                    className="w-full mt-3 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
+                  >
+                    Go to Dashboard
+                  </button>
+                )}
+              </div>
+            ) : null}
           </form>
         </div>
       </div>

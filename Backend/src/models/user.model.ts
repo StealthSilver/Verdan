@@ -8,6 +8,7 @@ export interface IUser extends Document {
   siteId?: Types.ObjectId;
   gender?: "male" | "female" | "other";
   designation: string;
+  organization?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -25,6 +26,7 @@ const userSchema = new Schema<IUser>(
       default: "other",
     },
     designation: { type: String, required: true },
+    organization: { type: String },
   },
   { timestamps: true }
 );
