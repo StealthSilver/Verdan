@@ -151,17 +151,36 @@ export default function UserDashboard() {
     setError(""); // Clear any previous errors
 
     try {
-      const response = await API.delete(`/admin/sites/${siteIdToDelete}`);
+      const response = await API.delete(`/admin/sites/${siteIdToDelete}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       console.log("Site deleted successfully:", response.data);
     } catch (err: any) {
       console.error("Delete error:", err);
+      console.error("Error response:", err?.response);
+      console.error("Error status:", err?.response?.status);
+      console.error("Error data:", err?.response?.data);
+      
       // Restore the site if deletion failed
       if (siteToDelete) {
         setSites((prev) => [...prev, siteToDelete].sort((a, b) => 
           a.name.localeCompare(b.name)
         ));
       }
-      const errorMessage = err?.response?.data?.message || "Failed to delete site. Please try again.";
+      
+      let errorMessage = "Failed to delete site. Please try again.";
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.status === 401) {
+        errorMessage = "Unauthorized. Please log in again.";
+      } else if (err?.response?.status === 403) {
+        errorMessage = "You don't have permission to delete sites.";
+      } else if (err?.response?.status === 404) {
+        errorMessage = "Site not found.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       alert(errorMessage);
     } finally {

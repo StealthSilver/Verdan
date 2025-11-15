@@ -171,10 +171,18 @@ export const addTeamMember = async (req: Request, res: Response) => {
 export const deleteSite = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;
+    console.log("Delete site request received for siteId:", siteId);
+    
     if (!siteId)
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing siteId" });
+
+    // Validate siteId format
+    if (!Types.ObjectId.isValid(siteId))
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid siteId format" });
 
     const site = await Site.findById(siteId);
     if (!site)
@@ -182,24 +190,62 @@ export const deleteSite = async (req: Request, res: Response) => {
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Site not found" });
 
+    console.log("Site found, proceeding with deletion:", site.name);
+
     // Remove siteId from users who have this site assigned
-    await User.updateMany(
-      { siteId: new Types.ObjectId(siteId) },
-      { $unset: { siteId: "" } }
-    );
+    // Try both ObjectId and string formats to handle any data inconsistencies
+    try {
+      const siteObjectId = new Types.ObjectId(siteId);
+      const userUpdateResult = await User.updateMany(
+        { 
+          $or: [
+            { siteId: siteObjectId },
+            { siteId: siteId }
+          ]
+        },
+        { $unset: { siteId: "" } }
+      );
+      console.log(`Updated ${userUpdateResult.modifiedCount} users`);
+    } catch (userErr: any) {
+      console.error("Error updating users:", userErr);
+      console.error("User update error details:", userErr?.message);
+      // Continue with deletion even if user update fails
+    }
 
     // Delete all trees associated with this site
-    await Tree.deleteMany({ siteId: new Types.ObjectId(siteId) });
+    // Try both ObjectId and string formats
+    try {
+      const siteObjectId = new Types.ObjectId(siteId);
+      const treeDeleteResult = await Tree.deleteMany({ 
+        $or: [
+          { siteId: siteObjectId },
+          { siteId: siteId }
+        ]
+      });
+      console.log(`Deleted ${treeDeleteResult.deletedCount} trees`);
+    } catch (treeErr: any) {
+      console.error("Error deleting trees:", treeErr);
+      console.error("Tree delete error details:", treeErr?.message);
+      // Continue with deletion even if tree deletion fails
+    }
 
     // Delete the site
     await Site.findByIdAndDelete(siteId);
+    console.log("Site deleted successfully");
 
     res.status(StatusCodes.OK).json({ message: "Site deleted successfully" });
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    console.error("Delete site error:", err);
+    console.error("Error details:", {
+      message: err?.message,
+      stack: err?.stack,
+      name: err?.name,
+    });
+    
+    const errorMessage = err?.message || "Server error";
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Server error" });
+      .json({ message: errorMessage });
   }
 };
 
