@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 
 interface User {
@@ -39,6 +39,7 @@ export default function UserDashboard() {
   const [deleting, setDeleting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Close dropdown if clicked outside
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function UserDashboard() {
     const fetchSites = async () => {
       if (!token) return;
       setLoading(true);
+      setError(""); // Clear any previous errors
       try {
         const res = await API.get<Site[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
@@ -94,7 +96,26 @@ export default function UserDashboard() {
       }
     };
     fetchSites();
-  }, [token]);
+  }, [token, location.pathname]);
+
+  // Refresh sites when returning from add/edit page
+  useEffect(() => {
+    if (location.state?.refresh && token) {
+      const fetchSites = async () => {
+        try {
+          const res = await API.get<Site[]>("/admin/sites", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSites(res.data);
+          // Clear the refresh flag by replacing the location state
+          window.history.replaceState({}, document.title);
+        } catch (err: any) {
+          console.error(err);
+        }
+      };
+      fetchSites();
+    }
+  }, [location.state?.refresh, token]);
 
   if (loading)
     return <p className="text-center mt-10 text-gray-700">Loading...</p>;
@@ -107,10 +128,10 @@ export default function UserDashboard() {
     navigate("/");
   };
   const handleAdd = () => {
-    navigate("/admin/add");
+    navigate("/admin/Dashboard/add-site");
   };
-  const handleUpdate = () => {
-    navigate("/admin/update");
+  const handleUpdate = (site: Site) => {
+    navigate("/admin/Dashboard/add-site", { state: { site } });
   };
 
   const handleDeleteClick = (siteId: string, siteName: string) => {
@@ -264,7 +285,7 @@ export default function UserDashboard() {
                         </button>
                         <button
                           className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
-                          onClick={handleUpdate}
+                          onClick={() => handleUpdate(site)}
                         >
                           Update
                         </button>
@@ -283,12 +304,27 @@ export default function UserDashboard() {
             </table>
           </div>
         )}
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={handleAdd}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md font-medium"
+          >
+            Add New Site
+          </button>
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={handleDeleteCancel}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               Confirm Delete
             </h3>

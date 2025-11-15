@@ -41,6 +41,43 @@ export const addSite = async (req: Request, res: Response) => {
   }
 };
 
+export const updateSite = async (req: Request, res: Response) => {
+  try {
+    const { siteId } = req.params;
+    const { name, address, image, coordinates, status, type } = req.body;
+
+    if (!siteId)
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Missing siteId" });
+
+    const site = await Site.findByIdAndUpdate(
+      siteId,
+      {
+        name,
+        address,
+        image,
+        coordinates,
+        status,
+        type,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!site)
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Site not found" });
+
+    res.status(StatusCodes.OK).json(site);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Server error" });
+  }
+};
+
 export const getTeamForSite = async (req: Request, res: Response) => {
   try {
     const siteId = req.query.siteId as string;
