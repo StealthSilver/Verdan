@@ -31,6 +31,12 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    siteId: string | null;
+    siteName: string;
+  }>({ show: false, siteId: null, siteName: "" });
+  const [deleting, setDeleting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -105,6 +111,45 @@ export default function UserDashboard() {
   };
   const handleUpdate = () => {
     navigate("/admin/update");
+  };
+
+  const handleDeleteClick = (siteId: string, siteName: string) => {
+    setDeleteConfirm({ show: true, siteId, siteName });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.siteId || !token) return;
+
+    const siteIdToDelete = deleteConfirm.siteId;
+    const siteToDelete = sites.find((s) => s._id === siteIdToDelete);
+    
+    // Optimistically remove from UI immediately
+    setSites((prev) => prev.filter((site) => site._id !== siteIdToDelete));
+    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
+    setDeleting(true);
+    setError(""); // Clear any previous errors
+
+    try {
+      const response = await API.delete(`/admin/sites/${siteIdToDelete}`);
+      console.log("Site deleted successfully:", response.data);
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      // Restore the site if deletion failed
+      if (siteToDelete) {
+        setSites((prev) => [...prev, siteToDelete].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        ));
+      }
+      const errorMessage = err?.response?.data?.message || "Failed to delete site. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
   };
 
   return (
@@ -223,6 +268,13 @@ export default function UserDashboard() {
                         >
                           Update
                         </button>
+                        <button
+                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => handleDeleteClick(site._id, site.name)}
+                          disabled={deleting}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -232,6 +284,37 @@ export default function UserDashboard() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Confirm Delete
+            </h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>{deleteConfirm.siteName}</strong>? 
+              This action cannot be undone and will also remove all associated trees and team member assignments.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

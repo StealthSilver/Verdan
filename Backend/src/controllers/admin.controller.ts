@@ -131,6 +131,41 @@ export const addTeamMember = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteSite = async (req: Request, res: Response) => {
+  try {
+    const { siteId } = req.params;
+    if (!siteId)
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Missing siteId" });
+
+    const site = await Site.findById(siteId);
+    if (!site)
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Site not found" });
+
+    // Remove siteId from users who have this site assigned
+    await User.updateMany(
+      { siteId: new Types.ObjectId(siteId) },
+      { $unset: { siteId: "" } }
+    );
+
+    // Delete all trees associated with this site
+    await Tree.deleteMany({ siteId: new Types.ObjectId(siteId) });
+
+    // Delete the site
+    await Site.findByIdAndDelete(siteId);
+
+    res.status(StatusCodes.OK).json({ message: "Site deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Server error" });
+  }
+};
+
 export const verifyTree = async (req: Request, res: Response) => {
   try {
     const { treeId } = req.params;
