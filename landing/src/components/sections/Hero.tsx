@@ -21,6 +21,16 @@ const Hero = () => {
         text-[var(--color-font)] bg-[var(--background)] transition-colors duration-500
       "
     >
+      {/* Decorative radial gradient from bottom-right */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(circle at 92% 88%, rgba(134,239,172,0.45) 0%, rgba(134,239,172,0.18) 30%, transparent 70%)"
+            : "radial-gradient(circle at 92% 88%, rgba(134,239,172,0.25) 0%, rgba(134,239,172,0.12) 28%, transparent 65%)",
+        }}
+      />
       <div className=" z-10 max-w-6xl mx-auto flex flex-col items-center justify-center  px-4 text-center">
         <h1
           className="
