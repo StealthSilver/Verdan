@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 import API from "../api";
+import verdanLogo from "../assets/verdan_light.svg";
 
 interface Site {
   _id: string;
@@ -248,7 +249,13 @@ export default function SiteDashboard() {
       <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
         <div className="flex items-center space-x-2">
           <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
-            <img src="./assets/verdan_light.svg" alt="Verdan Logo" />
+            {/* Use imported asset so Vite processes it and path resolves correctly */}
+            <img
+              src={verdanLogo}
+              alt="Verdan Logo"
+              className="h-8 w-auto select-none"
+              draggable={false}
+            />
           </span>
         </div>
 

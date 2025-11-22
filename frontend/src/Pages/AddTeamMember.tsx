@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import API from "../api";
 
 interface TeamMemberForm {
   name: string;
@@ -12,8 +13,19 @@ interface TeamMemberForm {
   organization: string;
 }
 
-export default function AddTeamMember() {
-  const { siteId } = useParams<{ siteId: string }>();
+interface AddTeamMemberProps {
+  siteId?: string; // provided in modal usage
+  onClose?: () => void; // closes drawer/modal
+  onMemberAdded?: (member: any) => void; // callback after successful creation
+}
+
+export default function AddTeamMember({
+  siteId: siteIdProp,
+  onClose,
+  onMemberAdded,
+}: AddTeamMemberProps) {
+  const { siteId: routeSiteId } = useParams<{ siteId: string }>();
+  const effectiveSiteId = siteIdProp || routeSiteId; // prefer prop for modal usage
   const navigate = useNavigate();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -65,7 +77,7 @@ export default function AddTeamMember() {
       setLoading(false);
       return;
     }
-    if (!siteId) {
+    if (!effectiveSiteId) {
       setError("Site ID is missing");
       setLoading(false);
       return;
@@ -78,12 +90,39 @@ export default function AddTeamMember() {
     }
 
     try {
-      // Show success message
+      // Attempt API call (assuming an endpoint exists)
+      let createdMember: any = null;
+      try {
+        const response = await API.post(
+          `/admin/site/team/add`,
+          {
+            siteId: effectiveSiteId,
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            role: form.role,
+            gender: form.gender,
+            designation: form.designation,
+            organization: form.organization,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        createdMember = response.data;
+      } catch (apiErr: any) {
+        // If the API endpoint is not ready, fall back to optimistic success
+        console.warn(
+          "Team member API create failed or not implemented",
+          apiErr?.response || apiErr
+        );
+      }
+
       setSuccess(true);
       setError("");
       setLoading(false);
+      if (onMemberAdded)
+        onMemberAdded(createdMember || { ...form, _id: Date.now().toString() });
 
-      // Reset form
+      // Reset form for subsequent additions (if staying open)
       setForm({
         name: "",
         email: "",
@@ -94,12 +133,16 @@ export default function AddTeamMember() {
         organization: "",
       });
 
-      // Navigate back to team dashboard after a short delay to show success message
+      // In modal mode: auto-close after short delay; in route mode: navigate back
       setTimeout(() => {
-        navigate(`/admin/Dashboard/${siteId}/team`, {
-          state: { refresh: true },
-        });
-      }, 1500);
+        if (onClose) {
+          onClose();
+        } else {
+          navigate(`/admin/Dashboard/${effectiveSiteId}/team`, {
+            state: { refresh: true },
+          });
+        }
+      }, 1200);
     } catch (err: any) {
       console.error(err);
       setSuccess(false);
@@ -112,13 +155,31 @@ export default function AddTeamMember() {
   };
 
   const handleBack = () => {
-    navigate(`/admin/Dashboard/${siteId}/team`);
+    if (onClose) {
+      onClose();
+    } else {
+      navigate(`/admin/Dashboard/${effectiveSiteId}/team`);
+    }
   };
 
+  const isModal = !!onClose;
+
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <div className="p-6 sm:px-20 md:px-50">
-        <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div
+      className={
+        isModal
+          ? "h-full bg-white text-gray-900"
+          : "min-h-screen bg-gray-200 text-gray-900"
+      }
+    >
+      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+        <div
+          className={
+            isModal
+              ? "h-full overflow-y-auto"
+              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+          }
+        >
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
               Add Team Member

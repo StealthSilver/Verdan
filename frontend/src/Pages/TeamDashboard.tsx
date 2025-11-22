@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
+import AddTeamMember from "./AddTeamMember";
 
 interface TeamMember {
   _id: string;
@@ -29,6 +30,8 @@ export default function TeamDashboard() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showMemberDrawer, setShowMemberDrawer] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,10 +66,10 @@ export default function TeamDashboard() {
     };
 
     fetchData();
-  }, [token, siteId, location.state?.refresh]);
+  }, [token, siteId, location.state?.refresh, refreshCounter]);
 
   const handleAddTeamMember = () => {
-    navigate(`/admin/Dashboard/${siteId}/team/add`);
+    setShowMemberDrawer(true);
   };
 
   const handleBack = () => {
@@ -184,6 +187,35 @@ export default function TeamDashboard() {
             </table>
           </div>
         )}
+      </div>
+      {/* Slide-in Add Team Member Drawer */}
+      <div
+        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+          showMemberDrawer
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      >
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            showMemberDrawer ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setShowMemberDrawer(false)}
+        />
+        <div
+          className={`relative h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
+            showMemberDrawer ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <AddTeamMember
+            siteId={siteId}
+            onClose={() => setShowMemberDrawer(false)}
+            onMemberAdded={() => {
+              // trigger refresh
+              setRefreshCounter((c) => c + 1);
+            }}
+          />
+        </div>
       </div>
     </div>
   );
