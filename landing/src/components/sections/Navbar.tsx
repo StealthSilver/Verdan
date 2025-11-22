@@ -6,7 +6,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useTheme } from "next-themes";
-import { Button } from "../ui/Button";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

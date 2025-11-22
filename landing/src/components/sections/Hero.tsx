@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Button } from "../ui/Button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const { theme } = useTheme();

@@ -4,6 +4,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "../ui/Button";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 const CTA = () => {
   const ref = useRef(null);
@@ -22,12 +23,13 @@ const CTA = () => {
           className="max-w-4xl mx-auto"
         >
           <div className="bg-card/50 backdrop-blur-sm rounded-3xl p-12 md:p-16 shadow-glow border border-border/50 text-center space-y-8">
-            <img
+            <Image
               src="/verdan_light.svg"
               alt="Verdan Logo"
               width={200}
               height={40}
               className="center mx-auto"
+              priority
             />
 
             <motion.div

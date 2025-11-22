@@ -4,7 +4,6 @@ import Footer from "@/components/sections/Footer";
 import Hero from "@/components/sections/Hero";
 import Navbar from "@/components/sections/Navbar";
 import About from "@/components/sections/About";
-import Testimonial from "@/components/sections/Testimonials";
 
 export default function Home() {
   return (
@@ -12,10 +11,10 @@ export default function Home() {
       <Navbar />
       <Hero />
       <About />
-      {/* <Features />
+      <Features />
 
       <Cta />
-      <Footer /> */}
+      <Footer />
     </>
   );
 }

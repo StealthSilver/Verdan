@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import Image from "next/image";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -27,12 +28,17 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-4">
-            <a href="#" className="flex items-center gap-2 group">
-              <img
+            <a
+              href="#"
+              className="flex items-center gap-2 group"
+              aria-label="Verdan Logo"
+            >
+              <Image
                 src="/verdan_light.svg"
                 alt="Verdan Logo"
                 width={200}
                 height={40}
+                priority
               />
             </a>
             <p className="text-muted-foreground max-w-xs">
