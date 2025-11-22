@@ -19,7 +19,7 @@ const Hero = () => {
       id="home"
       className="relative w-full min-h-screen flex flex-col items-center justify-start pt-28 overflow-hidden text-[var(--color-font)] bg-[var(--background)] transition-colors duration-500"
     >
-      {/* Background image with top white fade */}
+      {/* Background image with top + side white fades */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/hero_img.png"
@@ -35,6 +35,20 @@ const Hero = () => {
           style={{
             background:
               "linear-gradient(to bottom, #ffffff 0%, #ffffff 18%, rgba(255,255,255,0.85) 26%, rgba(255,255,255,0.55) 34%, rgba(255,255,255,0.25) 42%, rgba(255,255,255,0) 50%)",
+          }}
+        />
+
+        {/* Side fades (left & right) for subtle blending */}
+        {/* Refined circular side fades (smaller & softer) */}
+
+        {/* Bottom fade (10% height) for white lift */}
+        <div
+          aria-hidden
+          className="absolute left-0 bottom-0 w-full pointer-events-none"
+          style={{
+            height: "16%",
+            background:
+              "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0) 100%)",
           }}
         />
         {/* Optional subtle dark theme adjustment below fade for contrast */}
@@ -70,17 +84,10 @@ const Hero = () => {
         {/* Buttons */}
         <div className="flex flex-col md:flex-row items-center justify-center pt-12 gap-4 md:gap-12">
           <Link
-            href="https://dev.dn03fv11bz1ey.amplifyapp.com/"
-            className="rounded-full border border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--background)] font-[var(--font-secondary)] px-10 md:px-14 py-2 text-sm md:text-base transition-all duration-300 hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]"
-          >
-            Get Started
-          </Link>
-
-          <Link
             href="#footer"
             className="rounded-full border border-[var(--foreground)] bg-[var(--background)] text-[var(--color-font)] font-[var(--font-secondary)] px-10 md:px-14 py-2 text-sm md:text-base transition-all duration-300 hover:bg-[var(--foreground)] hover:text-[var(--background)]"
           >
-            Contact us
+            Get Started
           </Link>
         </div>
       </div>

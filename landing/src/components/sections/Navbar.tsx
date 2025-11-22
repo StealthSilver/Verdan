@@ -27,12 +27,13 @@ export default function Navbar() {
   return (
     <nav
       className="
-      w-full sticky top-0 z-50 px-4 sm:px-6 py-3
-      
-      bg-transparent backdrop-blur-md
+      fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3
+      bg-white/90 dark:bg-[#0d0d0d]/80 backdrop-blur-lg
+      shadow-sm
       text-[var(--color-font)]
       transition-colors duration-300
     "
+      style={{ position: "relative" }}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center cursor-pointer">
@@ -95,19 +96,12 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-6 font-mono">
-          <ThemeToggle />
-
-          <a
+          <Link
             href="#footer"
-            className="font-[var(--font-secondary)]
-  bg-[var(--color-primary)] text-[var(--background)] border border-transparent rounded-full px-6 py-1.5
-  transition duration-300 hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
-  dark:bg-[var(--color-primary)] dark:text-[var(--foreground)] dark:border-transparent
-  dark:hover:bg-[var(--background)] dark:hover:text-[var(--color-font)] dark:hover:border-[var(--foreground)]
-"
+            className="rounded-full border border-[var(--foreground)] text-[var(--color-font)] font-[var(--font-secondary)] px-6 py-2 text-sm md:text-base transition-all duration-300 hover:bg-[var(--foreground)] hover:text-[var(--background)]"
           >
             Get Started
-          </a>
+          </Link>
         </div>
 
         <div className="md:hidden flex items-center gap-3">
