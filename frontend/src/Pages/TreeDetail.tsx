@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import UpdateTreeRecord from "./UpdateTreeRecord";
 
 interface Site {
   _id: string;
@@ -37,6 +38,8 @@ export default function TreeDetail() {
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showRecordDrawer, setShowRecordDrawer] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -55,12 +58,12 @@ export default function TreeDetail() {
         setLoading(false);
       }
     };
-
     fetchTree();
-  }, [token, treeId]);
+  }, [token, treeId, refreshCounter]);
 
   const handleAddRecord = () => {
-    navigate(`/admin/dashboard/${siteId}/${treeId}/update`);
+    // Open drawer instead of navigating to separate page
+    setShowRecordDrawer(true);
   };
 
   const handleBack = () => {
@@ -118,7 +121,8 @@ export default function TreeDetail() {
                 <span className="font-semibold">Site:</span> {siteName}
               </div>
               <div>
-                <span className="font-semibold">Site ID:</span> {siteIdValue.slice(-8)}
+                <span className="font-semibold">Site ID:</span>{" "}
+                {siteIdValue.slice(-8)}
               </div>
               <div>
                 <span className="font-semibold">Status:</span>
@@ -152,7 +156,10 @@ export default function TreeDetail() {
                   <p className="text-gray-500 text-sm">No records yet</p>
                 ) : (
                   sortedImages.map((image, index) => (
-                    <div key={index} className="relative pl-6 border-l-2 border-blue-500">
+                    <div
+                      key={index}
+                      className="relative pl-6 border-l-2 border-blue-500"
+                    >
                       <div className="absolute -left-2 top-0 w-4 h-4 bg-blue-500 rounded-full"></div>
                       <div className="text-xs text-gray-600">
                         {new Date(image.timestamp).toLocaleDateString()}
@@ -209,7 +216,8 @@ export default function TreeDetail() {
                   <div>
                     <span className="text-sm text-gray-600">Coordinates:</span>
                     <p className="font-mono text-xs">
-                      {tree.coordinates.lat.toFixed(6)}, {tree.coordinates.lng.toFixed(6)}
+                      {tree.coordinates.lat.toFixed(6)},{" "}
+                      {tree.coordinates.lng.toFixed(6)}
                     </p>
                   </div>
                 </div>
@@ -262,7 +270,8 @@ export default function TreeDetail() {
 
                 {sortedImages.length === 0 ? (
                   <p className="text-center py-10 text-gray-600">
-                    No records available. Click "Add New Record" to add the first record.
+                    No records available. Click "Add New Record" to add the
+                    first record.
                   </p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -276,14 +285,17 @@ export default function TreeDetail() {
                           alt={`Tree record ${index + 1}`}
                           className="w-full h-48 object-cover rounded-lg mb-3"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
                           }}
                         />
                         <div className="text-xs text-gray-600">
                           <p className="font-semibold">
                             {new Date(image.timestamp).toLocaleDateString()}
                           </p>
-                          <p>{new Date(image.timestamp).toLocaleTimeString()}</p>
+                          <p>
+                            {new Date(image.timestamp).toLocaleTimeString()}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -294,7 +306,36 @@ export default function TreeDetail() {
           </div>
         </div>
       </div>
+      {/* Slide-in Update Record Drawer */}
+      <div
+        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+          showRecordDrawer
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      >
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            showRecordDrawer ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setShowRecordDrawer(false)}
+        />
+        <div
+          className={`relative h-full w-full max-w-2xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
+            showRecordDrawer ? "translate-x-0" : "translate-x-full"
+          } overflow-y-auto`}
+        >
+          {showRecordDrawer && (
+            <UpdateTreeRecord
+              embedded
+              siteId={siteIdValue}
+              treeId={treeId}
+              onClose={() => setShowRecordDrawer(false)}
+              onRecordSaved={() => setRefreshCounter((c) => c + 1)}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-

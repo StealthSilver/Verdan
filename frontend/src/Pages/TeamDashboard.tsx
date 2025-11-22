@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
 import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
 import AddTeamMember from "./AddTeamMember";
+
+const VERDAN_GREEN = "#2E5E34";
 
 interface TeamMember {
   _id: string;
@@ -26,6 +27,7 @@ export default function TeamDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuth();
+
   const [site, setSite] = useState<Site | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,16 +42,12 @@ export default function TeamDashboard() {
       setError("");
 
       try {
-        // Fetch site details
         const sitesRes = await API.get<Site[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const foundSite = sitesRes.data.find((s) => s._id === siteId);
-        if (foundSite) {
-          setSite(foundSite);
-        }
+        if (foundSite) setSite(foundSite);
 
-        // Fetch team members
         const teamRes = await API.get<TeamMember[]>(
           `/admin/site/team?siteId=${siteId}`,
           {
@@ -68,152 +66,230 @@ export default function TeamDashboard() {
     fetchData();
   }, [token, siteId, location.state?.refresh, refreshCounter]);
 
-  const handleAddTeamMember = () => {
-    setShowMemberDrawer(true);
-  };
-
-  const handleBack = () => {
-    navigate("/admin/Dashboard");
-  };
+  const handleAddTeamMember = () => setShowMemberDrawer(true);
+  const handleBack = () => navigate("/admin/Dashboard");
 
   if (loading)
-    return <p className="text-center mt-10 text-gray-700">Loading...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600 text-lg">Loading...</p>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-red-500 text-lg">{error}</p>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
-        <div className="flex items-center space-x-2">
-          <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
-            {/* Use imported asset so Vite processes it and path resolves correctly */}
-            <img
-              src={verdanLogo}
-              alt="Verdan Logo"
-              className="h-8 w-auto select-none"
-              draggable={false}
-            />
-          </span>
+    <div className="min-h-screen bg-gray-50">
+      {/* THIN NAVBAR */}
+      <nav
+        className="bg-white border-b border-gray-200 sticky top-0 z-40"
+        style={{ borderBottomColor: VERDAN_GREEN + "15" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+
+            <button
+              onClick={handleBack}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Back
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleBack}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-        >
-          Back to Dashboard
-        </button>
       </nav>
 
-      <div className="p-6 sm:px-20 md:px-50">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Team Dashboard</h1>
-          {site && (
-            <div className="text-gray-600">
-              <p className="text-lg">
-                <span className="font-semibold">Site:</span> {site.name}
-              </p>
-              <p className="text-sm">
-                <span className="font-semibold">Site ID:</span> {site._id}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="mb-4 flex justify-end">
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* HEADER WITH ADD BUTTON */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              Team Dashboard
+            </h1>
+            {site && (
+              <div className="space-y-1">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Site:</span> {site.name}
+                </p>
+                <p className="text-xs text-gray-500 font-mono">
+                  ID: {site._id}
+                </p>
+              </div>
+            )}
+          </div>
           <button
             onClick={handleAddTeamMember}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md font-medium"
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+            style={{ backgroundColor: VERDAN_GREEN }}
           >
-            Add Team Member
+            + Add Team Member
           </button>
         </div>
 
-        {teamMembers.length === 0 ? (
-          <p className="text-center py-10 text-gray-600">
-            No team members assigned to this site.
-          </p>
-        ) : (
+        {/* TEAM TABLE - Desktop */}
+        <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-xl border border-gray-200 shadow-sm">
-              <thead className="bg-gray-100 text-left border-b">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Gender
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Designation
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Organization
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {teamMembers.map((member) => (
                   <tr
                     key={member._id}
-                    className="hover:bg-gray-50 border-b last:border-none"
+                    className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-3">{member.name}</td>
-                    <td className="px-6 py-3">{member.email}</td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">
+                        {member.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 max-w-xs truncate">
+                        {member.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           member.role === "admin"
-                            ? "px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-sm font-medium"
-                            : "px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-medium"
-                        }
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
                       >
                         {member.role}
                       </span>
                     </td>
-                    <td className="px-6 py-3 capitalize">
-                      {member.gender || "N/A"}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-700 capitalize">
+                        {member.gender || "N/A"}
+                      </div>
                     </td>
-                    <td className="px-6 py-3">{member.designation}</td>
-                    <td className="px-6 py-3">
-                      {member.organization || "N/A"}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-700">
+                        {member.designation}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 max-w-xs truncate">
+                        {member.organization || "N/A"}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* TEAM CARDS - Mobile/Tablet */}
+        <div className="md:hidden space-y-4">
+          {teamMembers.map((member) => (
+            <div
+              key={member._id}
+              className="bg-white rounded-lg border border-gray-200 p-4"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {member.email}
+                  </p>
+                </div>
+                <span
+                  className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    member.role === "admin"
+                      ? "bg-purple-100 text-purple-800"
+                      : "bg-blue-100 text-blue-800"
+                  }`}
+                >
+                  {member.role}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Gender:</span>
+                  <span className="text-gray-900 capitalize">
+                    {member.gender || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Designation:</span>
+                  <span className="text-gray-900">{member.designation}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Organization:</span>
+                  <span className="text-gray-900 truncate ml-2">
+                    {member.organization || "N/A"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {teamMembers.length === 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 py-12 text-center">
+            <p className="text-gray-500 mb-4">
+              No team members assigned to this site yet
+            </p>
+            <button
+              onClick={handleAddTeamMember}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              Add Your First Team Member
+            </button>
+          </div>
         )}
       </div>
-      {/* Slide-in Add Team Member Drawer */}
+
+      {/* DRAWER */}
       <div
         className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          showMemberDrawer
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
+          showMemberDrawer ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-            showMemberDrawer ? "opacity-100" : "opacity-0"
-          }`}
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
           onClick={() => setShowMemberDrawer(false)}
         />
         <div
-          className={`relative h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
+          className={`relative h-full w-full max-w-2xl bg-white transition-transform duration-300 ${
             showMemberDrawer ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <AddTeamMember
             siteId={siteId}
             onClose={() => setShowMemberDrawer(false)}
-            onMemberAdded={() => {
-              // trigger refresh
-              setRefreshCounter((c) => c + 1);
-            }}
+            onMemberAdded={() => setRefreshCounter((c) => c + 1)}
           />
         </div>
       </div>

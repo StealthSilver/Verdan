@@ -24,9 +24,20 @@ interface Tree {
   };
 }
 
-export default function UpdateTreeRecord() {
+interface UpdateTreeRecordProps {
+  embedded?: boolean;
+  siteId?: string;
+  treeId?: string;
+  onClose?: () => void;
+  onRecordSaved?: () => void;
+}
+
+export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const navigate = useNavigate();
-  const { siteId, treeId } = useParams<{ siteId: string; treeId: string }>();
+  const params = useParams<{ siteId: string; treeId: string }>();
+  const effectiveSiteId = props.siteId || params.siteId;
+  const effectiveTreeId = props.treeId || params.treeId;
+  const embedded = !!props.embedded;
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -176,9 +187,9 @@ export default function UpdateTreeRecord() {
   // Fetch tree data
   useEffect(() => {
     const fetchData = async () => {
-      if (!token || !treeId) return;
+      if (!token || !effectiveTreeId) return;
       try {
-        const treeRes = await API.get<Tree>(`/admin/trees/${treeId}`, {
+        const treeRes = await API.get<Tree>(`/admin/trees/${effectiveTreeId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTree(treeRes.data);
@@ -203,10 +214,12 @@ export default function UpdateTreeRecord() {
       }
     };
     fetchData();
-  }, [token, treeId]);
+  }, [token, effectiveTreeId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -255,7 +268,7 @@ export default function UpdateTreeRecord() {
       return;
     }
 
-    if (!token || !treeId) {
+    if (!token || !effectiveTreeId) {
       setError("You must be logged in to add a record");
       setLoading(false);
       return;
@@ -263,7 +276,7 @@ export default function UpdateTreeRecord() {
 
     try {
       await API.post(
-        `/admin/trees/${treeId}/records`,
+        `/admin/trees/${effectiveTreeId}/records`,
         {
           image: form.image,
           coordinates: {
@@ -278,12 +291,17 @@ export default function UpdateTreeRecord() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      navigate(`/admin/dashboard/${siteId}/${treeId}`);
+      if (embedded) {
+        props.onRecordSaved?.();
+        props.onClose?.();
+      } else {
+        navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+      }
     } catch (err: any) {
       console.error(err);
       setError(
-        err?.response?.data?.message || "Failed to add record. Please try again."
+        err?.response?.data?.message ||
+          "Failed to add record. Please try again."
       );
     } finally {
       setLoading(false);
@@ -369,7 +387,11 @@ export default function UpdateTreeRecord() {
 
   const handleBack = () => {
     closeCamera();
-    navigate(`/admin/dashboard/${siteId}/${treeId}`);
+    if (embedded) {
+      props.onClose?.();
+    } else {
+      navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+    }
   };
 
   return (
@@ -378,14 +400,17 @@ export default function UpdateTreeRecord() {
         <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Add New Record</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Add New Record
+              </h1>
               {tree && (
                 <div className="mt-2 text-gray-600">
                   <p>
                     <span className="font-semibold">Tree:</span> {tree.treeName}
                   </p>
                   <p>
-                    <span className="font-semibold">Type:</span> {tree.treeType || "N/A"}
+                    <span className="font-semibold">Type:</span>{" "}
+                    {tree.treeType || "N/A"}
                   </p>
                 </div>
               )}
@@ -443,7 +468,9 @@ export default function UpdateTreeRecord() {
                   disabled={locationLoading}
                   className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {locationLoading ? "Requesting Location..." : "Get Current Location"}
+                  {locationLoading
+                    ? "Requesting Location..."
+                    : "Get Current Location"}
                 </button>
               </div>
               {locationError && (
@@ -659,4 +686,3 @@ export default function UpdateTreeRecord() {
     </div>
   );
 }
-

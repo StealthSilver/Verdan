@@ -3,10 +3,11 @@ import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
-// Import the Verdan logo SVG correctly from the shared assets directory
 import verdanLogo from "../assets/verdan_light.svg";
 import AddSite from "./AddSite";
 import type { Site as SiteType } from "./AddSite";
+
+const VERDAN_GREEN = "#2E5E34";
 
 interface User {
   id: string;
@@ -26,7 +27,7 @@ interface Site {
     lat: number;
     lng: number;
   };
-  type?: string; // Added to align with AddSite component's expectations
+  type?: string;
 }
 
 export default function UserDashboard() {
@@ -36,36 +37,36 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    show: boolean;
-    siteId: string | null;
-    siteName: string;
-  }>({ show: false, siteId: null, siteName: "" });
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    siteId: null as string | null,
+    siteName: "",
+  });
   const [deleting, setDeleting] = useState(false);
-  const [showSiteDrawer, setShowSiteDrawer] = useState(false); // controls slide-in modal
+  const [showSiteDrawer, setShowSiteDrawer] = useState(false);
   const [editingSite, setEditingSite] = useState<SiteType | null>(null);
-  const [refreshCounter, setRefreshCounter] = useState(0); // trigger re-fetch after save
+  const [refreshCounter, setRefreshCounter] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Close dropdown if clicked outside
+  // Dropdown outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(e.target as Node)
       ) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Fetch user info
+  // Fetch user
   useEffect(() => {
-    const fetchUser = async () => {
+    const run = async () => {
       if (!token) return;
       setLoading(true);
       try {
@@ -74,18 +75,17 @@ export default function UserDashboard() {
         });
         setUser(res.data);
       } catch (err: any) {
-        console.error(err);
         setError(err?.response?.data?.message || "Failed to fetch user data");
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
+    run();
   }, [token]);
 
-  // Fetch assigned sites
+  // Fetch sites
   useEffect(() => {
-    const fetchSites = async () => {
+    const run = async () => {
       if (!token) return;
       setLoading(true);
       setError("");
@@ -95,260 +95,240 @@ export default function UserDashboard() {
         });
         setSites(res.data);
       } catch (err: any) {
-        console.error(err);
-        setError(
-          err?.response?.data?.message || "Failed to fetch assigned sites"
-        );
+        setError(err?.response?.data?.message || "Failed to fetch sites");
       } finally {
         setLoading(false);
       }
     };
-    fetchSites();
+    run();
   }, [token, location.pathname, refreshCounter]);
 
-  // Refresh sites when returning from add/edit page
-  useEffect(() => {
-    if (location.state?.refresh && token) {
-      const fetchSites = async () => {
-        try {
-          const res = await API.get<Site[]>("/admin/sites", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setSites(res.data);
-          // Clear the refresh flag by replacing the location state
-          window.history.replaceState({}, document.title);
-        } catch (err: any) {
-          console.error(err);
-        }
-      };
-      fetchSites();
-    }
-  }, [location.state?.refresh, token]);
-
   if (loading)
-    return <p className="text-center mt-10 text-gray-700">Loading...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600 text-lg">Loading...</p>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-red-500 text-lg">{error}</p>
+      </div>
+    );
 
-  const handleProfile = () => navigate("/profile");
-  const handleSetting = () => navigate("/setting");
   const handleLogout = () => {
     logout();
     navigate("/");
   };
+
   const handleAdd = () => {
     setEditingSite(null);
     setShowSiteDrawer(true);
   };
+
   const handleUpdate = (site: Site) => {
-    // Provide minimal shape expected by AddSite; 'type' may be missing so default fallback handled inside AddSite
-    const editing: SiteType = {
+    setEditingSite({
       _id: site._id,
       name: site.name,
       address: site.address,
       coordinates: site.coordinates,
       status: site.status,
       type: site.type || "",
-    };
-    setEditingSite(editing);
+    });
     setShowSiteDrawer(true);
   };
 
-  const handleDeleteClick = (siteId: string, siteName: string) => {
-    setDeleteConfirm({ show: true, siteId, siteName });
-  };
-
-  const handleDeleteConfirm = async () => {
+  const handleDelete = async () => {
     if (!deleteConfirm.siteId || !token) return;
+    const id = deleteConfirm.siteId;
+    const backup = sites.find((s) => s._id === id);
 
-    const siteIdToDelete = deleteConfirm.siteId;
-    const siteToDelete = sites.find((s) => s._id === siteIdToDelete);
-
-    // Optimistically remove from UI immediately
-    setSites((prev) => prev.filter((site) => site._id !== siteIdToDelete));
+    setSites((prev) => prev.filter((s) => s._id !== id));
     setDeleteConfirm({ show: false, siteId: null, siteName: "" });
     setDeleting(true);
-    setError(""); // Clear any previous errors
 
     try {
-      const response = await API.delete(`/admin/sites/${siteIdToDelete}`, {
+      await API.delete(`/admin/sites/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Site deleted successfully:", response.data);
     } catch (err: any) {
-      console.error("Delete error:", err);
-      console.error("Error response:", err?.response);
-      console.error("Error status:", err?.response?.status);
-      console.error("Error data:", err?.response?.data);
-
-      // Restore the site if deletion failed
-      if (siteToDelete) {
-        setSites((prev) =>
-          [...prev, siteToDelete].sort((a, b) => a.name.localeCompare(b.name))
-        );
-      }
-
-      let errorMessage = "Failed to delete site. Please try again.";
-      if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err?.response?.status === 401) {
-        errorMessage = "Unauthorized. Please log in again.";
-      } else if (err?.response?.status === 403) {
-        errorMessage = "You don't have permission to delete sites.";
-      } else if (err?.response?.status === 404) {
-        errorMessage = "Site not found.";
-      } else if (err?.message) {
-        errorMessage = err.message;
-      }
-
-      setError(errorMessage);
-      alert(errorMessage);
+      if (backup) setSites((prev) => [...prev, backup]);
+      alert(err?.response?.data?.message || "Failed to delete site");
     } finally {
       setDeleting(false);
     }
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
-  };
-
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-2 flex justify-between items-center border border-gray-100">
-        <div className="flex items-center space-x-2">
-          <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
-            {/* Use imported asset so Vite processes it and path resolves correctly */}
-            <img
-              src={verdanLogo}
-              alt="Verdan Logo"
-              className="h-8 w-auto select-none"
-              draggable={false}
-            />
-          </span>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* THIN NAVBAR */}
+      <nav
+        className="bg-white border-b border-gray-200 sticky top-0 z-40"
+        style={{ borderBottomColor: VERDAN_GREEN + "15" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
 
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200 transition shadow-sm"
-          >
-            <FaUserCircle className="text-3xl text-gray-700" />
-            <span className="text-sm font-medium text-gray-800">
-              Hi, {user?.name || "User"}
-            </span>
-          </button>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <FaUserCircle className="text-2xl text-gray-600" />
+                <span className="font-medium text-gray-800 text-sm hidden sm:block">
+                  {user?.name}
+                </span>
+              </button>
 
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-60 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
-              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                <p className="text-sm font-semibold text-gray-800">
-                  {user?.name || "User"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {user?.email || "user@verdan.com"}
-                </p>
-              </div>
-              <ul className="py-1">
-                <li
-                  onClick={handleProfile}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
-                >
-                  Profile
-                </li>
-                <li
-                  onClick={handleSetting}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
-                >
-                  Settings
-                </li>
-                <li
-                  onClick={handleLogout}
-                  className="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer transition font-medium border-t border-gray-100"
-                >
-                  Logout
-                </li>
-              </ul>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg border border-gray-200 overflow-hidden z-50">
+                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <p className="font-semibold text-sm text-gray-900">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <ul className="py-1">
+                    <li
+                      onClick={() => navigate("/profile")}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      Profile
+                    </li>
+                    <li
+                      onClick={() => navigate("/setting")}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      Settings
+                    </li>
+                    <li
+                      onClick={handleLogout}
+                      className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer border-t border-gray-200 transition-colors"
+                    >
+                      Logout
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </nav>
 
-      <div className="p-6 sm:px-20 md:px-50">
-        <h1 className="text-2xl font-bold mb-6">Assigned Sites</h1>
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* HEADER WITH ADD BUTTON */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Assigned Sites
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage and monitor your construction sites
+            </p>
+          </div>
+          <button
+            onClick={handleAdd}
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+            style={{ backgroundColor: VERDAN_GREEN }}
+          >
+            + Add New Site
+          </button>
+        </div>
 
-        {sites.length === 0 ? (
-          <p>No sites assigned to you.</p>
-        ) : (
+        {/* SITES TABLE - Desktop */}
+        <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-xl border border-gray-200 shadow-sm">
-              <thead className="bg-gray-100 text-left border-b">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
-                    Name
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Site Name
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
-                    ID
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Site ID
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Address
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {sites.map((site) => (
                   <tr
                     key={site._id}
-                    className="hover:bg-gray-50 border-b last:border-none"
+                    className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-3">{site.name}</td>
-                    <td
-                      className="px-6 py-3"
-                      title={`Type: ${typeof site._id}`}
-                    >
-                      {String(site._id)}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">
+                        {site.name}
+                      </div>
                     </td>
-                    <td className="px-6 py-3">{site.address}</td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500 font-mono">
+                        {site._id.slice(0, 8)}...
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 max-w-xs truncate">
+                        {site.address}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           site.status === "active"
-                            ? "text-green-600 font-medium"
-                            : "text-red-600 font-medium"
-                        }
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
                       >
                         {site.status}
                       </span>
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="flex gap-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex justify-end gap-2">
                         <button
-                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                          onClick={() => {
-                            const siteIdStr = String(site._id);
-                            console.log(
-                              "Navigating to site dashboard with siteId:",
-                              siteIdStr
-                            );
-                            navigate(`/admin/dashboard/${siteIdStr}`);
+                          className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+                          style={{
+                            backgroundColor: VERDAN_GREEN,
+                            color: "white",
                           }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.opacity = "0.9")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.opacity = "1")
+                          }
+                          onClick={() =>
+                            navigate(`/admin/dashboard/${site._id}`)
+                          }
                         >
-                          Add
+                          View
                         </button>
                         <button
-                          className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
+                          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                           onClick={() => handleUpdate(site)}
                         >
-                          Update
+                          Edit
                         </button>
                         <button
-                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          onClick={() => handleDeleteClick(site._id, site.name)}
-                          disabled={deleting}
+                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                          onClick={() =>
+                            setDeleteConfirm({
+                              show: true,
+                              siteId: site._id,
+                              siteName: site.name,
+                            })
+                          }
                         >
                           Delete
                         </button>
@@ -359,87 +339,144 @@ export default function UserDashboard() {
               </tbody>
             </table>
           </div>
-        )}
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={handleAdd}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md font-medium"
-          >
-            Add New Site
-          </button>
         </div>
 
-        {/* Slide-in Add/Update Site Drawer */}
+        {/* SITES CARDS - Mobile/Tablet */}
+        <div className="md:hidden space-y-4">
+          {sites.map((site) => (
+            <div
+              key={site._id}
+              className="bg-white rounded-lg border border-gray-200 p-4"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {site.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {site.address}
+                  </p>
+                </div>
+                <span
+                  className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    site.status === "active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {site.status}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mb-3 font-mono">
+                ID: {site._id.slice(0, 12)}...
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 px-3 py-2 text-xs font-medium rounded-md text-white transition-opacity"
+                  style={{ backgroundColor: VERDAN_GREEN }}
+                  onClick={() => navigate(`/admin/dashboard/${site._id}`)}
+                >
+                  View
+                </button>
+                <button
+                  className="flex-1 px-3 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  onClick={() => handleUpdate(site)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="flex-1 px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: true,
+                      siteId: site._id,
+                      siteName: site.name,
+                    })
+                  }
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {sites.length === 0 && (
+          <div className="bg-white rounded-lg border border-gray-200 py-12 text-center">
+            <p className="text-gray-500 mb-4">No sites assigned yet</p>
+            <button
+              onClick={handleAdd}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              Add Your First Site
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* DRAWER */}
+      <div
+        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+          showSiteDrawer ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
         <div
-          className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-            showSiteDrawer
-              ? "pointer-events-auto opacity-100"
-              : "pointer-events-none opacity-0"
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+          onClick={() => setShowSiteDrawer(false)}
+        />
+        <div
+          className={`relative h-full w-full max-w-2xl bg-white transition-transform duration-300 ${
+            showSiteDrawer ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          {/* Backdrop */}
-          <div
-            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-              showSiteDrawer ? "opacity-100" : "opacity-0"
-            }`}
-            onClick={() => setShowSiteDrawer(false)}
+          <AddSite
+            site={editingSite || undefined}
+            onClose={() => {
+              setShowSiteDrawer(false);
+              setEditingSite(null);
+            }}
+            onSiteSaved={() => setRefreshCounter((c) => c + 1)}
           />
-          {/* Drawer Panel */}
-          <div
-            className={`relative h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
-              showSiteDrawer ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
-            <AddSite
-              site={editingSite || undefined}
-              onClose={() => {
-                setShowSiteDrawer(false);
-                setEditingSite(null);
-              }}
-              onSiteSaved={() => {
-                // Trigger refetch of sites after save (create/update)
-                setRefreshCounter((c) => c + 1);
-              }}
-            />
-          </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* DELETE CONFIRMATION MODAL */}
       {deleteConfirm.show && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={handleDeleteCancel}
-        >
-          <div
-            className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Confirm Delete
-            </h3>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete{" "}
-              <strong>{deleteConfirm.siteName}</strong>? This action cannot be
-              undone and will also remove all associated trees and team member
-              assignments.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={handleDeleteCancel}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-                disabled={deleting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={deleting}
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Site
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">{deleteConfirm.siteName}</span>?
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: false,
+                      siteId: null,
+                      siteName: "",
+                    })
+                  }
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete Site"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

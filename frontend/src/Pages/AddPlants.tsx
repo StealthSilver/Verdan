@@ -22,9 +22,26 @@ interface Site {
   name: string;
 }
 
-export default function AddPlants() {
+interface AddPlantsProps {
+  siteId?: string; // provided when used as a modal/drawer
+  treeId?: string; // editing existing tree
+  onClose?: () => void; // close modal/drawer
+  onTreeSaved?: () => void; // notify parent to refresh list
+}
+
+export default function AddPlants({
+  siteId: propSiteId,
+  treeId: propTreeId,
+  onClose,
+  onTreeSaved,
+}: AddPlantsProps) {
   const navigate = useNavigate();
-  const { siteId, treeId } = useParams<{ siteId: string; treeId?: string }>();
+  const { siteId: routeSiteId, treeId: routeTreeId } = useParams<{
+    siteId: string;
+    treeId?: string;
+  }>();
+  const siteId = propSiteId || routeSiteId; // prefer explicit prop for modal usage
+  const treeId = propTreeId || routeTreeId; // prefer explicit prop for modal usage
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,13 +73,16 @@ export default function AddPlants() {
 
   // Validate coordinates
   const validateCoordinates = (lat: number, lng: number): boolean => {
-    const isValid = 
-      !isNaN(lat) && 
+    const isValid =
+      !isNaN(lat) &&
       !isNaN(lng) &&
-      lat >= -90 && lat <= 90 &&
-      lng >= -180 && lng <= 180 &&
-      lat !== 0 && lng !== 0; // Ensure not default (0,0)
-    
+      lat >= -90 &&
+      lat <= 90 &&
+      lng >= -180 &&
+      lng <= 180 &&
+      lat !== 0 &&
+      lng !== 0; // Ensure not default (0,0)
+
     setCoordinatesValid(isValid);
     return isValid;
   };
@@ -73,11 +93,11 @@ export default function AddPlants() {
       setTimestampValid(false);
       return false;
     }
-    
+
     const timestampDate = new Date(timestamp);
     const now = new Date();
     const isValid = !isNaN(timestampDate.getTime()) && timestampDate <= now;
-    
+
     setTimestampValid(isValid);
     return isValid;
   };
@@ -85,13 +105,15 @@ export default function AddPlants() {
   // Get current location from device
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your browser. Please enter coordinates manually.");
+      setLocationError(
+        "Geolocation is not supported by your browser. Please enter coordinates manually."
+      );
       return;
     }
 
     setLocationLoading(true);
     setLocationError("");
-    
+
     const options: PositionOptions = {
       enableHighAccuracy: true,
       timeout: 15000, // Increased timeout
@@ -101,7 +123,7 @@ export default function AddPlants() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Strict validation
         if (validateCoordinates(latitude, longitude)) {
           setForm((prev) => ({
@@ -120,26 +142,30 @@ export default function AddPlants() {
       (error) => {
         let errorMessage = "";
         let instructions = "";
-        
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage = "Location permission denied.";
-            instructions = "Please allow location access in your browser settings and try again. Click the button to request permission again.";
+            instructions =
+              "Please allow location access in your browser settings and try again. Click the button to request permission again.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Location information unavailable.";
-            instructions = "Your device location could not be determined. Please check your device's location settings or try again.";
+            instructions =
+              "Your device location could not be determined. Please check your device's location settings or try again.";
             break;
           case error.TIMEOUT:
             errorMessage = "Location request timed out.";
-            instructions = "The location request took too long. Please check your internet connection and try again.";
+            instructions =
+              "The location request took too long. Please check your internet connection and try again.";
             break;
           default:
             errorMessage = "Failed to get location.";
-            instructions = "An unknown error occurred. Please try again or check your device settings.";
+            instructions =
+              "An unknown error occurred. Please try again or check your device settings.";
             break;
         }
-        
+
         setLocationError(`${errorMessage} ${instructions}`);
         setLocationLoading(false);
         setCoordinatesValid(false);
@@ -155,13 +181,13 @@ export default function AddPlants() {
         const now = new Date();
         const currentDate = now.toISOString().split("T")[0];
         const currentTimestamp = now.toISOString().slice(0, 16);
-        
+
         setForm((prev) => ({
           ...prev,
           datePlanted: currentDate,
           timestamp: currentTimestamp,
         }));
-        
+
         // Validate timestamp
         validateTimestamp(currentTimestamp);
       };
@@ -188,9 +214,12 @@ export default function AddPlants() {
 
         // If editing, fetch tree data
         if (treeId) {
-          const treesRes = await API.get<any[]>(`/admin/sites/${siteId}/trees`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const treesRes = await API.get<any[]>(
+            `/admin/sites/${siteId}/trees`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           const tree = treesRes.data.find((t) => t._id === treeId);
           if (tree) {
             const datePlanted = tree.datePlanted
@@ -199,7 +228,7 @@ export default function AddPlants() {
             const timestamp = tree.timestamp
               ? new Date(tree.timestamp).toISOString().slice(0, 16)
               : new Date().toISOString().slice(0, 16);
-            
+
             setForm({
               treeName: tree.treeName || "",
               treeType: tree.treeType || "",
@@ -211,14 +240,17 @@ export default function AddPlants() {
               timestamp: timestamp,
               status: tree.status || "healthy",
               remarks: tree.remarks || "",
-              image: tree.images && tree.images.length > 0 ? tree.images[0].url : null,
+              image:
+                tree.images && tree.images.length > 0
+                  ? tree.images[0].url
+                  : null,
             });
-            
+
             // Set image preview for edit mode
             if (tree.images && tree.images.length > 0) {
               setImagePreview(tree.images[0].url);
             }
-            
+
             // Validate coordinates and timestamp for edit mode
             if (tree.coordinates?.lat && tree.coordinates?.lng) {
               validateCoordinates(tree.coordinates.lat, tree.coordinates.lng);
@@ -236,25 +268,27 @@ export default function AddPlants() {
   }, [token, siteId, treeId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
-    
+
     // Prevent manual changes to coordinates - they must come from geolocation
     if (name === "lat" || name === "lng") {
       return; // Ignore changes to coordinates
     }
-    
+
     // Prevent manual changes to timestamp - it's auto-filled
     if (name === "timestamp" && !isEditMode) {
       return; // Ignore changes to timestamp for new entries
     }
-    
+
     // Prevent manual changes to date for new entries
     if (name === "datePlanted" && !isEditMode) {
       return; // Ignore changes to date for new entries
     }
-    
+
     // Handle other fields normally
     if (name === "timestamp" && isEditMode) {
       setForm({
@@ -292,21 +326,25 @@ export default function AddPlants() {
       setLoading(false);
       return;
     }
-    
+
     // Strict coordinate validation
     if (!validateCoordinates(form.coordinates.lat, form.coordinates.lng)) {
-      setError("Valid coordinates are required. Please use the 'Get Current Location' button or enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180).");
+      setError(
+        "Valid coordinates are required. Please use the 'Get Current Location' button or enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)."
+      );
       setLoading(false);
       return;
     }
-    
+
     // Strict timestamp validation
     if (!validateTimestamp(form.timestamp)) {
-      setError("Valid timestamp is required. Timestamp must be a valid date and time (not in the future).");
+      setError(
+        "Valid timestamp is required. Timestamp must be a valid date and time (not in the future)."
+      );
       setLoading(false);
       return;
     }
-    
+
     if (!form.datePlanted) {
       setError("Date planted is required");
       setLoading(false);
@@ -375,12 +413,18 @@ export default function AddPlants() {
         );
       }
 
-      // Navigate back to site dashboard with refresh flag
-      navigate(`/admin/dashboard/${siteId}`, { state: { refresh: true } });
+      // Notify parent and close or navigate depending on context
+      if (onTreeSaved) onTreeSaved();
+      if (onClose) {
+        onClose();
+      } else if (siteId) {
+        navigate(`/admin/dashboard/${siteId}`, { state: { refresh: true } });
+      }
     } catch (err: any) {
       console.error(err);
       setError(
-        err?.response?.data?.message || `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`
+        err?.response?.data?.message ||
+          `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`
       );
     } finally {
       setLoading(false);
@@ -400,7 +444,9 @@ export default function AddPlants() {
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
-      setError("Failed to access camera. Please check permissions or use file upload instead.");
+      setError(
+        "Failed to access camera. Please check permissions or use file upload instead."
+      );
     }
   };
 
@@ -464,13 +510,33 @@ export default function AddPlants() {
 
   const handleBack = () => {
     closeCamera();
-    navigate(`/admin/dashboard/${siteId}`);
+    if (onClose) {
+      onClose();
+    } else if (siteId) {
+      navigate(`/admin/dashboard/${siteId}`);
+    } else {
+      navigate(`/admin/dashboard`);
+    }
   };
 
+  const isModal = !!onClose;
+
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <div className="p-6 sm:px-20 md:px-50">
-        <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div
+      className={
+        isModal
+          ? "h-full bg-white text-gray-900"
+          : "min-h-screen bg-gray-200 text-gray-900"
+      }
+    >
+      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+        <div
+          className={
+            isModal
+              ? "h-full overflow-y-auto"
+              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+          }
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
@@ -550,20 +616,32 @@ export default function AddPlants() {
                   disabled={locationLoading}
                   className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {locationLoading ? "Requesting Location..." : "Get Current Location"}
+                  {locationLoading
+                    ? "Requesting Location..."
+                    : "Get Current Location"}
                 </button>
               </div>
-              {!coordinatesValid && form.coordinates.lat === 0 && form.coordinates.lng === 0 && !locationError && (
-                <div className="mb-2 p-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-md text-sm">
-                  <strong>Please click "Get Current Location"</strong> to allow the browser to access your device location. You will be prompted to grant location permission.
-                </div>
-              )}
+              {!coordinatesValid &&
+                form.coordinates.lat === 0 &&
+                form.coordinates.lng === 0 &&
+                !locationError && (
+                  <div className="mb-2 p-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-md text-sm">
+                    <strong>Please click "Get Current Location"</strong> to
+                    allow the browser to access your device location. You will
+                    be prompted to grant location permission.
+                  </div>
+                )}
               {locationError && (
                 <div className="mb-2 p-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-md text-sm">
-                  <div className="font-semibold mb-1">{locationError.split('.')[0]}.</div>
-                  {locationError.includes('.') && locationError.split('.').length > 1 && (
-                    <div className="text-xs mt-1">{locationError.split('.').slice(1).join('.').trim()}</div>
-                  )}
+                  <div className="font-semibold mb-1">
+                    {locationError.split(".")[0]}.
+                  </div>
+                  {locationError.includes(".") &&
+                    locationError.split(".").length > 1 && (
+                      <div className="text-xs mt-1">
+                        {locationError.split(".").slice(1).join(".").trim()}
+                      </div>
+                    )}
                 </div>
               )}
               {coordinatesValid && !locationError && (
@@ -578,7 +656,9 @@ export default function AddPlants() {
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Latitude <span className="text-red-500">*</span>
-                    <span className="text-xs text-gray-500 ml-1">(Auto-filled from device)</span>
+                    <span className="text-xs text-gray-500 ml-1">
+                      (Auto-filled from device)
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -605,7 +685,9 @@ export default function AddPlants() {
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Longitude <span className="text-red-500">*</span>
-                    <span className="text-xs text-gray-500 ml-1">(Auto-filled from device)</span>
+                    <span className="text-xs text-gray-500 ml-1">
+                      (Auto-filled from device)
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -636,7 +718,11 @@ export default function AddPlants() {
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Date Planted <span className="text-red-500">*</span>
-                  {!isEditMode && <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>}
+                  {!isEditMode && (
+                    <span className="text-xs text-gray-500 ml-1">
+                      (Auto-filled)
+                    </span>
+                  )}
                 </label>
                 <input
                   type="date"
@@ -658,7 +744,11 @@ export default function AddPlants() {
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Timestamp <span className="text-red-500">*</span>
-                  {!isEditMode && <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>}
+                  {!isEditMode && (
+                    <span className="text-xs text-gray-500 ml-1">
+                      (Auto-filled)
+                    </span>
+                  )}
                 </label>
                 <input
                   type="datetime-local"
@@ -737,7 +827,7 @@ export default function AddPlants() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Plant Image
               </label>
-              
+
               {/* Image Preview */}
               {imagePreview && (
                 <div className="mb-4 relative inline-block">
@@ -835,4 +925,3 @@ export default function AddPlants() {
     </div>
   );
 }
-
