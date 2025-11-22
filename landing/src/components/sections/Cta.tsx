@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/Button";
 import { ArrowRight, Leaf } from "lucide-react";
 
 const CTA = () => {
