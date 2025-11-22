@@ -1,81 +1,82 @@
-"use client";
-
-import React from "react";
-import Link from "next/link";
-import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Leaf } from "lucide-react";
 
 const CTA = () => {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section
-      id="cta"
-      className="relative overflow-hidden py-30 px-6 mt-10 flex flex-col items-center justify-center
-                  mx-auto rounded-2xl text-center"
-      style={{
-        backgroundColor: "var(--background)",
-        color: "var(--color-font)",
-        fontFamily: "var(--font-primary)",
-      }}
-    >
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
-        aria-hidden="true"
-      >
-        <div
-          className="w-[400px] h-[400px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, var(--glow-color) 0%, transparent 80%)",
-            filter: "blur(60px)",
-          }}
-        />
-      </div>
+    <section ref={ref} className="py-24 relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/20" />
 
-      <div className="relative z-10 flex flex-col items-center justify-center gap-4">
-        <h1
-          className="text-4xl md:text-5xl leading-tight"
-          style={{
-            fontFamily: "var(--font-primary)",
-            color: "var(--color-font)",
-          }}
+      <div className="container mx-auto px-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl mx-auto"
         >
-          Protect your plants, get started
-        </h1>
+          <div className="bg-card/50 backdrop-blur-sm rounded-3xl p-12 md:p-16 shadow-glow border border-border/50 text-center space-y-8">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl"
+            >
+              <Leaf className="h-8 w-8 text-primary" />
+            </motion.div>
 
-        <h2
-          className="text-4xl md:text-5xl leading-tight"
-          style={{
-            fontFamily: "var(--font-primary)",
-            color: "var(--color-font)",
-          }}
-        >
-          today with Verdan
-        </h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="space-y-4"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold text-balance">
+                Ready to Transform Your Plant Care?
+              </h2>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
+                Join thousands of plant lovers who are already growing
+                healthier, happier gardens with Verdan.
+              </p>
+            </motion.div>
 
-        <Link
-          href="https://dev.dt8mvbuq4t843.amplifyapp.com"
-          className="mt-10 inline-block rounded-full border px-14 py-2 text-xl transition-all duration-300"
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "var(--background)",
-            borderColor: "var(--color-primary)",
-            fontFamily: "var(--font-secondary)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--background)";
-            e.currentTarget.style.color = "var(--color-font)";
-            e.currentTarget.style.borderColor = "var(--foreground)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--color-primary)";
-            e.currentTarget.style.color = "var(--foreground)";
-            e.currentTarget.style.borderColor = "var(--color-primary)";
-          }}
-        >
-          Get Started
-        </Link>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Button
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shadow-glow group"
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full px-8 border-2 hover:bg-secondary"
+              >
+                View Demo
+              </Button>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-sm text-muted-foreground"
+            >
+              No credit card required • Free forever plan available
+            </motion.p>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
