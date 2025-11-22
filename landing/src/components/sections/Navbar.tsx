@@ -97,13 +97,13 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-6 font-mono">
-          <Button
-            size="lg"
-            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 shadow-glow group"
+          <Link
+            href="https://verdan-beige.vercel.app/"
+            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
+          </Link>
         </div>
 
         <div className="md:hidden flex items-center gap-3">
