@@ -3,6 +3,10 @@ import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
+// Import the Verdan logo SVG correctly from the shared assets directory
+import verdanLogo from "../assets/verdan_light.svg";
+import AddSite from "./AddSite";
+import type { Site as SiteType } from "./AddSite";
 
 interface User {
   id: string;
@@ -22,6 +26,7 @@ interface Site {
     lat: number;
     lng: number;
   };
+  type?: string; // Added to align with AddSite component's expectations
 }
 
 export default function UserDashboard() {
@@ -37,6 +42,9 @@ export default function UserDashboard() {
     siteName: string;
   }>({ show: false, siteId: null, siteName: "" });
   const [deleting, setDeleting] = useState(false);
+  const [showSiteDrawer, setShowSiteDrawer] = useState(false); // controls slide-in modal
+  const [editingSite, setEditingSite] = useState<SiteType | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0); // trigger re-fetch after save
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,17 +88,11 @@ export default function UserDashboard() {
     const fetchSites = async () => {
       if (!token) return;
       setLoading(true);
-      setError(""); // Clear any previous errors
+      setError("");
       try {
         const res = await API.get<Site[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Log site IDs for debugging
-        console.log("UserDashboard - Sites received:", res.data.map(s => ({
-          id: s._id,
-          idType: typeof s._id,
-          name: s.name
-        })));
         setSites(res.data);
       } catch (err: any) {
         console.error(err);
@@ -102,7 +104,7 @@ export default function UserDashboard() {
       }
     };
     fetchSites();
-  }, [token, location.pathname]);
+  }, [token, location.pathname, refreshCounter]);
 
   // Refresh sites when returning from add/edit page
   useEffect(() => {
@@ -134,10 +136,21 @@ export default function UserDashboard() {
     navigate("/");
   };
   const handleAdd = () => {
-    navigate("/admin/Dashboard/add-site");
+    setEditingSite(null);
+    setShowSiteDrawer(true);
   };
   const handleUpdate = (site: Site) => {
-    navigate("/admin/Dashboard/add-site", { state: { site } });
+    // Provide minimal shape expected by AddSite; 'type' may be missing so default fallback handled inside AddSite
+    const editing: SiteType = {
+      _id: site._id,
+      name: site.name,
+      address: site.address,
+      coordinates: site.coordinates,
+      status: site.status,
+      type: site.type || "",
+    };
+    setEditingSite(editing);
+    setShowSiteDrawer(true);
   };
 
   const handleDeleteClick = (siteId: string, siteName: string) => {
@@ -149,7 +162,7 @@ export default function UserDashboard() {
 
     const siteIdToDelete = deleteConfirm.siteId;
     const siteToDelete = sites.find((s) => s._id === siteIdToDelete);
-    
+
     // Optimistically remove from UI immediately
     setSites((prev) => prev.filter((site) => site._id !== siteIdToDelete));
     setDeleteConfirm({ show: false, siteId: null, siteName: "" });
@@ -166,14 +179,14 @@ export default function UserDashboard() {
       console.error("Error response:", err?.response);
       console.error("Error status:", err?.response?.status);
       console.error("Error data:", err?.response?.data);
-      
+
       // Restore the site if deletion failed
       if (siteToDelete) {
-        setSites((prev) => [...prev, siteToDelete].sort((a, b) => 
-          a.name.localeCompare(b.name)
-        ));
+        setSites((prev) =>
+          [...prev, siteToDelete].sort((a, b) => a.name.localeCompare(b.name))
+        );
       }
-      
+
       let errorMessage = "Failed to delete site. Please try again.";
       if (err?.response?.data?.message) {
         errorMessage = err.response.data.message;
@@ -186,7 +199,7 @@ export default function UserDashboard() {
       } else if (err?.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       alert(errorMessage);
     } finally {
@@ -200,10 +213,16 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-200 text-gray-900">
-      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
+      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-2 flex justify-between items-center border border-gray-100">
         <div className="flex items-center space-x-2">
           <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
-            Verdan
+            {/* Use imported asset so Vite processes it and path resolves correctly */}
+            <img
+              src={verdanLogo}
+              alt="Verdan Logo"
+              className="h-8 w-auto select-none"
+              draggable={false}
+            />
           </span>
         </div>
 
@@ -287,7 +306,12 @@ export default function UserDashboard() {
                     className="hover:bg-gray-50 border-b last:border-none"
                   >
                     <td className="px-6 py-3">{site.name}</td>
-                    <td className="px-6 py-3" title={`Type: ${typeof site._id}`}>{String(site._id)}</td>
+                    <td
+                      className="px-6 py-3"
+                      title={`Type: ${typeof site._id}`}
+                    >
+                      {String(site._id)}
+                    </td>
                     <td className="px-6 py-3">{site.address}</td>
                     <td className="px-6 py-3">
                       <span
@@ -306,7 +330,10 @@ export default function UserDashboard() {
                           className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                           onClick={() => {
                             const siteIdStr = String(site._id);
-                            console.log("Navigating to site dashboard with siteId:", siteIdStr);
+                            console.log(
+                              "Navigating to site dashboard with siteId:",
+                              siteIdStr
+                            );
                             navigate(`/admin/dashboard/${siteIdStr}`);
                           }}
                         >
@@ -342,15 +369,50 @@ export default function UserDashboard() {
             Add New Site
           </button>
         </div>
+
+        {/* Slide-in Add/Update Site Drawer */}
+        <div
+          className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+            showSiteDrawer
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          }`}
+        >
+          {/* Backdrop */}
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+              showSiteDrawer ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowSiteDrawer(false)}
+          />
+          {/* Drawer Panel */}
+          <div
+            className={`relative h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
+              showSiteDrawer ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <AddSite
+              site={editingSite || undefined}
+              onClose={() => {
+                setShowSiteDrawer(false);
+                setEditingSite(null);
+              }}
+              onSiteSaved={() => {
+                // Trigger refetch of sites after save (create/update)
+                setRefreshCounter((c) => c + 1);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
           onClick={handleDeleteCancel}
         >
-          <div 
+          <div
             className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
@@ -358,8 +420,10 @@ export default function UserDashboard() {
               Confirm Delete
             </h3>
             <p className="text-gray-700 mb-6">
-              Are you sure you want to delete <strong>{deleteConfirm.siteName}</strong>? 
-              This action cannot be undone and will also remove all associated trees and team member assignments.
+              Are you sure you want to delete{" "}
+              <strong>{deleteConfirm.siteName}</strong>? This action cannot be
+              undone and will also remove all associated trees and team member
+              assignments.
             </p>
             <div className="flex gap-3 justify-end">
               <button

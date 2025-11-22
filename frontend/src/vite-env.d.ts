@@ -9,3 +9,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// Allow importing SVGs as modules returning the URL string
+declare module "*.svg" {
+  const src: string;
+  export default src;
+}

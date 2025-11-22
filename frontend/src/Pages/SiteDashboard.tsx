@@ -101,7 +101,7 @@ export default function SiteDashboard() {
         }
         return;
       }
-      
+
       console.log("Fetching site data for siteId:", siteId);
       setLoading(true);
       setError("");
@@ -128,7 +128,7 @@ export default function SiteDashboard() {
         console.error("Error data:", err?.response?.data);
         console.error("Request URL:", err?.config?.url);
         console.error("SiteId used:", siteId);
-        
+
         let errorMessage = "Failed to fetch data";
         if (err?.response?.data?.message) {
           errorMessage = err.response.data.message;
@@ -139,10 +139,17 @@ export default function SiteDashboard() {
           if (err?.response?.data?.searchedSiteId) {
             errorMessage += `\nSearched ID: ${err.response.data.searchedSiteId}`;
           }
-          if (err?.response?.data?.availableSiteIds && err.response.data.availableSiteIds.length > 0) {
-            errorMessage += `\n\nAvailable Site IDs in database:\n${err.response.data.availableSiteIds.slice(0, 10).join("\n")}`;
+          if (
+            err?.response?.data?.availableSiteIds &&
+            err.response.data.availableSiteIds.length > 0
+          ) {
+            errorMessage += `\n\nAvailable Site IDs in database:\n${err.response.data.availableSiteIds
+              .slice(0, 10)
+              .join("\n")}`;
             if (err.response.data.availableSiteIds.length > 10) {
-              errorMessage += `\n... and ${err.response.data.availableSiteIds.length - 10} more`;
+              errorMessage += `\n... and ${
+                err.response.data.availableSiteIds.length - 10
+              } more`;
             }
           }
           if (err?.response?.data?.suggestion) {
@@ -154,8 +161,13 @@ export default function SiteDashboard() {
           errorMessage = "You don't have permission to access this site.";
         } else if (err?.response?.status === 404) {
           errorMessage = `Site not found. Site ID from URL: ${siteId}`;
-          if (err?.response?.data?.availableSiteIds && err.response.data.availableSiteIds.length > 0) {
-            errorMessage += `\n\nAvailable Site IDs:\n${err.response.data.availableSiteIds.slice(0, 10).join("\n")}`;
+          if (
+            err?.response?.data?.availableSiteIds &&
+            err.response.data.availableSiteIds.length > 0
+          ) {
+            errorMessage += `\n\nAvailable Site IDs:\n${err.response.data.availableSiteIds
+              .slice(0, 10)
+              .join("\n")}`;
           }
         } else if (err?.message) {
           errorMessage = err.message;
@@ -184,7 +196,7 @@ export default function SiteDashboard() {
 
   const handleDeleteTree = async (treeId: string) => {
     if (!window.confirm("Are you sure you want to delete this tree?")) return;
-    
+
     try {
       await API.delete(`/admin/trees/${treeId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -210,9 +222,13 @@ export default function SiteDashboard() {
     return (
       <div className="min-h-screen bg-gray-200 text-gray-900 p-6">
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Site</h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Site
+          </h2>
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <pre className="whitespace-pre-wrap text-sm text-red-700 font-mono">{error}</pre>
+            <pre className="whitespace-pre-wrap text-sm text-red-700 font-mono">
+              {error}
+            </pre>
           </div>
           <button
             onClick={() => navigate("/admin/Dashboard")}
@@ -224,14 +240,15 @@ export default function SiteDashboard() {
       </div>
     );
   }
-  if (!site) return <p className="text-center mt-10 text-gray-700">Site not found</p>;
+  if (!site)
+    return <p className="text-center mt-10 text-gray-700">Site not found</p>;
 
   return (
     <div className="min-h-screen bg-gray-200 text-gray-900">
       <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
         <div className="flex items-center space-x-2">
           <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
-            Verdan
+            <img src="./assets/verdan_light.svg" alt="Verdan Logo" />
           </span>
         </div>
 
@@ -315,7 +332,9 @@ export default function SiteDashboard() {
         {/* Plantation Dashboard */}
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Plantation Dashboard</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Plantation Dashboard
+            </h2>
             <button
               onClick={handleAddPlants}
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md font-medium"
@@ -326,7 +345,8 @@ export default function SiteDashboard() {
 
           {trees.length === 0 ? (
             <p className="text-center py-10 text-gray-600">
-              No trees recorded for this site yet. Click "Add Plants" to get started.
+              No trees recorded for this site yet. Click "Add Plants" to get
+              started.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -374,7 +394,8 @@ export default function SiteDashboard() {
                             className="w-16 h-16 object-cover rounded-lg border border-gray-300"
                             onError={(e) => {
                               // Fallback if image fails to load
-                              (e.target as HTMLImageElement).style.display = "none";
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
                             }}
                           />
                         ) : (
@@ -391,12 +412,13 @@ export default function SiteDashboard() {
                         {new Date(tree.datePlanted).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-3">
-                        {tree.timestamp 
+                        {tree.timestamp
                           ? new Date(tree.timestamp).toLocaleTimeString()
                           : new Date(tree.datePlanted).toLocaleTimeString()}
                       </td>
                       <td className="px-6 py-3 text-sm">
-                        {tree.coordinates.lat.toFixed(6)}, {tree.coordinates.lng.toFixed(6)}
+                        {tree.coordinates.lat.toFixed(6)},{" "}
+                        {tree.coordinates.lng.toFixed(6)}
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex justify-end gap-2">
@@ -425,4 +447,3 @@ export default function SiteDashboard() {
     </div>
   );
 }
-

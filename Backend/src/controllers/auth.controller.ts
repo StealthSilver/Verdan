@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import User, { type IUser } from "../models/user.model";
 import { Types } from "mongoose";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 const signupSchema = z.object({
   name: z.string().min(3),
@@ -119,7 +120,6 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       .json({ message: "Server error" });
   }
 };
-
 
 const generateToken = (
   user: IUser,

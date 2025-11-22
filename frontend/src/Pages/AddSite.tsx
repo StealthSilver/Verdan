@@ -14,7 +14,7 @@ interface SiteForm {
   type: string;
 }
 
-interface Site {
+export interface Site {
   _id: string;
   name: string;
   address: string;
@@ -26,15 +26,22 @@ interface Site {
   type: string;
 }
 
-export default function AddSite() {
+interface AddSiteProps {
+  onClose?: () => void; // Provided when used as a modal/drawer
+  site?: Site; // Site to edit (optional). If absent falls back to location.state
+  onSiteSaved?: (site: Site) => void; // Callback to parent (creation or update)
+}
+
+export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
-  // Check if we're in edit mode (site data passed via location state)
-  const editSite = location.state?.site as Site | undefined;
+
+  // Determine edit site from props (modal usage) or location state (standalone route usage)
+  const locationSite = location.state?.site as Site | undefined;
+  const editSite = site || locationSite;
   const isEditMode = !!editSite;
   const [createdSiteId, setCreatedSiteId] = useState<string | null>(null);
 
@@ -49,7 +56,7 @@ export default function AddSite() {
     type: editSite?.type || "",
   });
 
-  // Update form when editSite changes
+  // Update form when editSite changes (covers both modal prop and location state)
   useEffect(() => {
     if (editSite) {
       setForm({
@@ -121,7 +128,7 @@ export default function AddSite() {
     try {
       if (isEditMode && editSite?._id) {
         // Update existing site
-        await API.put(
+        const response = await API.put<Site>(
           `/admin/sites/${editSite._id}`,
           {
             name: form.name,
@@ -137,6 +144,13 @@ export default function AddSite() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        // Inform parent & close if in modal mode
+        if (response.data && onSiteSaved) onSiteSaved(response.data);
+        if (onClose) {
+          onClose();
+        } else {
+          navigate("/admin/Dashboard", { state: { refresh: true } });
+        }
       } else {
         // Create new site
         const response = await API.post<Site>(
@@ -155,24 +169,21 @@ export default function AddSite() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        // Store the created site ID to show Add Team button
         if (response.data?._id) {
           setCreatedSiteId(response.data._id);
+          if (onSiteSaved) onSiteSaved(response.data);
           setLoading(false);
-          // Don't navigate away, let user see the Add Team button
+          // Keep modal open to allow Add Team action (same as original standalone behavior)
           return;
         }
-      }
-
-      // Navigate back to dashboard with refresh flag (only for updates)
-      if (isEditMode) {
-        navigate("/admin/Dashboard", { state: { refresh: true } });
       }
     } catch (err: any) {
       console.error(err);
       setError(
-        err?.response?.data?.message || 
-        (isEditMode ? "Failed to update site. Please try again." : "Failed to add site. Please try again.")
+        err?.response?.data?.message ||
+          (isEditMode
+            ? "Failed to update site. Please try again."
+            : "Failed to add site. Please try again.")
       );
     } finally {
       setLoading(false);
@@ -180,13 +191,36 @@ export default function AddSite() {
   };
 
   const handleBack = () => {
-    navigate("/admin/Dashboard");
+    if (onClose) {
+      onClose();
+    } else {
+      navigate("/admin/Dashboard");
+    }
   };
 
+  const isModal = !!onClose;
+
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <div className="p-6 sm:px-20 md:px-50">
-        <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div
+      className={
+        isModal
+          ? "h-full bg-white text-gray-900"
+          : "min-h-screen bg-gray-200 text-gray-900"
+      }
+    >
+      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+        <div
+          className={
+            isModal
+              ? "h-full overflow-y-auto"
+              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+          }
+        >
+          {!isModal && (
+            <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+              {/* Fallback container for standalone route (kept for backward compatibility) */}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
               {isEditMode ? "Update Site" : "Add New Site"}
@@ -337,14 +371,22 @@ export default function AddSite() {
                 disabled={loading}
                 className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Site" : "Save Site")}
+                {loading
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Saving..."
+                  : isEditMode
+                  ? "Update Site"
+                  : "Save Site"}
               </button>
             </div>
 
             {(isEditMode && editSite?._id) || createdSiteId ? (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
-                  {createdSiteId ? "Site created successfully! You can now add team members." : ""}
+                  {createdSiteId
+                    ? "Site created successfully! You can now add team members."
+                    : ""}
                 </div>
                 <button
                   type="button"
@@ -361,7 +403,9 @@ export default function AddSite() {
                 {createdSiteId && (
                   <button
                     type="button"
-                    onClick={() => navigate("/admin/Dashboard", { state: { refresh: true } })}
+                    onClick={() =>
+                      navigate("/admin/Dashboard", { state: { refresh: true } })
+                    }
                     className="w-full mt-3 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
                   >
                     Go to Dashboard
