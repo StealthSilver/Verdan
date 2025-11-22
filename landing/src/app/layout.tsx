@@ -66,12 +66,7 @@ export default function RootLayout({
         <ThemeHeadIcons />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          value={{ light: "light", dark: "dark" }}
-        >
+        <ThemeProvider attribute="class" defaultTheme="system">
           <ClientWrapper>{children}</ClientWrapper>
         </ThemeProvider>
       </body>
