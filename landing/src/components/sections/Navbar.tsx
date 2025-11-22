@@ -1,19 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import ThemeToggle from "../ui/ThemeToggle";
-import { useTheme } from "next-themes";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
-  const { theme } = useTheme();
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const toggleMenu = () => setIsOpen((v) => !v);
 
@@ -26,26 +20,13 @@ export default function Navbar() {
 
   return (
     <nav
-      className="
-      fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3
-      bg-white/90 dark:bg-[#0d0d0d]/80 backdrop-blur-lg
-      shadow-sm
-      text-[var(--color-font)]
-      transition-colors duration-300
-    "
+      className="fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-lg shadow-sm text-[var(--color-font)]"
       style={{ position: "relative" }}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center cursor-pointer">
           <motion.img
-            key={mounted ? theme : "default"}
-            src={
-              !mounted
-                ? "/verdan.svg"
-                : theme === "dark"
-                ? "/verdan_dark.svg"
-                : "/verdan_light.svg"
-            }
+            src="/verdan_light.svg"
             alt="Verdan Logo"
             className="w-28 h-auto sm:w-32 md:w-36"
             initial={{ opacity: 0 }}
@@ -63,11 +44,7 @@ export default function Navbar() {
               {hovered === item.name && (
                 <motion.span
                   layoutId="hoverBg"
-                  className="
-                    absolute inset-0 rounded-full backdrop-blur-sm
-                    bg-gray-200/70 border border-gray-300
-                    dark:bg-gray-700/70 dark:border-gray-600
-                  "
+                  className="absolute inset-0 rounded-full backdrop-blur-sm bg-gray-200/70 border border-gray-300"
                   transition={{
                     type: "spring",
                     stiffness: 500,
@@ -82,12 +59,7 @@ export default function Navbar() {
                 href={item.href}
                 onMouseEnter={() => setHovered(item.name)}
                 onFocus={() => setHovered(item.name)}
-                className="
-                font-[var(--font-secondary)]
-                  relative z-10 transition-colors
-                  text-gray-700 hover:text-black
-                  dark:text-gray-300 dark:hover:text-white
-                "
+                className="font-[var(--font-secondary)] relative z-10 transition-colors text-gray-700 hover:text-black"
               >
                 {item.name}
               </Link>
@@ -108,10 +80,6 @@ export default function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-3">
-          <div className="scale-90">
-            <ThemeToggle />
-          </div>
-
           <button
             onClick={toggleMenu}
             aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -123,21 +91,13 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div
-          className="
-      md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg 
-      border-t border-[var(--foreground)]/20 transition-colors duration-300
-      font-[var(--font-secondary)]
-    "
-        >
+        <div className="md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg border-t border-[var(--foreground)]/20 font-[var(--font-secondary)]">
           <div className="flex flex-col items-center space-y-5 py-10">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="
-            transition-colors text-[var(--color-font)] hover:text-[var(--foreground)]
-          "
+                className="transition-colors text-[var(--color-font)] hover:text-[var(--foreground)]"
                 onClick={() => setIsOpen(false)}
               >
                 {item.name}
@@ -146,12 +106,7 @@ export default function Navbar() {
 
             <a
               href="#cta"
-              className="
-          rounded-full border px-6 py-1.5 transition-colors
-          bg-[var(--color-primary)] text-[var(--background)] dark:text-[var(--foreground)]  border-[var(--color-primary)]
-          hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
-           font-[var(--font-secondary)]
-        "
+              className="rounded-full border px-6 py-1.5 transition-colors bg-[var(--color-primary)] text-[var(--background)] border-[var(--color-primary)] hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)] font-[var(--font-secondary)]"
               onClick={() => setIsOpen(false)}
             >
               Connect

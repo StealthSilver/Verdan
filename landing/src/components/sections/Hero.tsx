@@ -1,21 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 import Image from "next/image";
-import { useTheme } from "next-themes";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const Hero = () => {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-
-  const isDark = theme === "dark";
-
   return (
     <section
       id="home"
@@ -53,18 +42,7 @@ const Hero = () => {
               "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0) 100%)",
           }}
         />
-        {/* Optional subtle dark theme adjustment below fade for contrast */}
-        {isDark && (
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.25) 75%)",
-              mixBlendMode: "multiply",
-            }}
-          />
-        )}
+        {/* Dark theme overlay removed */}
       </div>
 
       {/* Content Layer */}
