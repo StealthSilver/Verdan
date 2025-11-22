@@ -71,7 +71,7 @@ const Hero = () => {
           Fastest and most efficient
         </h1>
         <h2 className="text-4xl md:text-6xl font-[var(--font-primary)] leading-tight mt-2">
-          way to grow plants
+          way to plant trees
         </h2>
 
         <p className="md:text-xl text-base font-[var(--font-secondary)] mt-8 opacity-90">
