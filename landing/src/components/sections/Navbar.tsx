@@ -142,7 +142,7 @@ export default function Navbar() {
             ))}
 
             <a
-              href="#footer"
+              href="#cta"
               className="
           rounded-full border px-6 py-1.5 transition-colors
           bg-[var(--color-primary)] text-[var(--background)] dark:text-[var(--foreground)]  border-[var(--color-primary)]

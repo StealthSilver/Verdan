@@ -96,13 +96,20 @@ export const signin = async (req: Request, res: Response) => {
   }
 };
 
-export const getMe = async (req: Request, res: Response) => {
+export const getMe = async (req: AuthRequest, res: Response) => {
   try {
-    const user = (req as any).user as IUser;
-    if (!user)
+    if (!req.user) {
       return res
         .status(StatusCodes.UNAUTHORIZED)
         .json({ message: "Not authorized" });
+    }
+
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "User not found" });
+    }
 
     return res.status(StatusCodes.OK).json(user);
   } catch (err) {
@@ -112,6 +119,7 @@ export const getMe = async (req: Request, res: Response) => {
       .json({ message: "Server error" });
   }
 };
+
 
 const generateToken = (
   user: IUser,
