@@ -11,154 +11,65 @@
   }
 }
 
-@layer base {
+/* -----------------------------------------------------
+   🌞 Base Theme Variables (Light Mode Defaults)
+   -----------------------------------------------------
+   These variables define the base colors and tones used
+   throughout the site. Accessible via var(--variable-name).
+------------------------------------------------------ */
+:root {
+  --color-font: #0e0e0e; /* Default text color */
+  --background: #f2f7f4; /* Page background */
+  --foreground: #0e0e0e; /* Foreground or content color */
+
+  /* --hover-dark: oklch(20.8% 0.042 265.755);  Dark hover shade */
+  /*--hover-light: oklch(92.9% 0.013 255.508); Light hover shade */
+}
+
+/* -----------------------------------------------------
+   🎨 Theme Configuration for Tailwind
+   -----------------------------------------------------
+   Defines design tokens (colors, fonts, etc.) that can be
+   used throughout the Tailwind system. Ideal for consistent
+   theming across light and dark modes.
+------------------------------------------------------ */
+@theme {
+  /* Brand colors */
+  --color-primary: #2e8b57; /* Purple-blue hue */
+  --color-secondary: #cd934d; /* Soft green hue */
+
+  /* Light mode defaults */
+  --color-font: #0e0e0e;
+  --background: #f2f7f4;
+  --foreground: #0e0e0e;
+  /* --hover-dark: oklch(20.8% 0.042 265.755);
+  --hover-light: oklch(92.9% 0.013 255.508); */
+
+  /* Font families */
+  --font-primary: var(--font-ibm-plex-sans, "IBM Plex Sans", sans-serif);
+  --font-secondary: var(--font-manrope, "Manrope", sans-serif);
+}
+
+/* -----------------------------------------------------
+   🌚 Dark Mode Overrides
+   -----------------------------------------------------
+   When `.dark` class is present, these variables replace
+   the light mode ones to provide a dark UI theme.
+------------------------------------------------------ */
+.dark {
+  --background: #0e0e0e; /* Background becomes black */
+  --foreground: #f2f7f4; /* Light gray text and accents */
+  --color-font: #f2f7f4; /* Main font color in dark mode */
+}
+
+/* -----------------------------------------------------
+   🖥️ System Dark Mode Detection
+   -----------------------------------------------------
+   Automatically applies extra styling when user’s OS is
+   in dark mode, even if `.dark` class is not set.
+------------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
   :root {
-    /* Nature-inspired minimal palette */
-    --background: 40 20% 98%;
-    --foreground: 150 30% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 150 30% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 150 30% 15%;
-
-    /* Primary: Sea Green #2e8b57 */
-    --primary: 146 50% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 146 60% 65%;
-
-    /* Secondary: Warm cream/beige */
-    --secondary: 40 30% 95%;
-    --secondary-foreground: 150 30% 15%;
-
-    /* Muted: Soft sage */
-    --muted: 150 20% 92%;
-    --muted-foreground: 150 15% 45%;
-
-    /* Accent: Warm yellow/gold */
-    --accent: 45 90% 60%;
-    --accent-foreground: 150 30% 15%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 150 20% 88%;
-    --input: 150 20% 88%;
-    --ring: 146 50% 45%;
-
-    --radius: 1rem;
-
-    /* Custom design tokens */
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(146 50% 45%),
-      hsl(146 60% 55%)
-    );
-    --gradient-subtle: linear-gradient(
-      180deg,
-      hsl(40 20% 98%),
-      hsl(150 20% 96%)
-    );
-    --shadow-soft: 0 4px 20px -4px hsl(146 50% 45% / 0.1);
-    --shadow-glow: 0 8px 32px -8px hsl(146 50% 45% / 0.2);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --sidebar-background: 40 20% 98%;
-    --sidebar-foreground: 150 30% 15%;
-    --sidebar-primary: 146 50% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 30% 95%;
-    --sidebar-accent-foreground: 150 30% 15%;
-    --sidebar-border: 150 20% 88%;
-    --sidebar-ring: 146 50% 45%;
+    --glow-color: #cd934d66; /* Subtle green glow */
   }
-
-  .dark {
-    --background: 150 30% 8%;
-    --foreground: 150 15% 95%;
-
-    --card: 150 25% 12%;
-    --card-foreground: 150 15% 95%;
-
-    --popover: 150 25% 12%;
-    --popover-foreground: 150 15% 95%;
-
-    --primary: 146 60% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 146 70% 70%;
-
-    --secondary: 150 20% 20%;
-    --secondary-foreground: 150 15% 95%;
-
-    --muted: 150 20% 20%;
-    --muted-foreground: 150 15% 65%;
-
-    --accent: 45 85% 55%;
-    --accent-foreground: 150 30% 8%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 150 20% 20%;
-    --input: 150 20% 20%;
-    --ring: 146 60% 55%;
-
-    --sidebar-background: 150 30% 8%;
-    --sidebar-foreground: 150 15% 95%;
-    --sidebar-primary: 146 60% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 150 20% 20%;
-    --sidebar-accent-foreground: 150 15% 95%;
-    --sidebar-border: 150 20% 20%;
-    --sidebar-ring: 146 60% 55%;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
