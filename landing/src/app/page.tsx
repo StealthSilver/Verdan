@@ -9,14 +9,13 @@ import Testimonial from "@/components/sections/Testimonials";
 export default function Home() {
   return (
     <>
-      {/* Background image behind navbar + hero */}
-      {/* <GlobalHeroBg /> */}
       <Navbar />
       <Hero />
       <About />
       <Features />
-      <Testimonial />
+
       <Cta />
+      <Footer />
     </>
   );
 }

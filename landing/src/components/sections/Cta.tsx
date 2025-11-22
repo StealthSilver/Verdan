@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
@@ -21,14 +22,13 @@ const CTA = () => {
           className="max-w-4xl mx-auto"
         >
           <div className="bg-card/50 backdrop-blur-sm rounded-3xl p-12 md:p-16 shadow-glow border border-border/50 text-center space-y-8">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl"
-            >
-              <Leaf className="h-8 w-8 text-primary" />
-            </motion.div>
+            <img
+              src="/verdan_light.svg"
+              alt="Verdan Logo"
+              width={200}
+              height={40}
+              className="center mx-auto"
+            />
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -58,13 +58,6 @@ const CTA = () => {
                 Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full px-8 border-2 hover:bg-secondary"
-              >
-                View Demo
-              </Button>
             </motion.div>
 
             <motion.p
@@ -73,7 +66,7 @@ const CTA = () => {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="text-sm text-muted-foreground"
             >
-              No credit card required • Free forever plan available
+              Free forever plan available
             </motion.p>
           </div>
         </motion.div>

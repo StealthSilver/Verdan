@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X, Github } from "lucide-react";
+import { Menu, X, Github, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useTheme } from "next-themes";
+import { Button } from "../ui/Button";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -96,12 +97,13 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-6 font-mono">
-          <Link
-            href="#footer"
-            className="rounded-full border border-[var(--foreground)] text-[var(--color-font)] font-[var(--font-secondary)] px-6 py-2 text-sm md:text-base transition-all duration-300 hover:bg-[var(--foreground)] hover:text-[var(--background)]"
+          <Button
+            size="lg"
+            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 shadow-glow group"
           >
-            Get Started
-          </Link>
+            Get Started Free
+            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Button>
         </div>
 
         <div className="md:hidden flex items-center gap-3">
