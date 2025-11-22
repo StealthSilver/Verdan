@@ -28,8 +28,12 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-2 space-y-4">
             <a href="#" className="flex items-center gap-2 group">
-              <Leaf className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
-              <span className="text-2xl font-bold">Verdan</span>
+              <img
+                src="/verdan_light.svg"
+                alt="Verdan Logo"
+                width={200}
+                height={40}
+              />
             </a>
             <p className="text-muted-foreground max-w-xs">
               Your smart companion for nurturing healthier, happier plants.
