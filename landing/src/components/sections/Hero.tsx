@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const Hero = () => {
   const { theme } = useTheme();
@@ -87,7 +87,9 @@ const Hero = () => {
         <div className="flex flex-col md:flex-row items-center justify-center pt-12 gap-4 md:gap-12">
           <Link
             href="https://verdan-beige.vercel.app/"
-            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
