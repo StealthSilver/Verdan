@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 
 interface User {
@@ -31,8 +31,15 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    siteId: string | null;
+    siteName: string;
+  }>({ show: false, siteId: null, siteName: "" });
+  const [deleting, setDeleting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Close dropdown if clicked outside
   useEffect(() => {
@@ -73,10 +80,17 @@ export default function UserDashboard() {
     const fetchSites = async () => {
       if (!token) return;
       setLoading(true);
+      setError(""); // Clear any previous errors
       try {
         const res = await API.get<Site[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        // Log site IDs for debugging
+        console.log("UserDashboard - Sites received:", res.data.map(s => ({
+          id: s._id,
+          idType: typeof s._id,
+          name: s.name
+        })));
         setSites(res.data);
       } catch (err: any) {
         console.error(err);
@@ -88,7 +102,26 @@ export default function UserDashboard() {
       }
     };
     fetchSites();
-  }, [token]);
+  }, [token, location.pathname]);
+
+  // Refresh sites when returning from add/edit page
+  useEffect(() => {
+    if (location.state?.refresh && token) {
+      const fetchSites = async () => {
+        try {
+          const res = await API.get<Site[]>("/admin/sites", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSites(res.data);
+          // Clear the refresh flag by replacing the location state
+          window.history.replaceState({}, document.title);
+        } catch (err: any) {
+          console.error(err);
+        }
+      };
+      fetchSites();
+    }
+  }, [location.state?.refresh, token]);
 
   if (loading)
     return <p className="text-center mt-10 text-gray-700">Loading...</p>;
@@ -101,54 +134,116 @@ export default function UserDashboard() {
     navigate("/");
   };
   const handleAdd = () => {
-    navigate("/admin/add");
+    navigate("/admin/Dashboard/add-site");
   };
-  const handleUpdate = () => {
-    navigate("/admin/update");
+  const handleUpdate = (site: Site) => {
+    navigate("/admin/Dashboard/add-site", { state: { site } });
+  };
+
+  const handleDeleteClick = (siteId: string, siteName: string) => {
+    setDeleteConfirm({ show: true, siteId, siteName });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.siteId || !token) return;
+
+    const siteIdToDelete = deleteConfirm.siteId;
+    const siteToDelete = sites.find((s) => s._id === siteIdToDelete);
+    
+    // Optimistically remove from UI immediately
+    setSites((prev) => prev.filter((site) => site._id !== siteIdToDelete));
+    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
+    setDeleting(true);
+    setError(""); // Clear any previous errors
+
+    try {
+      const response = await API.delete(`/admin/sites/${siteIdToDelete}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Site deleted successfully:", response.data);
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      console.error("Error response:", err?.response);
+      console.error("Error status:", err?.response?.status);
+      console.error("Error data:", err?.response?.data);
+      
+      // Restore the site if deletion failed
+      if (siteToDelete) {
+        setSites((prev) => [...prev, siteToDelete].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        ));
+      }
+      
+      let errorMessage = "Failed to delete site. Please try again.";
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.status === 401) {
+        errorMessage = "Unauthorized. Please log in again.";
+      } else if (err?.response?.status === 403) {
+        errorMessage = "You don't have permission to delete sites.";
+      } else if (err?.response?.status === 404) {
+        errorMessage = "Site not found.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900">
-      {/* Navbar */}
-      <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center sm:px-20 md:px-50">
-        <h1 className="text-xl font-semibold tracking-wide">Verdan</h1>
+    <div className="min-h-screen bg-gray-200 text-gray-900">
+      <nav className="bg-white shadow-md rounded-xl mx-auto px-6 py-4 flex justify-between items-center border border-gray-100">
+        <div className="flex items-center space-x-2">
+          <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
+            Verdan
+          </span>
+        </div>
 
-        {/* Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
-          <div
-            className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition cursor-pointer"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+          <button
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200 transition shadow-sm"
           >
             <FaUserCircle className="text-3xl text-gray-700" />
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-gray-800">
               Hi, {user?.name || "User"}
             </span>
-          </div>
+          </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-fade-in">
-              <div className="px-4 py-3 border-b border-gray-200">
-                <p className="text-sm font-semibold">{user?.name || "User"}</p>
+            <div className="absolute right-0 mt-3 w-60 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <p className="text-sm font-semibold text-gray-800">
+                  {user?.name || "User"}
+                </p>
                 <p className="text-xs text-gray-500">
                   {user?.email || "user@verdan.com"}
                 </p>
               </div>
-              <ul className="flex flex-col text-sm">
+              <ul className="py-1">
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={handleProfile}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
                 >
                   Profile
                 </li>
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={handleSetting}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition"
                 >
                   Settings
                 </li>
                 <li
-                  className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                   onClick={handleLogout}
+                  className="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer transition font-medium border-t border-gray-100"
                 >
                   Logout
                 </li>
@@ -158,53 +253,133 @@ export default function UserDashboard() {
         </div>
       </nav>
 
-      {/* Assigned Sites */}
       <div className="p-6 sm:px-20 md:px-50">
         <h1 className="text-2xl font-bold mb-6">Assigned Sites</h1>
+
         {sites.length === 0 ? (
           <p>No sites assigned to you.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
-            {sites.map((site) => (
-              <div
-                key={site._id}
-                className="p-4 rounded-xl shadow-sm bg-white border border-gray-200 flex justify-between items-center"
-              >
-                <div>
-                  <h2 className="text-lg font-semibold">{site.name}</h2>
-                  <div className="flex flex-col md:flex-row md:gap-10 md:py-5">
-                    <p className="text-sm text-gray-500">ID: {site._id}</p>
-                    <p className="text-sm text-gray-500">{site.address}</p>
-                    <p
-                      className={`text-sm font-medium ${
-                        site.status === "active"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {site.status}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 md:flex-row md:gap-10 md:py-5 items-center">
-                  <button
-                    className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                    onClick={handleAdd}
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-xl border border-gray-200 shadow-sm">
+              <thead className="bg-gray-100 text-left border-b">
+                <tr>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Address
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sites.map((site) => (
+                  <tr
+                    key={site._id}
+                    className="hover:bg-gray-50 border-b last:border-none"
                   >
-                    Add
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
-                    onClick={handleUpdate}
-                  >
-                    Update
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <td className="px-6 py-3">{site.name}</td>
+                    <td className="px-6 py-3" title={`Type: ${typeof site._id}`}>{String(site._id)}</td>
+                    <td className="px-6 py-3">{site.address}</td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={
+                          site.status === "active"
+                            ? "text-green-600 font-medium"
+                            : "text-red-600 font-medium"
+                        }
+                      >
+                        {site.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                          onClick={() => {
+                            const siteIdStr = String(site._id);
+                            console.log("Navigating to site dashboard with siteId:", siteIdStr);
+                            navigate(`/admin/dashboard/${siteIdStr}`);
+                          }}
+                        >
+                          Add
+                        </button>
+                        <button
+                          className="px-3 py-1 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition"
+                          onClick={() => handleUpdate(site)}
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => handleDeleteClick(site._id, site.name)}
+                          disabled={deleting}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={handleAdd}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md font-medium"
+          >
+            Add New Site
+          </button>
+        </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={handleDeleteCancel}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Confirm Delete
+            </h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>{deleteConfirm.siteName}</strong>? 
+              This action cannot be undone and will also remove all associated trees and team member assignments.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

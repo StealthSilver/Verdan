@@ -14,8 +14,10 @@ export async function authMiddleware(
   next: NextFunction
 ) {
   try {
+    console.log(`Auth middleware - ${req.method} ${req.path}`);
     const authHeader = req.headers.authorization;
     if (!authHeader) {
+      console.log("No Authorization header found");
       return res
         .status(StatusCodes.UNAUTHORIZED)
         .json({ message: "Missing Authorization header" });

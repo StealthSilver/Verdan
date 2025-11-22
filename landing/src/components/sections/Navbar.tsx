@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Github } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "../ui/ThemeToggle";
@@ -18,22 +18,22 @@ export default function Navbar() {
   const toggleMenu = () => setIsOpen((v) => !v);
 
   const navItems = [
-    { name: "About us", href: "#services" },
-    { name: "Services", href: "#features" },
-    { name: "Testimonial", href: "#testimonials" },
+    { name: "About", href: "#about" },
+    { name: "Services", href: "#services" },
+    { name: "Features", href: "#features" },
     { name: "Contact us", href: "#footer" },
   ];
 
   return (
     <nav
       className="
-    sticky z-50 rounded-full top-4 py-2 max-w-7xl px-10 justify-center align-items-center mx-auto
-    border border-[var(--foreground)]/20
-    bg-[var(--background)]/40
-    backdrop-blur-2xl backdrop-saturate-150 shadow-lg
-    text-[var(--color-font)] font-[var(--font-primary)]
-    transition-all duration-500
-  "
+      fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3
+      bg-white/90 dark:bg-[#0d0d0d]/80 backdrop-blur-lg
+      shadow-sm
+      text-[var(--color-font)]
+      transition-colors duration-300
+    "
+      style={{ position: "relative" }}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link href="/" className="flex items-center cursor-pointer">
@@ -41,13 +41,13 @@ export default function Navbar() {
             key={mounted ? theme : "default"}
             src={
               !mounted
-                ? "/verdan_light.svg"
+                ? "/verdan.svg"
                 : theme === "dark"
                 ? "/verdan_dark.svg"
                 : "/verdan_light.svg"
             }
-            alt="Verdan logo"
-            className="w-28 sm:w-32 md:w-36 h-auto"
+            alt="Verdan Logo"
+            className="w-28 h-auto sm:w-32 md:w-36"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -55,7 +55,7 @@ export default function Navbar() {
         </Link>
 
         <div
-          className="hidden md:flex items-center gap-8 font-[var(--font-secondary)] relative"
+          className="hidden md:flex items-center px-2 font-[var(--font-secondary)] relative gap-6"
           onMouseLeave={() => setHovered(null)}
         >
           {navItems.map((item) => (
@@ -65,7 +65,8 @@ export default function Navbar() {
                   layoutId="hoverBg"
                   className="
                     absolute inset-0 rounded-full backdrop-blur-sm
-                    bg-[var(--foreground)]/10 border border-[var(--foreground)]/20
+                    bg-gray-200/70 border border-gray-300
+                    dark:bg-gray-700/70 dark:border-gray-600
                   "
                   transition={{
                     type: "spring",
@@ -82,8 +83,10 @@ export default function Navbar() {
                 onMouseEnter={() => setHovered(item.name)}
                 onFocus={() => setHovered(item.name)}
                 className="
-                  relative z-10 transition-colors duration-300
-                  text-[var(--color-font)] hover:text-[var(--foreground)]
+                font-[var(--font-secondary)]
+                  relative z-10 transition-colors
+                  text-gray-700 hover:text-black
+                  dark:text-gray-300 dark:hover:text-white
                 "
               >
                 {item.name}
@@ -92,29 +95,24 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-6 font-[var(--font-secondary)]">
-          <ThemeToggle />
-          <a
+        <div className="hidden md:flex items-center gap-6 font-mono">
+          <Link
             href="#footer"
-            className="
-              rounded-full border px-6 py-1.5 transition-all duration-300
-              bg-[var(--color-primary)] text-[var(--background)] 
-              hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)] dark:hover:border-border-[var(--foreground)]
-              dark:text-[var(--foreground)] dark:border-0
-            "
+            className="rounded-full border border-[var(--foreground)] text-[var(--color-font)] font-[var(--font-secondary)] px-6 py-2 text-sm md:text-base transition-all duration-300 hover:bg-[var(--foreground)] hover:text-[var(--background)]"
           >
             Get Started
-          </a>
+          </Link>
         </div>
 
         <div className="md:hidden flex items-center gap-3">
           <div className="scale-90">
             <ThemeToggle />
           </div>
+
           <button
             onClick={toggleMenu}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="p-1.5 rounded-md transition-colors hover:bg-[var(--foreground)]/10"
+            className="p-1.5 rounded-md"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -124,19 +122,19 @@ export default function Navbar() {
       {isOpen && (
         <div
           className="
-            md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg 
-            border-t border-[var(--foreground)]/20 transition-colors duration-300
-            font-[var(--font-secondary)]
-          "
+      md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg 
+      border-t border-[var(--foreground)]/20 transition-colors duration-300
+      font-[var(--font-secondary)]
+    "
         >
-          <div className="flex flex-col items-center space-y-6 py-8">
+          <div className="flex flex-col items-center space-y-5 py-10">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className="
-                  text-[var(--color-font)] hover:text-[var(--foreground)] transition-colors duration-200
-                "
+            transition-colors text-[var(--color-font)] hover:text-[var(--foreground)]
+          "
                 onClick={() => setIsOpen(false)}
               >
                 {item.name}
@@ -146,13 +144,14 @@ export default function Navbar() {
             <a
               href="#cta"
               className="
-                rounded-full border px-6 py-2 transition-colors
-                bg-[var(--color-primary)] text-[var(--background)] border-[var(--color-primary)]
-                hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
-              "
+          rounded-full border px-6 py-1.5 transition-colors
+          bg-[var(--color-primary)] text-[var(--background)] dark:text-[var(--foreground)]  border-[var(--color-primary)]
+          hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)]
+           font-[var(--font-secondary)]
+        "
               onClick={() => setIsOpen(false)}
             >
-              Get Started
+              Connect
             </a>
           </div>
         </div>

@@ -13,9 +13,28 @@ const PORT = process.env.PORT || 8000;
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Log all incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log(`Query:`, req.query);
+  console.log(`Headers auth:`, req.headers.authorization ? "Present" : "Missing");
+  next();
+});
+
 app.use("/auth", AuthRoute);
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
+
+// 404 handler for unmatched routes
+app.use((req: express.Request, res: express.Response) => {
+  console.log(`404 - Route not found: ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    message: `Route not found: ${req.method} ${req.path}`,
+    path: req.path,
+    method: req.method
+  });
+});
 
 mongoose
   .connect(MONGO_URI as string)
