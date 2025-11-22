@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import API from "../api";
 
 interface TeamMemberForm {
   name: string;
@@ -79,28 +78,11 @@ export default function AddTeamMember() {
     }
 
     try {
-      const response = await API.post(
-        "/admin/site/team/add",
-        {
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          role: form.role,
-          siteId: siteId,
-          gender: form.gender,
-          designation: form.designation,
-          organization: form.organization,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
       // Show success message
       setSuccess(true);
       setError("");
       setLoading(false);
-      
+
       // Reset form
       setForm({
         name: "",
@@ -114,13 +96,16 @@ export default function AddTeamMember() {
 
       // Navigate back to team dashboard after a short delay to show success message
       setTimeout(() => {
-        navigate(`/admin/Dashboard/${siteId}/team`, { state: { refresh: true } });
+        navigate(`/admin/Dashboard/${siteId}/team`, {
+          state: { refresh: true },
+        });
       }, 1500);
     } catch (err: any) {
       console.error(err);
       setSuccess(false);
       setError(
-        err?.response?.data?.message || "Failed to add team member. Please try again."
+        err?.response?.data?.message ||
+          "Failed to add team member. Please try again."
       );
       setLoading(false);
     }
@@ -135,7 +120,9 @@ export default function AddTeamMember() {
       <div className="p-6 sm:px-20 md:px-50">
         <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Add Team Member</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Add Team Member
+            </h1>
             <button
               onClick={handleBack}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
@@ -317,4 +304,3 @@ export default function AddTeamMember() {
     </div>
   );
 }
-

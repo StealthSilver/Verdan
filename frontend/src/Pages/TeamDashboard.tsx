@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle } from "react-icons/fa";
+
 import API from "../api";
 
 interface TeamMember {
@@ -46,9 +46,12 @@ export default function TeamDashboard() {
         }
 
         // Fetch team members
-        const teamRes = await API.get<TeamMember[]>(`/admin/site/team?siteId=${siteId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const teamRes = await API.get<TeamMember[]>(
+          `/admin/site/team?siteId=${siteId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setTeamMembers(teamRes.data);
       } catch (err: any) {
         console.error(err);
@@ -114,7 +117,9 @@ export default function TeamDashboard() {
         </div>
 
         {teamMembers.length === 0 ? (
-          <p className="text-center py-10 text-gray-600">No team members assigned to this site.</p>
+          <p className="text-center py-10 text-gray-600">
+            No team members assigned to this site.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -159,9 +164,13 @@ export default function TeamDashboard() {
                         {member.role}
                       </span>
                     </td>
-                    <td className="px-6 py-3 capitalize">{member.gender || "N/A"}</td>
+                    <td className="px-6 py-3 capitalize">
+                      {member.gender || "N/A"}
+                    </td>
                     <td className="px-6 py-3">{member.designation}</td>
-                    <td className="px-6 py-3">{member.organization || "N/A"}</td>
+                    <td className="px-6 py-3">
+                      {member.organization || "N/A"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -172,4 +181,3 @@ export default function TeamDashboard() {
     </div>
   );
 }
-
