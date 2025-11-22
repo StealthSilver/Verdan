@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* Dark theme variant removed */
 
 @utility no-scrollbar {
   -ms-overflow-style: none;
@@ -56,11 +56,7 @@
    When `.dark` class is present, these variables replace
    the light mode ones to provide a dark UI theme.
 ------------------------------------------------------ */
-.dark {
-  --background: #0e0e0e; /* Background becomes black */
-  --foreground: #f2f7f4; /* Light gray text and accents */
-  --color-font: #f2f7f4; /* Main font color in dark mode */
-}
+/* Dark mode overrides removed to keep only light theme */
 
 /* -----------------------------------------------------
    🖥️ System Dark Mode Detection
@@ -68,8 +64,4 @@
    Automatically applies extra styling when user’s OS is
    in dark mode, even if `.dark` class is not set.
 ------------------------------------------------------ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --glow-color: #cd934d66; /* Subtle green glow */
-  }
-}
+/* System dark mode detection removed */
