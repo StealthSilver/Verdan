@@ -6,7 +6,7 @@ import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
 import AddPlants from "./AddPlants";
 
-const VERDAN_GREEN = "#2E5E34";
+const VERDAN_GREEN = "#48845C";
 
 interface Site {
   _id: string;

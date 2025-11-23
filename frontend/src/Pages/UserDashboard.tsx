@@ -7,7 +7,7 @@ import verdanLogo from "../assets/verdan_light.svg";
 import AddSite from "./AddSite";
 import type { Site as SiteType } from "./AddSite";
 
-const VERDAN_GREEN = "#2E5E34";
+const VERDAN_GREEN = "#48845C";
 
 interface User {
   id: string;

@@ -5,7 +5,7 @@ import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
 import AddTeamMember from "./AddTeamMember";
 
-const VERDAN_GREEN = "#2E5E34";
+const VERDAN_GREEN = "#48845C";
 
 interface TeamMember {
   _id: string;
