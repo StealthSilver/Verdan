@@ -1,5 +1,8 @@
+"use client";
 import { Heart } from "lucide-react";
 import Image from "next/image";
+
+const VERDAN_GREEN = "#48845C";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -23,7 +26,10 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white border-t border-border">
+    <footer
+      className="w-full"
+      style={{ backgroundColor: "#ffffff", color: "#000000" }}
+    >
       <div className="container mx-auto px-6 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
@@ -41,7 +47,7 @@ const Footer = () => {
                 priority
               />
             </a>
-            <p className="text-muted-foreground max-w-xs">
+            <p className="max-w-xs opacity-70">
               Your smart companion for nurturing healthier, happier plants.
             </p>
           </div>
@@ -54,7 +60,14 @@ const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="transition-colors"
+                    style={{ color: "#000000", opacity: 0.7 }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = VERDAN_GREEN)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "#000000")
+                    }
                   >
                     {link.name}
                   </a>
@@ -71,7 +84,14 @@ const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="transition-colors"
+                    style={{ color: "#000000", opacity: 0.7 }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = VERDAN_GREEN)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "#000000")
+                    }
                   >
                     {link.name}
                   </a>
@@ -88,7 +108,14 @@ const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="transition-colors"
+                    style={{ color: "#000000", opacity: 0.7 }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = VERDAN_GREEN)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "#000000")
+                    }
                   >
                     {link.name}
                   </a>
@@ -99,33 +126,25 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            © {currentYear} Verdan. Made with{" "}
-            <Heart className="h-4 w-4 text-primary" /> for plant lovers.
+        <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm flex items-center gap-1 opacity-80">
+            © {currentYear} Verdan.
           </p>
           <div className="flex gap-4">
-            <a
-              href="#"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              aria-label="Twitter"
-            >
-              Twitter
-            </a>
-            <a
-              href="#"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              aria-label="Instagram"
-            >
-              Instagram
-            </a>
-            <a
-              href="#"
-              className="text-muted-foreground hover:text-primary transition-colors"
-              aria-label="GitHub"
-            >
-              GitHub
-            </a>
+            {["Twitter", "Instagram", "GitHub"].map((item) => (
+              <a
+                key={item}
+                href="#"
+                className="transition-colors"
+                style={{ color: "#000000", opacity: 0.7 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = VERDAN_GREEN)
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#000000")}
+              >
+                {item}
+              </a>
+            ))}
           </div>
         </div>
       </div>
