@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import verdanLogo from "../assets/verdan_light.svg";
 
 interface TreeForm {
   treeName: string;
@@ -526,38 +527,65 @@ export default function AddPlants({
       className={
         isModal
           ? "h-full bg-white text-gray-900"
-          : "min-h-screen bg-gray-200 text-gray-900"
+          : "min-h-screen bg-gray-50 text-gray-900"
       }
     >
-      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+      {!isModal && (
+        <nav
+          className="bg-white border-b border-gray-200 sticky top-0 z-40"
+          style={{ borderBottomColor: "#48845C15" }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </nav>
+      )}
+      <div
+        className={
+          isModal ? "p-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        }
+      >
         <div
           className={
             isModal
               ? "h-full overflow-y-auto"
-              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+              : "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8"
           }
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold">
                 {isEditMode ? "Update Plant" : "Add New Plant"}
               </h1>
               {site && (
-                <p className="text-gray-600 mt-1">
-                  Site: <span className="font-semibold">{site.name}</span>
+                <p className="text-sm text-gray-600 mt-1">
+                  Site: <span className="font-medium">{site.name}</span>
+                </p>
+              )}
+              {site?._id && (
+                <p className="text-xs font-mono text-gray-500 mt-1">
+                  Site ID: {site._id}
                 </p>
               )}
             </div>
             <button
               onClick={handleBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Back to Dashboard
+              {isModal ? "Close" : "Back"}
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-md text-sm">
               {error}
             </div>
           )}
@@ -614,11 +642,10 @@ export default function AddPlants({
                   type="button"
                   onClick={getCurrentLocation}
                   disabled={locationLoading}
-                  className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-1.5 text-sm font-medium text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  style={{ backgroundColor: "#48845C" }}
                 >
-                  {locationLoading
-                    ? "Requesting Location..."
-                    : "Get Current Location"}
+                  {locationLoading ? "Locating..." : "Get Location"}
                 </button>
               </div>
               {!coordinatesValid &&
@@ -649,7 +676,7 @@ export default function AddPlants({
                   ✓ Valid coordinates detected from your device location
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="lat"
@@ -711,7 +738,7 @@ export default function AddPlants({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="datePlanted"
@@ -834,12 +861,12 @@ export default function AddPlants({
                   <img
                     src={imagePreview}
                     alt="Plant preview"
-                    className="max-w-full h-48 object-cover rounded-lg border border-gray-300"
+                    className="max-w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
                   />
                   <button
                     type="button"
                     onClick={removeImage}
-                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition"
+                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition shadow"
                     title="Remove image"
                   >
                     ×
@@ -864,14 +891,15 @@ export default function AddPlants({
                       <button
                         type="button"
                         onClick={closeCamera}
-                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={capturePhoto}
-                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90"
+                        style={{ backgroundColor: "#48845C" }}
                       >
                         Capture Photo
                       </button>
@@ -881,16 +909,20 @@ export default function AddPlants({
               )}
 
               {/* Image Capture Buttons */}
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={openCamera}
                   disabled={cameraOpen}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: "#1D4ED8" }}
                 >
                   📷 Capture Photo
                 </button>
-                <label className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition font-medium text-center cursor-pointer">
+                <label
+                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
+                  style={{ backgroundColor: "#4B5563" }}
+                >
                   📁 Upload Image
                   <input
                     ref={fileInputRef}
@@ -903,18 +935,19 @@ export default function AddPlants({
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#48845C" }}
               >
                 {loading ? "Saving..." : "Save"}
               </button>

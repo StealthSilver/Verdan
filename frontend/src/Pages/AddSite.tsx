@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import verdanLogo from "../assets/verdan_light.svg";
 
 interface SiteForm {
   name: string;
@@ -205,36 +206,61 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
       className={
         isModal
           ? "h-full bg-white text-gray-900"
-          : "min-h-screen bg-gray-200 text-gray-900"
+          : "min-h-screen bg-gray-50 text-gray-900"
       }
     >
-      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+      {/* NAVBAR (standalone only) */}
+      {!isModal && (
+        <nav
+          className="bg-white border-b border-gray-200 sticky top-0 z-40"
+          style={{ borderBottomColor: "#48845C15" }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </nav>
+      )}
+      <div
+        className={
+          isModal ? "p-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        }
+      >
         <div
           className={
             isModal
               ? "h-full overflow-y-auto"
-              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+              : "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8"
           }
         >
-          {!isModal && (
-            <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
-              {/* Fallback container for standalone route (kept for backward compatibility) */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                {isEditMode ? "Update Site" : "Add New Site"}
+              </h1>
+              {editSite?._id && (
+                <p className="mt-1 text-xs font-mono text-gray-500">
+                  Site ID: {editSite._id}
+                </p>
+              )}
             </div>
-          )}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? "Update Site" : "Add New Site"}
-            </h1>
             <button
               onClick={handleBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Back to Dashboard
+              {isModal ? "Close" : "Back"}
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-md text-sm">
               {error}
             </div>
           )}
@@ -358,18 +384,19 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
               </select>
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#48845C" }}
               >
                 {loading
                   ? isEditMode
@@ -383,20 +410,20 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
 
             {(isEditMode && editSite?._id) || createdSiteId ? (
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
-                  {createdSiteId
-                    ? "Site created successfully! You can now add team members."
-                    : ""}
+                <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-700 rounded-md text-sm">
+                  {createdSiteId &&
+                    "Site created successfully! You can now add team members."}
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    const siteId = editSite?._id || createdSiteId;
-                    if (siteId) {
-                      navigate(`/admin/Dashboard/${siteId}/team`);
+                    const siteIdVal = editSite?._id || createdSiteId;
+                    if (siteIdVal) {
+                      navigate(`/admin/Dashboard/${siteIdVal}/team`);
                     }
                   }}
-                  className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium"
+                  className="w-full px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90"
+                  style={{ backgroundColor: "#48845C" }}
                 >
                   Add Team
                 </button>
@@ -406,7 +433,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
                     onClick={() =>
                       navigate("/admin/Dashboard", { state: { refresh: true } })
                     }
-                    className="w-full mt-3 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
+                    className="w-full mt-3 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Go to Dashboard
                   </button>

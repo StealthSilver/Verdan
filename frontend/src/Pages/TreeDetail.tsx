@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
 import UpdateTreeRecord from "./UpdateTreeRecord";
+import verdanLogo from "../assets/verdan_light.svg";
 
 interface Site {
   _id: string;
@@ -72,23 +73,24 @@ export default function TreeDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-200 flex items-center justify-center">
-        <p className="text-gray-700">Loading...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600 text-lg">Loading...</p>
       </div>
     );
   }
 
   if (error || !tree) {
     return (
-      <div className="min-h-screen bg-gray-200 text-gray-900 p-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-4">{error || "Tree not found"}</p>
+      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center px-4">
+        <div className="w-full max-w-lg bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <h2 className="text-2xl font-bold text-red-600 mb-3">Error</h2>
+          <p className="text-gray-700 mb-6">{error || "Tree not found"}</p>
           <button
             onClick={handleBack}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90"
+            style={{ backgroundColor: "#48845C" }}
           >
-            Back to Dashboard
+            Back
           </button>
         </div>
       </div>
@@ -110,61 +112,91 @@ export default function TreeDetail() {
   const firstRecord = sortedImages.length > 0 ? sortedImages[0] : null;
 
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-900">
-      <div className="p-6 sm:px-20 md:px-50">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* NAVBAR */}
+      <nav
+        className="bg-white border-b border-gray-200 sticky top-0 z-40"
+        style={{ borderBottomColor: "#48845C15" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+            <button
+              onClick={handleBack}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Page Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Tree Details</h1>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div>
-                <span className="font-semibold">Site:</span> {siteName}
-              </div>
-              <div>
-                <span className="font-semibold">Site ID:</span>{" "}
-                {siteIdValue.slice(-8)}
-              </div>
-              <div>
-                <span className="font-semibold">Status:</span>
-                <span
-                  className={`ml-2 px-2 py-1 rounded-md text-xs font-medium ${
-                    siteStatus === "active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {siteStatus}
-                </span>
-              </div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold">Tree Details</h1>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  siteStatus === "active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {siteStatus}
+              </span>
+            </div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <p>
+                <span className="font-medium">Site:</span> {siteName}
+              </p>
+              <p className="text-xs font-mono text-gray-500">
+                ID: {siteIdValue}
+              </p>
             </div>
           </div>
-          <button
-            onClick={handleBack}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-          >
-            Back
-          </button>
+          {firstRecord && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full max-w-sm">
+              <h2 className="text-sm font-semibold text-gray-800 mb-2">
+                Latest Record
+              </h2>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>
+                  <span className="font-medium">Date:</span>{" "}
+                  {new Date(firstRecord.timestamp).toLocaleDateString()}
+                </p>
+                <p>
+                  <span className="font-medium">Time:</span>{" "}
+                  {new Date(firstRecord.timestamp).toLocaleTimeString()}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Timeline Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-              <h2 className="text-xl font-bold mb-4">Timeline</h2>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 sticky top-24">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4 tracking-wide">
+                Timeline
+              </h2>
               <div className="space-y-4">
                 {sortedImages.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No records yet</p>
+                  <p className="text-gray-500 text-xs">No records yet</p>
                 ) : (
                   sortedImages.map((image, index) => (
                     <div
                       key={index}
-                      className="relative pl-6 border-l-2 border-blue-500"
+                      className="relative pl-6 border-l-2 border-emerald-500"
                     >
-                      <div className="absolute -left-2 top-0 w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <div className="text-xs text-gray-600">
+                      <div className="absolute -left-2 top-0 w-4 h-4 bg-emerald-500 rounded-full"></div>
+                      <div className="text-[10px] text-gray-700 font-medium">
                         {new Date(image.timestamp).toLocaleDateString()}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-[10px] text-gray-500">
                         {new Date(image.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
@@ -176,10 +208,12 @@ export default function TreeDetail() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
               {/* Tree Information */}
               <div className="mb-6 pb-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold mb-4">Tree Information</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-wide">
+                  Tree Information
+                </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm text-gray-600">Tree Name:</span>
@@ -196,14 +230,14 @@ export default function TreeDetail() {
                   <div>
                     <span className="text-sm text-gray-600">Status:</span>
                     <span
-                      className={`ml-2 px-2 py-1 rounded-md text-xs font-medium ${
+                      className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         tree.status === "healthy"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-green-100 text-green-800"
                           : tree.status === "sick"
-                          ? "bg-yellow-100 text-yellow-700"
+                          ? "bg-yellow-100 text-yellow-800"
                           : tree.status === "dead"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-blue-100 text-blue-800"
                       }`}
                     >
                       {tree.status}
@@ -232,23 +266,25 @@ export default function TreeDetail() {
               {/* First Record */}
               {firstRecord && (
                 <div className="mb-6 pb-6 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold mb-4">Latest Record</h2>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-wide">
+                    Latest Record (Image)
+                  </h2>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <img
                       src={firstRecord.url}
                       alt="Latest tree record"
-                      className="w-full max-w-md mx-auto rounded-lg shadow-md mb-4"
+                      className="w-full max-w-md mx-auto rounded-lg object-cover aspect-video mb-4 border border-gray-200"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
-                    <div className="text-sm text-gray-600">
+                    <div className="text-xs text-gray-600 flex gap-6">
                       <p>
-                        <span className="font-semibold">Date:</span>{" "}
+                        <span className="font-medium">Date:</span>{" "}
                         {new Date(firstRecord.timestamp).toLocaleDateString()}
                       </p>
                       <p>
-                        <span className="font-semibold">Time:</span>{" "}
+                        <span className="font-medium">Time:</span>{" "}
                         {new Date(firstRecord.timestamp).toLocaleTimeString()}
                       </p>
                     </div>
@@ -259,12 +295,15 @@ export default function TreeDetail() {
               {/* Past Records */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Past Records</h2>
+                  <h2 className="text-lg font-semibold text-gray-800 tracking-wide">
+                    Past Records
+                  </h2>
                   <button
                     onClick={handleAddRecord}
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md font-medium"
+                    className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 active:scale-95"
+                    style={{ backgroundColor: "#48845C" }}
                   >
-                    Add New Record
+                    + Add New Record
                   </button>
                 </div>
 
@@ -278,24 +317,26 @@ export default function TreeDetail() {
                     {sortedImages.map((image, index) => (
                       <div
                         key={index}
-                        className="bg-gray-50 rounded-lg p-4 shadow-sm hover:shadow-md transition"
+                        className="group bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition flex flex-col"
                       >
-                        <img
-                          src={image.url}
-                          alt={`Tree record ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg mb-3"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
-                        <div className="text-xs text-gray-600">
-                          <p className="font-semibold">
+                        <div className="relative w-full h-40 mb-3 overflow-hidden rounded-md border border-gray-200">
+                          <img
+                            src={image.url}
+                            alt={`Tree record ${index + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                        </div>
+                        <div className="text-[11px] text-gray-600 flex items-center justify-between mt-auto">
+                          <span className="font-medium">
                             {new Date(image.timestamp).toLocaleDateString()}
-                          </p>
-                          <p>
+                          </span>
+                          <span>
                             {new Date(image.timestamp).toLocaleTimeString()}
-                          </p>
+                          </span>
                         </div>
                       </div>
                     ))}

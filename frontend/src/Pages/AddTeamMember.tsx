@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import verdanLogo from "../assets/verdan_light.svg";
 
 interface TeamMemberForm {
   name: string;
@@ -169,37 +170,67 @@ export default function AddTeamMember({
       className={
         isModal
           ? "h-full bg-white text-gray-900"
-          : "min-h-screen bg-gray-200 text-gray-900"
+          : "min-h-screen bg-gray-50 text-gray-900"
       }
     >
-      <div className={isModal ? "p-6" : "p-6 sm:px-20 md:px-50"}>
+      {/* NAVBAR (standalone only) */}
+      {!isModal && (
+        <nav
+          className="bg-white border-b border-gray-200 sticky top-0 z-40"
+          style={{ borderBottomColor: "#48845C15" }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </nav>
+      )}
+      <div
+        className={
+          isModal ? "p-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        }
+      >
         <div
           className={
             isModal
               ? "h-full overflow-y-auto"
-              : "max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8"
+              : "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8"
           }
         >
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Add Team Member
-            </h1>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                Add Team Member
+              </h1>
+              {effectiveSiteId && (
+                <p className="mt-1 text-xs font-mono text-gray-500">
+                  Site ID: {effectiveSiteId}
+                </p>
+              )}
+            </div>
             <button
               onClick={handleBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Back to Team Dashboard
+              {isModal ? "Close" : "Back"}
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-md text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+            <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-700 rounded-md text-sm">
               Team member added successfully! Redirecting...
             </div>
           )}
@@ -343,18 +374,19 @@ export default function AddTeamMember({
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition font-medium"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#48845C" }}
               >
                 {loading ? "Saving..." : "Save Team Member"}
               </button>
