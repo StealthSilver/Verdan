@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-lg shadow-sm text-[var(--color-font)]"
+      className="fixed top-0 left-0 right-0 z-[100] w-full px-4 sm:px-6 py-3 bg-white backdrop-blur-lg shadow-sm text-[var(--color-font)]"
       style={{ position: "relative" }}
     >
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
