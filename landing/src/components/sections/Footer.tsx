@@ -28,6 +28,7 @@ const Footer = () => {
   return (
     <footer
       className="w-full"
+      id="footer"
       style={{ backgroundColor: "#ffffff", color: "#000000" }}
     >
       <div className="container mx-auto px-6 py-12">

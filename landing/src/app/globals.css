@@ -11,28 +11,12 @@
   }
 }
 
-/* -----------------------------------------------------
-   🌞 Base Theme Variables (Light Mode Defaults)
-   -----------------------------------------------------
-   These variables define the base colors and tones used
-   throughout the site. Accessible via var(--variable-name).
------------------------------------------------------- */
 :root {
   --color-font: #0e0e0e; /* Default text color */
-  --background: #f2f7f4; /* Page background */
+  --background: #ffffff; /* Page background set to pure white */
   --foreground: #0e0e0e; /* Foreground or content color */
-
-  /* --hover-dark: oklch(20.8% 0.042 265.755);  Dark hover shade */
-  /*--hover-light: oklch(92.9% 0.013 255.508); Light hover shade */
 }
 
-/* -----------------------------------------------------
-   🎨 Theme Configuration for Tailwind
-   -----------------------------------------------------
-   Defines design tokens (colors, fonts, etc.) that can be
-   used throughout the Tailwind system. Ideal for consistent
-   theming across light and dark modes.
------------------------------------------------------- */
 @theme {
   /* Brand colors */
   --color-primary: #2e8b57; /* Purple-blue hue */
@@ -40,7 +24,7 @@
 
   /* Light mode defaults */
   --color-font: #0e0e0e;
-  --background: #f2f7f4;
+  --background: #ffffff; /* White background for light mode */
   --foreground: #0e0e0e;
   /* --hover-dark: oklch(20.8% 0.042 265.755);
   --hover-light: oklch(92.9% 0.013 255.508); */
@@ -50,18 +34,13 @@
   --font-secondary: var(--font-manrope, "Manrope", sans-serif);
 }
 
-/* -----------------------------------------------------
-   🌚 Dark Mode Overrides
-   -----------------------------------------------------
-   When `.dark` class is present, these variables replace
-   the light mode ones to provide a dark UI theme.
------------------------------------------------------- */
-/* Dark mode overrides removed to keep only light theme */
+/* Smooth scrolling across the entire document */
+html {
+  scroll-behavior: smooth;
+}
 
-/* -----------------------------------------------------
-   🖥️ System Dark Mode Detection
-   -----------------------------------------------------
-   Automatically applies extra styling when user’s OS is
-   in dark mode, even if `.dark` class is not set.
------------------------------------------------------- */
-/* System dark mode detection removed */
+/* Ensure body uses the white background variable */
+body {
+  background: var(--background);
+  color: var(--color-font);
+}
