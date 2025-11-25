@@ -1,7 +1,13 @@
 import axios from "axios";
 
+// Debug: Log the API base URL being used
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/";
+console.log("🔗 API Base URL:", baseURL);
+console.log("🌍 Environment:", import.meta.env.MODE);
+console.log("📋 All env vars:", import.meta.env);
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/",
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
