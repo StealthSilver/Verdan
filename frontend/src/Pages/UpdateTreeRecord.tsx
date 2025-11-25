@@ -312,23 +312,44 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
   };
 
-  // Helper: wait for video to have data (covers Safari/Chrome/Firefox)
+  // Helper: wait for video frames using dual event + polling fallback
   const waitForVideoReady = (video: HTMLVideoElement): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        if (video.videoWidth > 0) {
-          resolve();
-        } else {
-          reject(new Error("Camera initialization timeout"));
-        }
-      }, 6000); // 6s fallback
+      let attempts = 0;
+      const maxAttempts = 40; // 40 * 150ms = ~6s
+      let pollTimer: number | undefined;
 
-      const handleReady = () => {
-        clearTimeout(timeout);
-        resolve();
+      const cleanup = () => {
+        video.removeEventListener("playing", onEventReady);
+        video.removeEventListener("loadeddata", onEventReady);
+        if (pollTimer) clearTimeout(pollTimer);
       };
-      video.addEventListener("playing", handleReady, { once: true });
-      video.addEventListener("loadeddata", handleReady, { once: true });
+
+      const onEventReady = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          cleanup();
+          resolve();
+        }
+      };
+
+      const poll = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          cleanup();
+          resolve();
+          return;
+        }
+        attempts++;
+        if (attempts >= maxAttempts) {
+          cleanup();
+          reject(new Error("Camera initialization timeout"));
+          return;
+        }
+        pollTimer = window.setTimeout(poll, 150);
+      };
+
+      video.addEventListener("playing", onEventReady, { once: true });
+      video.addEventListener("loadeddata", onEventReady, { once: true });
+      pollTimer = window.setTimeout(poll, 150);
     });
   };
 
@@ -364,58 +385,18 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Open camera (manual capture: user clicks capture inside modal)
-  const openCamera = async () => {
+  // Open camera (deferred stream init handled in useEffect)
+  const openCamera = () => {
     setError("");
     setCameraAttempts((a) => a + 1);
-    setCameraInitializing(true);
-    setCameraReady(false);
-    // cleanup existing stream
+    // If a previous stream exists, ensure cleanup before reopening
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    try {
-      const stream = await getStreamWithFallback();
-      streamRef.current = stream;
-      setCameraOpen(true); // render modal & video element
-      await Promise.resolve(); // allow modal render
-      if (!videoRef.current) {
-        setError("Video element not available");
-        setCameraInitializing(false);
-        return;
-      }
-      videoRef.current.srcObject = stream;
-      try {
-        await videoRef.current.play();
-      } catch (playErr) {
-        console.warn(
-          "Video play prevented (may require user action):",
-          playErr
-        );
-      }
-      try {
-        await waitForVideoReady(videoRef.current);
-        setCameraReady(true);
-      } catch (readyErr) {
-        console.error(readyErr);
-        setError(
-          "Camera took too long to start. Try again or grant permissions."
-        );
-        setCameraReady(false);
-      } finally {
-        setCameraInitializing(false);
-      }
-    } catch (err: any) {
-      console.error("Error accessing camera:", err);
-      setError(
-        (err?.message || "Failed to access camera") +
-          ". Check permissions or use Upload Image."
-      );
-      setCameraInitializing(false);
-      setCameraReady(false);
-      setCameraOpen(false);
-    }
+    setCameraReady(false);
+    setCameraInitializing(true);
+    setCameraOpen(true);
   };
 
   // Close camera
@@ -475,7 +456,92 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
   };
 
-  // Cleanup camera stream on unmount
+  // Stream acquisition & readiness lifecycle when camera modal opens
+  useEffect(() => {
+    if (!cameraOpen) return;
+    let cancelled = false;
+
+    const startStream = async () => {
+      setCameraInitializing(true);
+      setCameraReady(false);
+      // Wait a frame to ensure modal/video mounts
+      await new Promise((r) => requestAnimationFrame(r));
+      if (!videoRef.current) {
+        setError("Video element not available");
+        setCameraInitializing(false);
+        return;
+      }
+      try {
+        const stream = await getStreamWithFallback();
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        videoRef.current.muted = true; // allow autoplay on mobile
+        videoRef.current.setAttribute("playsInline", "");
+        videoRef.current.srcObject = stream;
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.warn("Video play may need user gesture:", playErr);
+        }
+        try {
+          await waitForVideoReady(videoRef.current);
+          if (!cancelled) setCameraReady(true);
+        } catch (readyErr: any) {
+          console.error(readyErr);
+          if (!cancelled) {
+            if (
+              readyErr?.name === "NotAllowedError" ||
+              readyErr?.name === "SecurityError"
+            ) {
+              setError(
+                "Camera permission denied. Grant access and click Retry."
+              );
+            } else {
+              setError(
+                "Camera took too long to start. Check permissions or click Retry."
+              );
+            }
+            setCameraReady(false);
+          }
+        }
+      } catch (err: any) {
+        console.error("Error accessing camera:", err);
+        if (!cancelled) {
+          if (
+            err?.name === "NotAllowedError" ||
+            err?.name === "SecurityError"
+          ) {
+            setError(
+              "Camera permission denied. Allow access in browser settings then click Retry."
+            );
+          } else {
+            setError(
+              (err?.message || "Failed to access camera") +
+                ". Check permissions or use Upload Image."
+            );
+          }
+          setCameraReady(false);
+          setCameraOpen(true); // keep modal open for retry
+        }
+      } finally {
+        if (!cancelled) setCameraInitializing(false);
+      }
+    };
+
+    startStream();
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [cameraOpen]);
+
+  // Cleanup camera stream on component unmount (safety)
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -483,6 +549,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       }
     };
   }, []);
+
+  const retryCamera = () => {
+    // Close and reopen to trigger effect again
+    closeCamera();
+    requestAnimationFrame(() => openCamera());
+  };
 
   const handleBack = () => {
     closeCamera();
@@ -752,6 +824,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                       <video
                         ref={videoRef}
                         autoPlay
+                        muted
                         playsInline
                         className="w-full rounded-lg"
                         style={{ maxHeight: "400px" }}
@@ -765,6 +838,14 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                         <p className="text-xs text-green-600 mt-2">
                           Camera ready. Capture when framed.
                         </p>
+                      )}
+                      {!cameraInitializing && !cameraReady && !error && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Waiting for camera...
+                        </p>
+                      )}
+                      {!cameraInitializing && !cameraReady && error && (
+                        <p className="text-xs text-red-600 mt-2">{error}</p>
                       )}
                     </div>
                     <div className="flex gap-4">
@@ -783,6 +864,15 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                       >
                         {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
+                      {!cameraInitializing && !cameraReady && (
+                        <button
+                          type="button"
+                          onClick={retryCamera}
+                          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                        >
+                          Retry
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

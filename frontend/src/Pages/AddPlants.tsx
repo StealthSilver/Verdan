@@ -435,19 +435,44 @@ export default function AddPlants({
     }
   };
 
-  // Helper: wait for video to start producing frames (playing / loadeddata)
+  // Helper: wait for video frames (events + polling fallback)
   const waitForVideoReady = (video: HTMLVideoElement): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        if (video.videoWidth > 0) resolve();
-        else reject(new Error("Camera initialization timeout"));
-      }, 6000);
-      const done = () => {
-        clearTimeout(timeout);
-        resolve();
+      let attempts = 0;
+      const maxAttempts = 40; // ~6s
+      let pollTimer: number | undefined;
+
+      const cleanup = () => {
+        video.removeEventListener("playing", onEventReady);
+        video.removeEventListener("loadeddata", onEventReady);
+        if (pollTimer) clearTimeout(pollTimer);
       };
-      video.addEventListener("playing", done, { once: true });
-      video.addEventListener("loadeddata", done, { once: true });
+
+      const onEventReady = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          cleanup();
+          resolve();
+        }
+      };
+
+      const poll = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          cleanup();
+          resolve();
+          return;
+        }
+        attempts++;
+        if (attempts >= maxAttempts) {
+          cleanup();
+          reject(new Error("Camera initialization timeout"));
+          return;
+        }
+        pollTimer = window.setTimeout(poll, 150);
+      };
+
+      video.addEventListener("playing", onEventReady, { once: true });
+      video.addEventListener("loadeddata", onEventReady, { once: true });
+      pollTimer = window.setTimeout(poll, 150);
     });
   };
 
@@ -482,52 +507,17 @@ export default function AddPlants({
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Open camera (manual capture flow)
-  const openCamera = async () => {
+  // Open camera (stream init deferred to effect)
+  const openCamera = () => {
     setError("");
-    setCameraInitializing(true);
-    setCameraReady(false);
     setCameraAttempts((a) => a + 1);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    try {
-      const stream = await getStreamWithFallback();
-      streamRef.current = stream;
-      setCameraOpen(true);
-      await Promise.resolve(); // allow modal to render
-      if (!videoRef.current) {
-        setError("Video element not available");
-        setCameraInitializing(false);
-        return;
-      }
-      videoRef.current.srcObject = stream;
-      try {
-        await videoRef.current.play();
-      } catch (playErr) {
-        console.warn("Video play prevented (may need user gesture):", playErr);
-      }
-      try {
-        await waitForVideoReady(videoRef.current);
-        setCameraReady(true);
-      } catch (readyErr) {
-        console.error(readyErr);
-        setError("Camera took too long to start. Retry or check permissions.");
-        setCameraReady(false);
-      } finally {
-        setCameraInitializing(false);
-      }
-    } catch (err: any) {
-      console.error("Error accessing camera:", err);
-      setError(
-        (err?.message || "Failed to access camera") +
-          ". Check permissions or use Upload Image."
-      );
-      setCameraInitializing(false);
-      setCameraReady(false);
-      setCameraOpen(false);
-    }
+    setCameraReady(false);
+    setCameraInitializing(true);
+    setCameraOpen(true);
   };
 
   // Close camera
@@ -587,7 +577,90 @@ export default function AddPlants({
     }
   };
 
-  // Cleanup camera stream on unmount
+  // Stream acquisition lifecycle when camera modal opens
+  useEffect(() => {
+    if (!cameraOpen) return;
+    let cancelled = false;
+
+    const startStream = async () => {
+      setCameraInitializing(true);
+      setCameraReady(false);
+      await new Promise((r) => requestAnimationFrame(r));
+      if (!videoRef.current) {
+        setError("Video element not available");
+        setCameraInitializing(false);
+        return;
+      }
+      try {
+        const stream = await getStreamWithFallback();
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        videoRef.current.muted = true;
+        videoRef.current.setAttribute("playsInline", "");
+        videoRef.current.srcObject = stream;
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.warn("Video play may need user gesture:", playErr);
+        }
+        try {
+          await waitForVideoReady(videoRef.current);
+          if (!cancelled) setCameraReady(true);
+        } catch (readyErr: any) {
+          console.error(readyErr);
+          if (!cancelled) {
+            if (
+              readyErr?.name === "NotAllowedError" ||
+              readyErr?.name === "SecurityError"
+            ) {
+              setError(
+                "Camera permission denied. Grant access and click Retry."
+              );
+            } else {
+              setError(
+                "Camera took too long to start. Check permissions or click Retry."
+              );
+            }
+            setCameraReady(false);
+          }
+        }
+      } catch (err: any) {
+        console.error("Error accessing camera:", err);
+        if (!cancelled) {
+          if (
+            err?.name === "NotAllowedError" ||
+            err?.name === "SecurityError"
+          ) {
+            setError(
+              "Camera permission denied. Allow access then click Retry."
+            );
+          } else {
+            setError(
+              (err?.message || "Failed to access camera") +
+                ". Check permissions or use Upload Image."
+            );
+          }
+          setCameraReady(false);
+          setCameraOpen(true); // keep modal open for retry
+        }
+      } finally {
+        if (!cancelled) setCameraInitializing(false);
+      }
+    };
+    startStream();
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [cameraOpen]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -595,6 +668,11 @@ export default function AddPlants({
       }
     };
   }, []);
+
+  const retryCamera = () => {
+    closeCamera();
+    requestAnimationFrame(() => openCamera());
+  };
 
   const handleBack = () => {
     closeCamera();
@@ -969,6 +1047,7 @@ export default function AddPlants({
                       <video
                         ref={videoRef}
                         autoPlay
+                        muted
                         playsInline
                         className="w-full rounded-lg"
                         style={{ maxHeight: "400px" }}
@@ -982,6 +1061,14 @@ export default function AddPlants({
                         <p className="text-xs text-green-600 mt-2">
                           Camera ready. Capture when framed.
                         </p>
+                      )}
+                      {!cameraInitializing && !cameraReady && !error && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Waiting for camera...
+                        </p>
+                      )}
+                      {!cameraInitializing && !cameraReady && error && (
+                        <p className="text-xs text-red-600 mt-2">{error}</p>
                       )}
                     </div>
                     <div className="flex gap-4">
@@ -1001,6 +1088,16 @@ export default function AddPlants({
                       >
                         {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
+                      {!cameraInitializing && !cameraReady && (
+                        <button
+                          type="button"
+                          onClick={retryCamera}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90"
+                          style={{ backgroundColor: "#1D4ED8" }}
+                        >
+                          Retry
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
