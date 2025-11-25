@@ -12,21 +12,25 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
-// Enhanced CORS configuration
+// Enhanced CORS configuration for Vercel
+const allowedOrigins = [
+  "https://verdan-beige.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:5174",
+  "http://localhost:4173", // Vite preview
+];
+
 const corsOptions = {
   origin: function (
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void
   ) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      "https://verdan-beige.vercel.app",
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "http://localhost:5174", // Additional Vite port
-    ];
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
+    if (!origin) {
+      console.log("CORS: Allowing request with no origin");
+      return callback(null, true);
+    }
 
     console.log(`CORS check for origin: ${origin}`);
 
@@ -35,12 +39,13 @@ const corsOptions = {
       callback(null, true);
     } else {
       console.log(`CORS blocked origin: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
+      console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
+      callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
     }
   },
   credentials: true,
   optionsSuccessStatus: 200,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: [
     "Origin",
     "X-Requested-With",
@@ -49,41 +54,43 @@ const corsOptions = {
     "Authorization",
     "Cache-Control",
     "X-HTTP-Method-Override",
+    "Access-Control-Allow-Headers",
+    "Access-Control-Allow-Origin",
   ],
 };
 
-// Apply CORS before other middleware
+// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Manual CORS headers as fallback
+// Additional CORS headers middleware for Vercel compatibility
 app.use(
   (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const origin = req.headers.origin;
-    const allowedOrigins = [
-      "https://verdan-beige.vercel.app",
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "http://localhost:5174",
-    ];
 
+    console.log(`Request from origin: ${origin || "No origin"}`);
+    console.log(`Request method: ${req.method}`);
+    console.log(`Request path: ${req.path}`);
+
+    // Set CORS headers for all requests
     if (origin && allowedOrigins.includes(origin)) {
-      res.header("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Origin", origin);
     }
 
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST, PUT, DELETE, OPTIONS, PATCH"
     );
-    res.header(
+    res.setHeader(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, X-HTTP-Method-Override"
     );
 
-    // Handle preflight requests
+    // Handle preflight requests explicitly
     if (req.method === "OPTIONS") {
-      res.status(200).end();
-      return;
+      console.log("Handling preflight OPTIONS request");
+      res.setHeader("Access-Control-Max-Age", "86400"); // 24 hours
+      return res.status(200).end();
     }
 
     next();
@@ -113,6 +120,26 @@ app.get("/", (req: express.Request, res: express.Response) => {
     message: "Verdan Backend API is running!",
     timestamp: new Date().toISOString(),
     version: "1.0.0",
+    origin: req.headers.origin || "No origin",
+  });
+});
+
+// CORS test endpoint
+app.get("/cors-test", (req: express.Request, res: express.Response) => {
+  res.json({
+    message: "CORS test successful!",
+    origin: req.headers.origin || "No origin",
+    timestamp: new Date().toISOString(),
+    headers: req.headers,
+  });
+});
+
+// Health check endpoint
+app.get("/health", (req: express.Request, res: express.Response) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
 });
 

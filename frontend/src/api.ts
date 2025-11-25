@@ -25,22 +25,62 @@ console.log("📋 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 const API = axios.create({
   baseURL: baseURL,
   withCredentials: true, // Enable credentials for CORS
+  timeout: 10000, // 10 second timeout
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+// Request interceptor
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-  if (token && config.headers) {
-    // Use `set` to mutate AxiosHeaders safely
-    if ("set" in config.headers && typeof config.headers.set === "function") {
-      config.headers.set("Authorization", `Bearer ${token}`);
+    console.log(
+      `🌐 Making ${config.method?.toUpperCase()} request to: ${config.url}`
+    );
+    console.log(`🔑 Token present: ${!!token}`);
+
+    if (token && config.headers) {
+      // Use `set` to mutate AxiosHeaders safely
+      if ("set" in config.headers && typeof config.headers.set === "function") {
+        config.headers.set("Authorization", `Bearer ${token}`);
+      }
     }
-  }
 
-  return config;
-});
+    return config;
+  },
+  (error) => {
+    console.error("❌ Request interceptor error:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for better error handling
+API.interceptors.response.use(
+  (response) => {
+    console.log(
+      `✅ Response received from ${response.config.url}:`,
+      response.status
+    );
+    return response;
+  },
+  (error) => {
+    console.error("❌ API Error:", error);
+
+    if (error.code === "ERR_NETWORK") {
+      console.error("❌ Network Error - possibly CORS or server down");
+    }
+
+    if (error.response?.status === 401) {
+      console.warn("🔐 Unauthorized - clearing token");
+      localStorage.removeItem("token");
+      // Optionally redirect to login
+      // window.location.href = '/signin';
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default API;
