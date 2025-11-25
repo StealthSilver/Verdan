@@ -12,30 +12,100 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
-// CORS configuration
+// Enhanced CORS configuration
 const corsOptions = {
-  origin: [
-    "https://verdan-beige.vercel.app",
-    "http://localhost:5173", // For local development
-    "http://localhost:3000", // Alternative local development port
-  ],
+  origin: function (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      "https://verdan-beige.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://localhost:5174", // Additional Vite port
+    ];
+
+    console.log(`CORS check for origin: ${origin}`);
+
+    if (allowedOrigins.includes(origin)) {
+      console.log(`CORS allowed for origin: ${origin}`);
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "Cache-Control",
+    "X-HTTP-Method-Override",
+  ],
 };
 
-app.use(express.json());
+// Apply CORS before other middleware
 app.use(cors(corsOptions));
 
-// Log all incoming requests for debugging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log(`Query:`, req.query);
-  console.log(
-    `Headers auth:`,
-    req.headers.authorization ? "Present" : "Missing"
-  );
-  next();
-});
+// Manual CORS headers as fallback
+app.use(
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      "https://verdan-beige.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://localhost:5174",
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
+    }
+
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, X-HTTP-Method-Override"
+    );
+
+    // Handle preflight requests
+    if (req.method === "OPTIONS") {
+      res.status(200).end();
+      return;
+    }
+
+    next();
+  }
+);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Enhanced logging middleware
+app.use(
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    console.log(`Origin: ${req.headers.origin || "No origin"}`);
+    console.log(`User-Agent: ${req.headers["user-agent"]}`);
+    console.log(
+      `Authorization: ${req.headers.authorization ? "Present" : "Missing"}`
+    );
+    console.log(`Content-Type: ${req.headers["content-type"]}`);
+    next();
+  }
+);
 
 // Root endpoint for testing
 app.get("/", (req: express.Request, res: express.Response) => {

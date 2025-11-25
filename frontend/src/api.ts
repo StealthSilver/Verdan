@@ -24,6 +24,7 @@ console.log("📋 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 const API = axios.create({
   baseURL: baseURL,
+  withCredentials: true, // Enable credentials for CORS
   headers: {
     "Content-Type": "application/json",
   },
