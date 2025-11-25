@@ -9,7 +9,7 @@ const getBaseURL = () => {
 
   // For production, use the deployed backend
   if (import.meta.env.PROD) {
-    return "http://13.61.104.179:8000/";
+    return "https://verdan-1-iwlt.onrender.com/";
   }
 
   // For development, use localhost

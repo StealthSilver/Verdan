@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CORS Test</title>
+  </head>
+  <body>
+    <h1>Testing CORS Connection</h1>
+    <button onclick="testConnection()">Test Backend Connection</button>
+    <div id="result"></div>
+
+    <script>
+      async function testConnection() {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "Testing...";
+
+        try {
+          // Test the root endpoint
+          const response = await fetch("https://verdan-1-iwlt.onrender.com/", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+          resultDiv.innerHTML = `
+                    <h3>✅ SUCCESS!</h3>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+          // Test auth endpoint
+          console.log("Testing auth endpoint...");
+          const authResponse = await fetch(
+            "https://verdan-1-iwlt.onrender.com/auth/signin",
+            {
+              method: "OPTIONS",
+              credentials: "include",
+            }
+          );
+          console.log("Auth OPTIONS response:", authResponse.status);
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <h3>❌ ERROR!</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+          console.error("Connection error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
