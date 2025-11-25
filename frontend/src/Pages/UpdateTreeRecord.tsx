@@ -49,6 +49,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const [timestampValid, setTimestampValid] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraInitializing, setCameraInitializing] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -312,6 +314,13 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   // Open camera for image capture
   const openCamera = async () => {
     try {
+      setError("");
+      setCameraInitializing(true);
+      setCameraReady(false);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
         audio: false,
@@ -327,13 +336,27 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               console.warn("Video play prevented:", err)
             );
           }
+          setCameraInitializing(false);
+          setCameraReady(true);
         };
+        setTimeout(() => {
+          if (
+            !cameraReady &&
+            videoRef.current &&
+            videoRef.current.videoWidth > 0
+          ) {
+            setCameraInitializing(false);
+            setCameraReady(true);
+          }
+        }, 1500);
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
       setError(
         "Failed to access camera. Please check permissions or use file upload instead."
       );
+      setCameraInitializing(false);
+      setCameraReady(false);
     }
   };
 
@@ -344,16 +367,19 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       streamRef.current = null;
     }
     setCameraOpen(false);
+    setCameraInitializing(false);
+    setCameraReady(false);
   };
 
   // Capture photo from camera
   const capturePhoto = () => {
     if (!videoRef.current) return;
     if (
+      !cameraReady ||
       videoRef.current.videoWidth === 0 ||
       videoRef.current.videoHeight === 0
     ) {
-      setError("Camera not ready yet. Please wait a second and retry.");
+      setError("Camera not ready yet. Wait until video appears, then retry.");
       return;
     }
     const canvas = document.createElement("canvas");
@@ -412,8 +438,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
   };
 
+  // When embedded in drawer, use full-height flex layout with internal scroll to keep save button accessible
+  const rootClasses = embedded
+    ? "h-full flex flex-col bg-gray-50 text-gray-900"
+    : "min-h-screen bg-gray-50 text-gray-900";
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className={rootClasses}>
       {/* NAVBAR (hidden when embedded in drawer) */}
       {!embedded && (
         <nav
@@ -434,8 +464,20 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         </nav>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+      <div
+        className={
+          embedded
+            ? "flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6"
+            : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        }
+      >
+        <div
+          className={
+            embedded
+              ? "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8 mb-8"
+              : "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8"
+          }
+        >
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -659,6 +701,16 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                         className="w-full rounded-lg"
                         style={{ maxHeight: "400px" }}
                       />
+                      {cameraInitializing && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Initializing camera...
+                        </p>
+                      )}
+                      {!cameraInitializing && cameraReady && (
+                        <p className="text-xs text-green-600 mt-2">
+                          Camera ready. Capture when framed.
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-4">
                       <button
@@ -671,9 +723,10 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                       <button
                         type="button"
                         onClick={capturePhoto}
+                        disabled={!cameraReady}
                         className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                       >
-                        Capture Photo
+                        {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
                     </div>
                   </div>

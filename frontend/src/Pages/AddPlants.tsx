@@ -53,6 +53,8 @@ export default function AddPlants({
   const [timestampValid, setTimestampValid] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraInitializing, setCameraInitializing] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -435,6 +437,15 @@ export default function AddPlants({
   // Open camera for image capture
   const openCamera = async () => {
     try {
+      // Reset states
+      setError("");
+      setCameraInitializing(true);
+      setCameraReady(false);
+      // If a previous stream exists, stop it before requesting a new one
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
         audio: false,
@@ -452,13 +463,28 @@ export default function AddPlants({
               console.warn("Video play prevented:", err);
             });
           }
+          setCameraInitializing(false);
+          setCameraReady(true);
         };
+        // Fallback readiness in case onloadedmetadata doesn't fire (rare)
+        setTimeout(() => {
+          if (
+            !cameraReady &&
+            videoRef.current &&
+            videoRef.current.videoWidth > 0
+          ) {
+            setCameraInitializing(false);
+            setCameraReady(true);
+          }
+        }, 1500);
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
       setError(
         "Failed to access camera. Please check permissions or use file upload instead."
       );
+      setCameraInitializing(false);
+      setCameraReady(false);
     }
   };
 
@@ -469,6 +495,8 @@ export default function AddPlants({
       streamRef.current = null;
     }
     setCameraOpen(false);
+    setCameraInitializing(false);
+    setCameraReady(false);
   };
 
   // Capture photo from camera
@@ -476,10 +504,13 @@ export default function AddPlants({
     if (!videoRef.current) return;
     // Guard in case metadata not loaded yet
     if (
+      !cameraReady ||
       videoRef.current.videoWidth === 0 ||
       videoRef.current.videoHeight === 0
     ) {
-      setError("Camera not ready yet. Please wait a second and retry.");
+      setError(
+        "Camera not ready yet. Please wait until video appears, then retry."
+      );
       return;
     }
     const canvas = document.createElement("canvas");
@@ -906,6 +937,16 @@ export default function AddPlants({
                         className="w-full rounded-lg"
                         style={{ maxHeight: "400px" }}
                       />
+                      {cameraInitializing && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Initializing camera...
+                        </p>
+                      )}
+                      {!cameraInitializing && cameraReady && (
+                        <p className="text-xs text-green-600 mt-2">
+                          Camera ready. Capture when framed.
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-4">
                       <button
@@ -918,10 +959,11 @@ export default function AddPlants({
                       <button
                         type="button"
                         onClick={capturePhoto}
+                        disabled={!cameraReady}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90"
                         style={{ backgroundColor: "#48845C" }}
                       >
-                        Capture Photo
+                        {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
                     </div>
                   </div>
