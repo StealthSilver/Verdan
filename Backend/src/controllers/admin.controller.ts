@@ -646,41 +646,71 @@ export const deleteTreeRecord = async (req: AuthRequest, res: Response) => {
       recordId?: string;
     };
 
+    console.log("[deleteTreeRecord] Incoming request", { treeId, recordId });
+
     if (!treeId || !recordId) {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing treeId or recordId" });
     }
 
-    // Ensure tree exists first (optional but provides clearer errors)
-    const treeExists = await Tree.findById(treeId).select("_id images");
-    if (!treeExists) {
+    if (!Types.ObjectId.isValid(treeId)) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid treeId format" });
+    }
+    if (!Types.ObjectId.isValid(recordId)) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid recordId format" });
+    }
+
+    const tree = await Tree.findById(treeId).select("images");
+    if (!tree) {
+      console.log("[deleteTreeRecord] Tree not found", treeId);
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
     }
 
-    // Check if the record exists within the tree's images array
-    const recordFound = treeExists.images.some(
-      (img: any) => String(img._id) === String(recordId)
+    const target = (tree.images as any[]).find(
+      (img) => String(img._id) === recordId
     );
-    if (!recordFound) {
+    if (!target) {
+      console.log("[deleteTreeRecord] Record not found in tree", {
+        recordId,
+        treeId,
+      });
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Record not found on this tree" });
     }
 
-    const updatedTree = await Tree.findByIdAndUpdate(
-      treeId,
-      { $pull: { images: { _id: recordId } } },
-      { new: true }
-    )
+    // Perform pull using the subdocument _id
+    const updateResult = await Tree.updateOne(
+      { _id: treeId },
+      { $pull: { images: { _id: new Types.ObjectId(recordId) } } }
+    );
+
+    console.log("[deleteTreeRecord] Pull result", updateResult);
+
+    if (updateResult.modifiedCount === 0) {
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Failed to delete record" });
+    }
+
+    const updatedTree = await Tree.findById(treeId)
       .populate("plantedBy", "name email")
       .populate("siteId", "name address status");
 
-    return res.status(StatusCodes.OK).json(updatedTree);
+    return res.status(StatusCodes.OK).json({
+      message: "Record deleted successfully",
+      tree: updatedTree,
+      deletedRecordId: recordId,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("[deleteTreeRecord] Error", err);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Server error" });

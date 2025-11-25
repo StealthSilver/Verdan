@@ -35,9 +35,11 @@ const TreeSchema = new Schema<ITree>(
     status: { type: String, default: "healthy" },
     remarks: String,
     verified: { type: Boolean, default: false },
+    // Ensure each image subdocument has its own _id so we can target and delete reliably
     images: [
       {
-        url: String,
+        _id: { type: Schema.Types.ObjectId, auto: true },
+        url: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
       },
     ],

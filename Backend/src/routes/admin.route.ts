@@ -45,6 +45,8 @@ router.post("/site/team/add", addTeamMember);
 router.post("/trees/add", addTree);
 router.post("/trees/:treeId/records", addTreeRecord);
 router.delete("/trees/:treeId/records/:recordId", deleteTreeRecord);
+// Alias route (singular 'record') in case frontend or cached code hits this path
+router.delete("/trees/:treeId/record/:recordId", deleteTreeRecord);
 router.get("/trees/:treeId", getTreeById);
 router.put("/trees/:treeId", updateTree);
 router.delete("/trees/:treeId", deleteTree);
