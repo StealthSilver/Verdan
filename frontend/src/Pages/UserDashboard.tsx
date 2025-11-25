@@ -233,7 +233,7 @@ export default function UserDashboard() {
               Assigned Sites
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Manage and monitor your construction sites
+              Manage and monitor your assigned sites
             </p>
           </div>
           <button

@@ -67,13 +67,21 @@ export default function Signin() {
           Welcome to VERDAN
         </h2>
 
-        <div className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!loading) handleSubmit();
+          }}
+          className="space-y-4"
+        >
           <input
+            type="email"
             className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
             placeholder="Email"
             name="email"
             value={form.email}
             onChange={handleChange}
+            autoComplete="email"
           />
 
           <div className="relative">
@@ -84,11 +92,13 @@ export default function Signin() {
               name="password"
               value={form.password}
               onChange={handleChange}
+              autoComplete="current-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
                 <AiFillEyeInvisible size={20} />
@@ -99,13 +109,13 @@ export default function Signin() {
           </div>
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50"
           >
             {loading ? "Signing In..." : "Sign In"}
           </button>
-        </div>
+        </form>
 
         {errorMsg && (
           <div className="mt-4 mb-4 text-sm text-red-400 bg-white/5 p-2 rounded-xl">
