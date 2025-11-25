@@ -55,8 +55,7 @@ export default function AddPlants({
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraInitializing, setCameraInitializing] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
-  const [autoCapturePending, setAutoCapturePending] = useState(false);
-  const [cameraAttempts, setCameraAttempts] = useState(0);
+  const [cameraAttempts, setCameraAttempts] = useState(0); // track retries
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -436,24 +435,19 @@ export default function AddPlants({
     }
   };
 
-  // Helper: wait for video readiness
+  // Helper: wait for video to start producing frames (playing / loadeddata)
   const waitForVideoReady = (video: HTMLVideoElement): Promise<void> => {
     return new Promise((resolve, reject) => {
-      let tries = 0;
-      const maxTries = 60;
-      const check = () => {
-        tries++;
-        if (video.videoWidth > 0 && video.videoHeight > 0) {
-          resolve();
-          return;
-        }
-        if (tries >= maxTries) {
-          reject(new Error("Camera initialization timeout"));
-          return;
-        }
-        requestAnimationFrame(check);
+      const timeout = setTimeout(() => {
+        if (video.videoWidth > 0) resolve();
+        else reject(new Error("Camera initialization timeout"));
+      }, 6000);
+      const done = () => {
+        clearTimeout(timeout);
+        resolve();
       };
-      check();
+      video.addEventListener("playing", done, { once: true });
+      video.addEventListener("loadeddata", done, { once: true });
     });
   };
 
@@ -488,7 +482,7 @@ export default function AddPlants({
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Open camera (auto-capture flow)
+  // Open camera (manual capture flow)
   const openCamera = async () => {
     setError("");
     setCameraInitializing(true);
@@ -502,39 +496,33 @@ export default function AddPlants({
       const stream = await getStreamWithFallback();
       streamRef.current = stream;
       setCameraOpen(true);
+      await Promise.resolve(); // allow modal to render
       if (!videoRef.current) {
-        setError("Video element not ready");
+        setError("Video element not available");
+        setCameraInitializing(false);
         return;
       }
       videoRef.current.srcObject = stream;
       try {
         await videoRef.current.play();
       } catch (playErr) {
-        console.warn("Video play prevented:", playErr);
+        console.warn("Video play prevented (may need user gesture):", playErr);
       }
       try {
         await waitForVideoReady(videoRef.current);
-        setCameraInitializing(false);
         setCameraReady(true);
-        if (autoCapturePending) {
-          setTimeout(() => {
-            capturePhoto();
-            setAutoCapturePending(false);
-          }, 100);
-        }
       } catch (readyErr) {
         console.error(readyErr);
-        setError(
-          "Camera initialization timed out. Click capture again to retry."
-        );
-        setCameraInitializing(false);
+        setError("Camera took too long to start. Retry or check permissions.");
         setCameraReady(false);
+      } finally {
+        setCameraInitializing(false);
       }
     } catch (err: any) {
       console.error("Error accessing camera:", err);
       setError(
         (err?.message || "Failed to access camera") +
-          ". Please check permissions or use file upload."
+          ". Check permissions or use Upload Image."
       );
       setCameraInitializing(false);
       setCameraReady(false);
@@ -556,14 +544,8 @@ export default function AddPlants({
   // Capture photo from camera
   const capturePhoto = () => {
     if (!videoRef.current) return;
-    if (
-      !cameraReady ||
-      videoRef.current.videoWidth === 0 ||
-      videoRef.current.videoHeight === 0
-    ) {
-      setError("Camera not ready, retrying...");
-      setAutoCapturePending(true);
-      openCamera();
+    if (!cameraReady) {
+      setError("Camera not ready yet");
       return;
     }
     try {
@@ -571,21 +553,15 @@ export default function AddPlants({
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Failed to get canvas context");
+      if (!ctx) throw new Error("Canvas context unavailable");
       ctx.drawImage(videoRef.current, 0, 0);
-      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-      setImagePreview(imageDataUrl);
-      setForm((prev) => ({ ...prev, image: imageDataUrl }));
-    } catch (e: any) {
-      setError(e?.message || "Failed to capture photo");
-    } finally {
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      setImagePreview(dataUrl);
+      setForm((prev) => ({ ...prev, image: dataUrl }));
       closeCamera();
+    } catch (e: any) {
+      setError(e?.message || "Failed to capture image");
     }
-  };
-
-  const handleAutoCapture = () => {
-    setAutoCapturePending(true);
-    openCamera();
   };
 
   // Handle file input change
@@ -1034,7 +1010,7 @@ export default function AddPlants({
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={handleAutoCapture}
+                  onClick={openCamera}
                   disabled={cameraInitializing}
                   className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: "#1D4ED8" }}
@@ -1042,8 +1018,8 @@ export default function AddPlants({
                   {cameraInitializing
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
-                    ? "Retry Capture"
-                    : "📷 Capture Photo"}
+                    ? "Retry Camera"
+                    : "📷 Open Camera"}
                 </button>
                 <label
                   className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
