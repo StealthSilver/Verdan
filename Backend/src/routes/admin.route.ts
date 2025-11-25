@@ -7,6 +7,7 @@ import {
   updateSite,
   getTeamForSite,
   addTeamMember,
+  removeTeamMember,
   deleteSite,
   verifyTree,
   getSiteById,
@@ -62,6 +63,7 @@ router.put("/sites/:siteId", updateSite);
 router.delete("/sites/:siteId", deleteSite);
 router.get("/site/team", getTeamForSite);
 router.post("/site/team/add", addTeamMember);
+router.delete("/site/team/remove", removeTeamMember);
 router.post("/trees/add", addTree);
 router.post("/trees/:treeId/records", addTreeRecord);
 router.delete("/trees/:treeId/records/:recordId", deleteTreeRecord);

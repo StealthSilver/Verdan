@@ -178,6 +178,61 @@ export const addTeamMember = async (req: Request, res: Response) => {
   }
 };
 
+// Remove a team member from a site and delete the user record entirely
+export const removeTeamMember = async (req: Request, res: Response) => {
+  try {
+    const siteId = req.query.siteId as string;
+    const memberId = req.query.memberId as string;
+
+    if (!siteId || !memberId) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Missing siteId or memberId" });
+    }
+
+    if (!Types.ObjectId.isValid(siteId) || !Types.ObjectId.isValid(memberId)) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid siteId or memberId format" });
+    }
+
+    const site = await Site.findById(siteId);
+    if (!site) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Site not found" });
+    }
+
+    // Ensure member exists
+    const user = await User.findById(memberId);
+    if (!user) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "User not found" });
+    }
+
+    // Pull member from site's teamMembers array
+    await Site.updateOne(
+      { _id: siteId },
+      { $pull: { teamMembers: new Types.ObjectId(memberId) } }
+    );
+
+    // Delete user record entirely (clears from user collection)
+    await User.findByIdAndDelete(memberId);
+
+    return res.status(StatusCodes.OK).json({
+      message: "Team member deleted successfully",
+      deletedMemberId: memberId,
+      siteId,
+    });
+  } catch (err) {
+    console.error("removeTeamMember error", err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Server error" });
+  }
+};
+
 export const deleteSite = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;

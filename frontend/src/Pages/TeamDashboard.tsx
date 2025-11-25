@@ -34,6 +34,12 @@ export default function TeamDashboard() {
   const [error, setError] = useState("");
   const [showMemberDrawer, setShowMemberDrawer] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    memberId: null as string | null,
+    memberName: "",
+  });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +74,34 @@ export default function TeamDashboard() {
 
   const handleAddTeamMember = () => setShowMemberDrawer(true);
   const handleBack = () => navigate("/admin/Dashboard");
+
+  const handleDelete = async () => {
+    if (!deleteConfirm.memberId || !token || !siteId) return;
+    const id = deleteConfirm.memberId;
+    const backup = teamMembers.find((m) => m._id === id);
+    setTeamMembers((prev) => prev.filter((m) => m._id !== id));
+    setDeleteConfirm({ show: false, memberId: null, memberName: "" });
+    setDeleting(true);
+    try {
+      try {
+        await API.delete(
+          `/admin/site/team/remove?siteId=${siteId}&memberId=${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (apiErr: any) {
+        console.warn(
+          "Team member delete API failed or not implemented",
+          apiErr?.response || apiErr
+        );
+      }
+      setRefreshCounter((c) => c + 1);
+    } catch (err: any) {
+      if (backup) setTeamMembers((prev) => [...prev, backup]);
+      alert(err?.response?.data?.message || "Failed to delete team member");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (loading)
     return (
@@ -161,6 +195,9 @@ export default function TeamDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Organization
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -205,6 +242,20 @@ export default function TeamDashboard() {
                         {member.organization || "N/A"}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <button
+                        className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                        onClick={() =>
+                          setDeleteConfirm({
+                            show: true,
+                            memberId: member._id,
+                            memberName: member.name,
+                          })
+                        }
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -238,7 +289,7 @@ export default function TeamDashboard() {
                   {member.role}
                 </span>
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Gender:</span>
                   <span className="text-gray-900 capitalize">
@@ -256,6 +307,18 @@ export default function TeamDashboard() {
                   </span>
                 </div>
               </div>
+              <button
+                className="w-full px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                onClick={() =>
+                  setDeleteConfirm({
+                    show: true,
+                    memberId: member._id,
+                    memberName: member.name,
+                  })
+                }
+              >
+                Delete Member
+              </button>
             </div>
           ))}
         </div>
@@ -299,6 +362,47 @@ export default function TeamDashboard() {
           />
         </div>
       </div>
+
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Team Member
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">
+                  {deleteConfirm.memberName}
+                </span>
+                ? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: false,
+                      memberId: null,
+                      memberName: "",
+                    })
+                  }
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete Member"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import axios from "axios";
 
 // Determine the correct base URL based on environment
 const getBaseURL = () => {
+  // uncomment when deploying backend
   // First check for environment variable
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
@@ -17,10 +18,6 @@ const getBaseURL = () => {
 };
 
 const baseURL = getBaseURL();
-console.log("🔗 API Base URL:", baseURL);
-console.log("🌍 Environment:", import.meta.env.MODE);
-console.log("🏭 Production?", import.meta.env.PROD);
-console.log("📋 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
 const API = axios.create({
   baseURL: baseURL,
