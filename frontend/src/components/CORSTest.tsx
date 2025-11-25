@@ -111,9 +111,13 @@ const CORSTest: React.FC = () => {
             Frontend URL: {window.location.origin}
             <br />
             Backend URL:{" "}
-            {import.meta.env.VITE_API_BASE_URL || "Using default from api.ts"}
+            {import.meta.env.VITE_API_BASE_URL || "http://13.61.104.179:8000/"}
             <br />
             Environment: {import.meta.env.MODE}
+            <br />
+            Production: {import.meta.env.PROD ? "Yes" : "No"}
+            <br />
+            Expected Backend: http://13.61.104.179:8000/
           </p>
         </div>
       </div>

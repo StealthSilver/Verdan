@@ -9,7 +9,7 @@ const getBaseURL = () => {
 
   // For production, use the deployed backend
   if (import.meta.env.PROD) {
-    return "https://verdan-787l.vercel.app/";
+    return "http://13.61.104.179:8000/";
   }
 
   // For development, use localhost

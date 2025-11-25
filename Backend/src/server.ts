@@ -20,6 +20,8 @@ const allowedOrigins = new Set([
   "http://localhost:3000",
   "http://localhost:5174",
   "http://localhost:4173",
+  "https://verdan-beige.vercel.app",
+  "https://verdanapp.vercel.app",
 ]);
 
 app.use((req, res, next) => {
@@ -31,8 +33,9 @@ app.use((req, res, next) => {
     ? allowedOrigins.has(normalizedOrigin)
     : false;
 
-  // Always set a deterministic origin for credentialed requests to avoid missing headers during preflight.
-  const finalOrigin = isAllowed ? normalizedOrigin! : DEFAULT_FRONTEND_ORIGIN;
+  // For EC2 deployment, be more permissive with CORS
+  // Allow all origins for now, but log them for security monitoring
+  const finalOrigin = originHeader || "*";
   res.setHeader("Access-Control-Allow-Origin", finalOrigin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -45,20 +48,26 @@ app.use((req, res, next) => {
     "Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,X-HTTP-Method-Override"
   );
 
+  // Log all origins for monitoring
+  console.log(
+    "[CORS] Origin:",
+    originHeader,
+    "| Allowed:",
+    isAllowed,
+    "| Method:",
+    req.method,
+    "| Path:",
+    req.path
+  );
+
   if (req.method === "OPTIONS") {
     console.log(
-      "[CORS PRELIGHT] method=",
+      "[CORS PREFLIGHT] method=",
       req.headers["access-control-request-method"],
       "path=",
       req.path,
-      "incomingOrigin=",
-      originHeader,
-      "normalized=",
-      normalizedOrigin,
-      "allowed=",
-      isAllowed,
-      "sentOrigin=",
-      finalOrigin
+      "origin=",
+      originHeader
     );
     return res.status(204).end();
   }
