@@ -22,6 +22,8 @@ const allowedOrigins = new Set([
   "http://localhost:4173",
   "https://verdan-beige.vercel.app",
   "https://verdanapp.vercel.app",
+  // Add your production frontend domain
+  "https://verdan-beige.vercel.app",
 ]);
 
 app.use((req, res, next) => {
