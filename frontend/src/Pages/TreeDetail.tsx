@@ -5,6 +5,8 @@ import API from "../api";
 import UpdateTreeRecord from "./UpdateTreeRecord";
 import verdanLogo from "../assets/verdan_light.svg";
 
+const VERDAN_GREEN = "#48845C";
+
 interface Site {
   _id: string;
   name: string;
@@ -41,6 +43,7 @@ export default function TreeDetail() {
   const [error, setError] = useState("");
   const [showRecordDrawer, setShowRecordDrawer] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -63,7 +66,6 @@ export default function TreeDetail() {
   }, [token, treeId, refreshCounter]);
 
   const handleAddRecord = () => {
-    // Open drawer instead of navigating to separate page
     setShowRecordDrawer(true);
   };
 
@@ -74,23 +76,48 @@ export default function TreeDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600 text-lg">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin"
+            style={{ borderColor: VERDAN_GREEN, borderTopColor: "transparent" }}
+          />
+          <p className="text-gray-600 text-sm">Loading tree details...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !tree) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center px-4">
-        <div className="w-full max-w-lg bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-3">Error</h2>
-          <p className="text-gray-700 mb-6">{error || "Tree not found"}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Error Loading Tree
+          </h2>
+          <p className="text-gray-600 text-sm mb-6">
+            {error || "Tree not found"}
+          </p>
           <button
             onClick={handleBack}
-            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#48845C" }}
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: VERDAN_GREEN }}
           >
-            Back
+            Back to Site
           </button>
         </div>
       </div>
@@ -109,14 +136,25 @@ export default function TreeDetail() {
     return dateB - dateA;
   });
 
-  const firstRecord = sortedImages.length > 0 ? sortedImages[0] : null;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "healthy":
+        return "bg-green-100 text-green-800";
+      case "sick":
+        return "bg-yellow-100 text-yellow-800";
+      case "dead":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-blue-100 text-blue-800";
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-gray-50">
       {/* NAVBAR */}
       <nav
         className="bg-white border-b border-gray-200 sticky top-0 z-40"
-        style={{ borderBottomColor: "#48845C15" }}
+        style={{ borderBottomColor: VERDAN_GREEN + "15" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -132,14 +170,29 @@ export default function TreeDetail() {
       </nav>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Page Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold">Tree Details</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {tree.treeName}
+              </h1>
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                  tree.status
+                )}`}
+              >
+                {tree.status}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 font-mono">
+              ID: {tree._id.slice(-8)}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-gray-600">{siteName}</span>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                   siteStatus === "active"
                     ? "bg-green-100 text-green-800"
                     : "bg-gray-100 text-gray-800"
@@ -148,223 +201,375 @@ export default function TreeDetail() {
                 {siteStatus}
               </span>
             </div>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p>
-                <span className="font-medium">Site:</span> {siteName}
+          </div>
+          <button
+            onClick={handleAddRecord}
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap self-start sm:self-auto"
+            style={{ backgroundColor: VERDAN_GREEN }}
+          >
+            + Add New Record
+          </button>
+        </div>
+
+        {/* Tree Info Card */}
+        <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+          <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
+            Tree Information
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">Type</span>
+              <p className="text-sm font-medium text-gray-900">
+                {tree.treeType || "N/A"}
               </p>
-              <p className="text-xs font-mono text-gray-500">
-                ID: {siteIdValue}
+            </div>
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">
+                Date Planted
+              </span>
+              <p className="text-sm font-medium text-gray-900">
+                {new Date(tree.datePlanted).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">Latitude</span>
+              <p className="text-sm font-mono text-gray-900">
+                {tree.coordinates.lat.toFixed(6)}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">
+                Longitude
+              </span>
+              <p className="text-sm font-mono text-gray-900">
+                {tree.coordinates.lng.toFixed(6)}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">
+                Total Records
+              </span>
+              <p className="text-sm font-medium text-gray-900">
+                {sortedImages.length}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">
+                Last Updated
+              </span>
+              <p className="text-sm font-medium text-gray-900">
+                {sortedImages.length > 0
+                  ? new Date(sortedImages[0].timestamp).toLocaleDateString()
+                  : "No records"}
               </p>
             </div>
           </div>
-          {firstRecord && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full max-w-sm">
-              <h2 className="text-sm font-semibold text-gray-800 mb-2">
-                Latest Record
-              </h2>
-              <div className="text-xs text-gray-600 space-y-1">
-                <p>
-                  <span className="font-medium">Date:</span>{" "}
-                  {new Date(firstRecord.timestamp).toLocaleDateString()}
-                </p>
-                <p>
-                  <span className="font-medium">Time:</span>{" "}
-                  {new Date(firstRecord.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
+          {tree.remarks && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <span className="text-xs text-gray-500 block mb-1">Remarks</span>
+              <p className="text-sm text-gray-700">{tree.remarks}</p>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Timeline Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 sticky top-24">
-              <h2 className="text-sm font-semibold text-gray-800 mb-4 tracking-wide">
-                Timeline
-              </h2>
-              <div className="space-y-4">
-                {sortedImages.length === 0 ? (
-                  <p className="text-gray-500 text-xs">No records yet</p>
-                ) : (
-                  sortedImages.map((image, index) => (
+        {/* Timeline & Records Section */}
+        {sortedImages.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200 py-16 text-center">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: VERDAN_GREEN + "15" }}
+            >
+              <svg
+                className="w-8 h-8"
+                style={{ color: VERDAN_GREEN }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <p className="text-gray-600 mb-4">No records available yet</p>
+            <button
+              onClick={handleAddRecord}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              Add First Record
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Timeline - Desktop (Left Side) */}
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <div className="bg-white rounded-lg border border-gray-200 p-5 sticky top-24">
+                <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-5">
+                  Record Timeline
+                </h2>
+                <div className="space-y-0">
+                  {sortedImages.map((image, index) => (
                     <div
                       key={index}
-                      className="relative pl-6 border-l-2 border-emerald-500"
-                    >
-                      <div className="absolute -left-2 top-0 w-4 h-4 bg-emerald-500 rounded-full"></div>
-                      <div className="text-[10px] text-gray-700 font-medium">
-                        {new Date(image.timestamp).toLocaleDateString()}
-                      </div>
-                      <div className="text-[10px] text-gray-500">
-                        {new Date(image.timestamp).toLocaleTimeString()}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-              {/* Tree Information */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-wide">
-                  Tree Information
-                </h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-600">Tree Name:</span>
-                    <p className="font-semibold text-lg">{tree.treeName}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Tree ID:</span>
-                    <p className="font-mono text-sm">{tree._id.slice(-8)}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Tree Type:</span>
-                    <p className="font-semibold">{tree.treeType || "N/A"}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Status:</span>
-                    <span
-                      className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        tree.status === "healthy"
-                          ? "bg-green-100 text-green-800"
-                          : tree.status === "sick"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : tree.status === "dead"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`relative pl-8 pb-6 cursor-pointer group ${
+                        index === sortedImages.length - 1 ? "pb-0" : ""
                       }`}
                     >
-                      {tree.status}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Date Planted:</span>
-                    <p>{new Date(tree.datePlanted).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Coordinates:</span>
-                    <p className="font-mono text-xs">
-                      {tree.coordinates.lat.toFixed(6)},{" "}
-                      {tree.coordinates.lng.toFixed(6)}
-                    </p>
-                  </div>
+                      {/* Timeline line */}
+                      {index !== sortedImages.length - 1 && (
+                        <div
+                          className="absolute left-[11px] top-4 w-0.5 h-full"
+                          style={{
+                            backgroundColor:
+                              selectedImageIndex === index
+                                ? VERDAN_GREEN
+                                : "#e5e7eb",
+                          }}
+                        />
+                      )}
+                      {/* Timeline dot */}
+                      <div
+                        className={`absolute left-0 top-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                          selectedImageIndex === index
+                            ? "border-transparent"
+                            : "border-gray-300 bg-white group-hover:border-gray-400"
+                        }`}
+                        style={{
+                          backgroundColor:
+                            selectedImageIndex === index
+                              ? VERDAN_GREEN
+                              : undefined,
+                          borderColor:
+                            selectedImageIndex === index
+                              ? VERDAN_GREEN
+                              : undefined,
+                        }}
+                      >
+                        {selectedImageIndex === index && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
+                      </div>
+                      {/* Content */}
+                      <div
+                        className={`transition-colors ${
+                          selectedImageIndex === index
+                            ? "opacity-100"
+                            : "opacity-70 group-hover:opacity-100"
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-gray-900">
+                          {new Date(image.timestamp).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(image.timestamp).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </p>
+                        {index === 0 && (
+                          <span
+                            className="inline-block mt-1.5 px-2 py-0.5 text-xs font-medium rounded-full text-white"
+                            style={{ backgroundColor: VERDAN_GREEN }}
+                          >
+                            Latest
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {tree.remarks && (
-                  <div className="mt-4">
-                    <span className="text-sm text-gray-600">Remarks:</span>
-                    <p className="text-gray-800">{tree.remarks}</p>
-                  </div>
-                )}
               </div>
+            </div>
 
-              {/* First Record */}
-              {firstRecord && (
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4 tracking-wide">
-                    Latest Record (Image)
-                  </h2>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <img
-                      src={firstRecord.url}
-                      alt="Latest tree record"
-                      className="w-full max-w-md mx-auto rounded-lg object-cover aspect-video mb-4 border border-gray-200"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
+            {/* Timeline - Mobile (Horizontal) */}
+            <div className="lg:hidden bg-white rounded-lg border border-gray-200 p-4 overflow-x-auto">
+              <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-3">
+                Timeline
+              </h2>
+              <div className="flex gap-3 min-w-max pb-2">
+                {sortedImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`flex flex-col items-center px-3 py-2 rounded-lg transition-all ${
+                      selectedImageIndex === index
+                        ? "bg-opacity-10"
+                        : "hover:bg-gray-50"
+                    }`}
+                    style={{
+                      backgroundColor:
+                        selectedImageIndex === index
+                          ? VERDAN_GREEN + "15"
+                          : undefined,
+                    }}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full mb-2 ${
+                        selectedImageIndex === index ? "" : "bg-gray-300"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          selectedImageIndex === index
+                            ? VERDAN_GREEN
+                            : undefined,
                       }}
                     />
-                    <div className="text-xs text-gray-600 flex gap-6">
-                      <p>
-                        <span className="font-medium">Date:</span>{" "}
-                        {new Date(firstRecord.timestamp).toLocaleDateString()}
-                      </p>
-                      <p>
-                        <span className="font-medium">Time:</span>{" "}
-                        {new Date(firstRecord.timestamp).toLocaleTimeString()}
-                      </p>
+                    <span
+                      className={`text-xs font-medium whitespace-nowrap ${
+                        selectedImageIndex === index
+                          ? "text-gray-900"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {new Date(image.timestamp).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    {index === 0 && (
+                      <span
+                        className="text-xs mt-1 px-1.5 py-0.5 rounded text-white"
+                        style={{ backgroundColor: VERDAN_GREEN }}
+                      >
+                        Latest
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Records Content */}
+            <div className="flex-1 space-y-6">
+              {/* Selected Record (Large View) */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="aspect-video relative bg-gray-100">
+                  <img
+                    src={sortedImages[selectedImageIndex]?.url}
+                    alt={`Tree record ${selectedImageIndex + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450'%3E%3Crect fill='%23f3f4f6' width='800' height='450'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='24'%3EImage unavailable%3C/text%3E%3C/svg%3E";
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <div className="flex items-center justify-between text-white">
+                      <div>
+                        <p className="font-medium">
+                          {new Date(
+                            sortedImages[selectedImageIndex]?.timestamp
+                          ).toLocaleDateString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </p>
+                        <p className="text-sm text-white/80">
+                          {new Date(
+                            sortedImages[selectedImageIndex]?.timestamp
+                          ).toLocaleTimeString()}
+                        </p>
+                      </div>
+                      <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                        Record {selectedImageIndex + 1} of {sortedImages.length}
+                      </span>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Past Records */}
-              <div className="mb-6">
+              {/* All Records Grid */}
+              <div className="bg-white rounded-lg border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800 tracking-wide">
-                    Past Records
+                  <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
+                    All Records ({sortedImages.length})
                   </h2>
-                  <button
-                    onClick={handleAddRecord}
-                    className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 active:scale-95"
-                    style={{ backgroundColor: "#48845C" }}
-                  >
-                    + Add New Record
-                  </button>
                 </div>
-
-                {sortedImages.length === 0 ? (
-                  <p className="text-center py-10 text-gray-600">
-                    No records available. Click "Add New Record" to add the
-                    first record.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sortedImages.map((image, index) => (
-                      <div
-                        key={index}
-                        className="group bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition flex flex-col"
-                      >
-                        <div className="relative w-full h-40 mb-3 overflow-hidden rounded-md border border-gray-200">
-                          <img
-                            src={image.url}
-                            alt={`Tree record ${index + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display =
-                                "none";
-                            }}
-                          />
-                        </div>
-                        <div className="text-[11px] text-gray-600 flex items-center justify-between mt-auto">
-                          <span className="font-medium">
-                            {new Date(image.timestamp).toLocaleDateString()}
-                          </span>
-                          <span>
-                            {new Date(image.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {sortedImages.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedImageIndex === index
+                          ? "ring-2 ring-offset-2"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      style={{
+                        borderColor:
+                          selectedImageIndex === index
+                            ? VERDAN_GREEN
+                            : undefined,
+                        ...(selectedImageIndex === index && {
+                          boxShadow: `0 0 0 2px ${VERDAN_GREEN}`,
+                        }),
+                      }}
+                    >
+                      <img
+                        src={image.url}
+                        alt={`Tree record ${index + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f3f4f6' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='12'%3ENo Image%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute bottom-0 left-0 right-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        {new Date(image.timestamp).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "2-digit",
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
+                      {index === 0 && (
+                        <div
+                          className="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded text-white"
+                          style={{ backgroundColor: VERDAN_GREEN }}
+                        >
+                          Latest
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
+
       {/* Slide-in Update Record Drawer */}
       <div
         className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          showRecordDrawer
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
+          showRecordDrawer ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-            showRecordDrawer ? "opacity-100" : "opacity-0"
-          }`}
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
           onClick={() => setShowRecordDrawer(false)}
         />
         <div
-          className={`relative h-full w-full max-w-2xl bg-white shadow-2xl border-l border-gray-200 transform transition-transform duration-300 ${
+          className={`relative h-full w-full max-w-2xl bg-white transition-transform duration-300 ${
             showRecordDrawer ? "translate-x-0" : "translate-x-full"
-          } overflow-y-auto`}
+          }`}
         >
           {showRecordDrawer && (
             <UpdateTreeRecord

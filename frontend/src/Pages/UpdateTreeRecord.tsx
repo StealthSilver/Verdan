@@ -359,7 +359,6 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       { video: { facingMode: { ideal: "environment" } }, audio: false },
       { video: true, audio: false },
     ];
-    // Try to find back camera explicitly if enumerateDevices available
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const backCam = devices.find(
@@ -383,6 +382,57 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       }
     }
     throw lastError || new Error("Unable to access camera");
+  };
+
+  // Backend uses express.json default (~100kb). Keep image < ~90kb for safe payload.
+  const MAX_IMAGE_BYTES = 90_000;
+
+  const dataUrlBytes = (dataUrl: string): number => {
+    const base64 = dataUrl.split(",")[1] || "";
+    const padding = (base64.match(/=+$/) || [""])[0].length;
+    return (base64.length * 3) / 4 - padding;
+  };
+
+  const compressToLimit = async (
+    dataUrl: string,
+    targetBytes: number = MAX_IMAGE_BYTES
+  ): Promise<string> => {
+    if (!dataUrl) return dataUrl;
+    if (dataUrlBytes(dataUrl) <= targetBytes) return dataUrl;
+    let quality = 0.8;
+    let maxDim = 1280;
+    let attempt = 0;
+    const MAX_ATTEMPTS = 8;
+    let current = dataUrl;
+    while (attempt < MAX_ATTEMPTS && dataUrlBytes(current) > targetBytes) {
+      attempt++;
+      current = await new Promise<string>((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const { width, height } = img;
+            const scale = maxDim / Math.max(width, height);
+            const targetW = Math.round(width * scale);
+            const targetH = Math.round(height * scale);
+            const canvas = document.createElement("canvas");
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return resolve(current);
+            ctx.drawImage(img, 0, 0, targetW, targetH);
+            const next = canvas.toDataURL("image/jpeg", quality);
+            resolve(next);
+          } catch {
+            resolve(current);
+          }
+        };
+        img.onerror = () => resolve(current);
+        img.src = current;
+      });
+      quality = Math.max(0.4, quality - 0.1);
+      maxDim = Math.max(640, Math.round(maxDim * 0.75));
+    }
+    return current;
   };
 
   // Open camera (deferred stream init handled in useEffect)
@@ -410,8 +460,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     setCameraReady(false);
   };
 
-  // Capture photo from camera
-  const capturePhoto = () => {
+  // Capture photo from camera (with compression)
+  const capturePhoto = async () => {
     if (!videoRef.current) return;
     if (!cameraReady) {
       setError("Camera not ready yet");
@@ -424,7 +474,14 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context unavailable");
       ctx.drawImage(videoRef.current, 0, 0);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      const rawDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      const dataUrl = await compressToLimit(rawDataUrl);
+      if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
+        setError(
+          "Image too large to upload after compression. Please capture a closer or lower resolution image."
+        );
+        return;
+      }
       setImagePreview(dataUrl);
       setForm((prev) => ({ ...prev, image: dataUrl }));
       closeCamera();
@@ -438,10 +495,19 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const result = reader.result as string;
-        setImagePreview(result);
-        setForm((prev) => ({ ...prev, image: result }));
+        const compressed = await compressToLimit(result);
+        if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
+          setError(
+            "Selected image exceeds upload size limit (~90KB). Please choose a smaller image."
+          );
+          setImagePreview(null);
+          setForm((prev) => ({ ...prev, image: null }));
+          return;
+        }
+        setImagePreview(compressed);
+        setForm((prev) => ({ ...prev, image: compressed }));
       };
       reader.readAsDataURL(file);
     }

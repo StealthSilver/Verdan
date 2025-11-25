@@ -106,7 +106,13 @@ export default function UserDashboard() {
   if (loading)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600 text-lg">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin"
+            style={{ borderColor: VERDAN_GREEN, borderTopColor: "transparent" }}
+          />
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
       </div>
     );
   if (error)
