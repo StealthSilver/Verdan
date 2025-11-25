@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
+// Removed cors package usage to avoid swallowing preflight without headers
 import dotenv from "dotenv";
 import AuthRoute from "./routes/auth.route";
 import userRoute from "./routes/user.route";
@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
-// Simplified CORS configuration
+// Central CORS handling (no cors() middleware to ensure headers always set)
 const allowedOrigins = new Set([
   "https://verdan-beige.vercel.app",
   "http://localhost:5173",
@@ -21,39 +21,42 @@ const allowedOrigins = new Set([
   "http://localhost:4173",
 ]);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Non-browser or same-origin requests
-      if (allowedOrigins.has(origin)) return callback(null, true);
-      return callback(null, false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  })
-);
-
-// Ensure headers consistently set (including for non-simple responses)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.has(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
-  res.header("Vary", "Origin");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,DELETE,OPTIONS,PATCH"
   );
-  res.header(
+  res.setHeader(
     "Access-Control-Allow-Headers",
     "Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,X-HTTP-Method-Override"
   );
 
   if (req.method === "OPTIONS") {
-    return res.status(204).end(); // No Content for preflight
+    console.log(
+      "Preflight for:",
+      req.headers["access-control-request-method"],
+      req.path,
+      "Origin:",
+      origin
+    );
+    return res.status(200).end();
   }
   next();
+});
+
+// Debug route to inspect origin handling
+app.get("/debug/origin", (req, res) => {
+  res.json({
+    receivedOrigin: req.headers.origin || null,
+    allowed: req.headers.origin ? allowedOrigins.has(req.headers.origin) : null,
+    list: Array.from(allowedOrigins),
+  });
 });
 
 app.use(express.json());
