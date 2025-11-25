@@ -32,6 +32,26 @@ router.use((req, res, next) => {
   next();
 });
 
+// Lightweight route list (kept BEFORE auth to diagnose 404 in production)
+router.get("/_debug/routes", (req, res) => {
+  try {
+    const stack = (router as any).stack || [];
+    const routes = stack
+      .filter((layer: any) => layer.route)
+      .map((layer: any) => {
+        const methods = Object.keys(layer.route.methods)
+          .filter((m) => layer.route.methods[m])
+          .map((m) => m.toUpperCase());
+        return { path: layer.route.path, methods };
+      });
+    res.json({ count: routes.length, routes });
+  } catch (e) {
+    res
+      .status(500)
+      .json({ message: "Failed to enumerate routes", error: String(e) });
+  }
+});
+
 router.use(authMiddleware, adminOnly);
 
 router.get("/sites", getAllSites);
