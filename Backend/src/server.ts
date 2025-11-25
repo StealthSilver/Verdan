@@ -1,10 +1,12 @@
 import express from "express";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 // Removed cors package usage to avoid swallowing preflight without headers
 import dotenv from "dotenv";
 import AuthRoute from "./routes/auth.route";
 import userRoute from "./routes/user.route";
 import adminRoute from "./routes/admin.route";
+// Direct model import for fallback delete route
+import Tree from "./models/tree.model";
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -139,6 +141,59 @@ app.get("/health", (req: express.Request, res: express.Response) => {
 app.use("/auth", AuthRoute);
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
+
+// Fallback direct route for deleting a tree record (in case deployed build of admin.route.ts is stale)
+app.delete(
+  "/admin/trees/:treeId/records/:recordId",
+  async (req: express.Request, res: express.Response) => {
+    const { treeId, recordId } = req.params;
+    // If admin router already registered the route, we can still proceed; this is idempotent.
+    console.log("[FallbackDeleteRoute] Received DELETE", { treeId, recordId });
+    try {
+      if (!treeId || !recordId) {
+        return res.status(400).json({ message: "Missing treeId or recordId" });
+      }
+      if (!Types.ObjectId.isValid(treeId)) {
+        return res.status(400).json({ message: "Invalid treeId format" });
+      }
+      if (!Types.ObjectId.isValid(recordId)) {
+        return res.status(400).json({ message: "Invalid recordId format" });
+      }
+      const tree = await Tree.findById(treeId).select("images");
+      if (!tree) {
+        return res.status(404).json({ message: "Tree not found" });
+      }
+      const target = (tree.images as any[]).find(
+        (img) => String(img._id) === recordId
+      );
+      if (!target) {
+        return res
+          .status(404)
+          .json({ message: "Record not found on this tree" });
+      }
+      const updateResult = await Tree.updateOne(
+        { _id: treeId },
+        { $pull: { images: { _id: new Types.ObjectId(recordId) } } }
+      );
+      console.log("[FallbackDeleteRoute] updateOne result", updateResult);
+      if (updateResult.modifiedCount === 0) {
+        return res.status(500).json({ message: "Failed to delete record" });
+      }
+      const updatedTree = await Tree.findById(treeId)
+        .populate("plantedBy", "name email")
+        .populate("siteId", "name address status");
+      return res.status(200).json({
+        message: "Record deleted successfully (fallback route)",
+        tree: updatedTree,
+        deletedRecordId: recordId,
+        fallback: true,
+      });
+    } catch (err: any) {
+      console.error("[FallbackDeleteRoute] Error", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 // 404 handler for unmatched routes
 app.use((req: express.Request, res: express.Response) => {
