@@ -12,9 +12,10 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
-// Central CORS handling (no cors() middleware to ensure headers always set)
+// Central CORS handling
+const DEFAULT_FRONTEND_ORIGIN = "https://verdan-beige.vercel.app";
 const allowedOrigins = new Set([
-  "https://verdan-beige.vercel.app",
+  DEFAULT_FRONTEND_ORIGIN,
   "http://localhost:5173",
   "http://localhost:3000",
   "http://localhost:5174",
@@ -22,10 +23,17 @@ const allowedOrigins = new Set([
 ]);
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.has(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
+  const originHeader = req.headers.origin;
+  const normalizedOrigin = originHeader
+    ? originHeader.replace(/\/$/, "")
+    : undefined;
+  const isAllowed = normalizedOrigin
+    ? allowedOrigins.has(normalizedOrigin)
+    : false;
+
+  // Always set a deterministic origin for credentialed requests to avoid missing headers during preflight.
+  const finalOrigin = isAllowed ? normalizedOrigin! : DEFAULT_FRONTEND_ORIGIN;
+  res.setHeader("Access-Control-Allow-Origin", finalOrigin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
@@ -39,13 +47,20 @@ app.use((req, res, next) => {
 
   if (req.method === "OPTIONS") {
     console.log(
-      "Preflight for:",
+      "[CORS PRELIGHT] method=",
       req.headers["access-control-request-method"],
+      "path=",
       req.path,
-      "Origin:",
-      origin
+      "incomingOrigin=",
+      originHeader,
+      "normalized=",
+      normalizedOrigin,
+      "allowed=",
+      isAllowed,
+      "sentOrigin=",
+      finalOrigin
     );
-    return res.status(200).end();
+    return res.status(204).end();
   }
   next();
 });
@@ -125,6 +140,12 @@ mongoose
   .catch((err) => {
     console.log("error while connecting mongodb", err);
   });
-app.listen(PORT, () => {
-  console.log(`listening to port ${PORT}`);
-});
+
+// When deployed on Vercel (@vercel/node) we export the app instead of listening.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`listening to port ${PORT}`);
+  });
+}
+
+export default app;
