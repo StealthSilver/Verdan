@@ -313,12 +313,21 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const openCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
       });
       streamRef.current = stream;
       setCameraOpen(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          const playPromise = videoRef.current?.play();
+          if (playPromise && typeof playPromise.then === "function") {
+            playPromise.catch((err) =>
+              console.warn("Video play prevented:", err)
+            );
+          }
+        };
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -340,18 +349,26 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   // Capture photo from camera
   const capturePhoto = () => {
     if (!videoRef.current) return;
-
+    if (
+      videoRef.current.videoWidth === 0 ||
+      videoRef.current.videoHeight === 0
+    ) {
+      setError("Camera not ready yet. Please wait a second and retry.");
+      return;
+    }
     const canvas = document.createElement("canvas");
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
     const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.drawImage(videoRef.current, 0, 0);
-      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
-      setImagePreview(imageDataUrl);
-      setForm((prev) => ({ ...prev, image: imageDataUrl }));
-      closeCamera();
+    if (!ctx) {
+      setError("Failed to capture image context.");
+      return;
     }
+    ctx.drawImage(videoRef.current, 0, 0);
+    const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    setImagePreview(imageDataUrl);
+    setForm((prev) => ({ ...prev, image: imageDataUrl }));
+    closeCamera();
   };
 
   // Handle file input change
