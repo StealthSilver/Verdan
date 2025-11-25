@@ -22,8 +22,9 @@ const allowedOrigins = new Set([
   "http://localhost:4173",
   "https://verdan-beige.vercel.app",
   "https://verdanapp.vercel.app",
-  // Add your production frontend domain
+  // Add all your frontend domains
   "https://verdan-beige.vercel.app",
+  "https://verdanapp.vercel.app",
 ]);
 
 app.use((req, res, next) => {
@@ -35,10 +36,14 @@ app.use((req, res, next) => {
     ? allowedOrigins.has(normalizedOrigin)
     : false;
 
-  // For EC2 deployment, be more permissive with CORS
-  // Allow all origins for now, but log them for security monitoring
-  const finalOrigin = originHeader || "*";
-  res.setHeader("Access-Control-Allow-Origin", finalOrigin);
+  // Set CORS headers
+  if (originHeader && isAllowed) {
+    res.setHeader("Access-Control-Allow-Origin", originHeader);
+  } else {
+    // For Render deployment, be more permissive but log for monitoring
+    res.setHeader("Access-Control-Allow-Origin", originHeader || "*");
+  }
+
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
