@@ -15,6 +15,7 @@ import {
   addTree,
   updateTree,
   addTreeRecord,
+  deleteTreeRecord,
   deleteTree,
   resetDatabase,
 } from "../controllers/admin.controller";
@@ -24,7 +25,10 @@ const router = Router();
 // Log all requests for debugging (before auth to see all requests)
 router.use((req, res, next) => {
   console.log(`Admin route hit: ${req.method} ${req.path}`);
-  console.log(`Headers:`, req.headers.authorization ? "Authorization present" : "No Authorization");
+  console.log(
+    `Headers:`,
+    req.headers.authorization ? "Authorization present" : "No Authorization"
+  );
   next();
 });
 
@@ -40,6 +44,7 @@ router.get("/site/team", getTeamForSite);
 router.post("/site/team/add", addTeamMember);
 router.post("/trees/add", addTree);
 router.post("/trees/:treeId/records", addTreeRecord);
+router.delete("/trees/:treeId/records/:recordId", deleteTreeRecord);
 router.get("/trees/:treeId", getTreeById);
 router.put("/trees/:treeId", updateTree);
 router.delete("/trees/:treeId", deleteTree);

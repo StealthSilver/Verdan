@@ -15,16 +15,16 @@ export const getAllSites = async (req: Request, res: Response) => {
     const sitesWithIds = sites.map((s: any) => ({
       id: s._id?.toString(),
       idType: typeof s._id,
-      name: s.name
+      name: s.name,
     }));
     console.log("getAllSites - returning sites:", sitesWithIds);
-    
+
     // Ensure _id is serialized as string in response
     const serializedSites = sites.map((s: any) => ({
       ...s.toObject(),
-      _id: s._id.toString()
+      _id: s._id.toString(),
     }));
-    
+
     res.status(StatusCodes.OK).json(serializedSites);
   } catch (err) {
     console.error(err);
@@ -121,7 +121,16 @@ export const getTeamForSite = async (req: Request, res: Response) => {
 
 export const addTeamMember = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role, siteId, gender, designation, organization } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      siteId,
+      gender,
+      designation,
+      organization,
+    } = req.body;
     if (!name || !email || !password || !role || !siteId || !designation)
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -173,7 +182,7 @@ export const deleteSite = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;
     console.log("Delete site request received for siteId:", siteId);
-    
+
     if (!siteId)
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -198,11 +207,8 @@ export const deleteSite = async (req: Request, res: Response) => {
     try {
       const siteObjectId = new Types.ObjectId(siteId);
       const userUpdateResult = await User.updateMany(
-        { 
-          $or: [
-            { siteId: siteObjectId },
-            { siteId: siteId }
-          ]
+        {
+          $or: [{ siteId: siteObjectId }, { siteId: siteId }],
         },
         { $unset: { siteId: "" } }
       );
@@ -217,11 +223,8 @@ export const deleteSite = async (req: Request, res: Response) => {
     // Try both ObjectId and string formats
     try {
       const siteObjectId = new Types.ObjectId(siteId);
-      const treeDeleteResult = await Tree.deleteMany({ 
-        $or: [
-          { siteId: siteObjectId },
-          { siteId: siteId }
-        ]
+      const treeDeleteResult = await Tree.deleteMany({
+        $or: [{ siteId: siteObjectId }, { siteId: siteId }],
       });
       console.log(`Deleted ${treeDeleteResult.deletedCount} trees`);
     } catch (treeErr: any) {
@@ -242,7 +245,7 @@ export const deleteSite = async (req: Request, res: Response) => {
       stack: err?.stack,
       name: err?.name,
     });
-    
+
     const errorMessage = err?.message || "Server error";
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -286,7 +289,7 @@ export const getSiteById = async (req: Request, res: Response) => {
     console.log("siteId type:", typeof siteId);
     console.log("siteId length:", siteId?.length);
     console.log("siteId hex check:", /^[0-9a-fA-F]{24}$/.test(siteId || ""));
-    
+
     if (!siteId)
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -295,16 +298,21 @@ export const getSiteById = async (req: Request, res: Response) => {
     // First, get all sites to compare IDs
     const allSites = await Site.find({}, "_id name").lean();
     const allSiteIds = allSites.map((s: any) => s._id.toString());
-    console.log("All sites in database:", allSites.map((s: any) => ({ id: s._id.toString(), name: s.name })));
+    console.log(
+      "All sites in database:",
+      allSites.map((s: any) => ({ id: s._id.toString(), name: s.name }))
+    );
     console.log("Looking for siteId:", siteId);
     console.log("Available siteIds:", allSiteIds);
 
     // Check if siteId matches any existing site (exact match first)
-    let matchingSiteId = allSiteIds.find(id => id === siteId);
-    
+    let matchingSiteId = allSiteIds.find((id) => id === siteId);
+
     // If no exact match, try case-insensitive match
     if (!matchingSiteId) {
-      matchingSiteId = allSiteIds.find(id => id.toLowerCase() === siteId.toLowerCase());
+      matchingSiteId = allSiteIds.find(
+        (id) => id.toLowerCase() === siteId.toLowerCase()
+      );
       if (matchingSiteId) {
         console.log("Found case-insensitive match:", matchingSiteId);
         siteId = matchingSiteId; // Use the matched ID
@@ -314,48 +322,53 @@ export const getSiteById = async (req: Request, res: Response) => {
     // Validate ObjectId format
     if (!Types.ObjectId.isValid(siteId)) {
       console.log("Invalid siteId format:", siteId);
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ 
-          message: `Invalid siteId format: ${siteId}`,
-          receivedSiteId: siteId,
-          availableSiteIds: allSiteIds,
-          siteCount: allSites.length
-        });
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: `Invalid siteId format: ${siteId}`,
+        receivedSiteId: siteId,
+        availableSiteIds: allSiteIds,
+        siteCount: allSites.length,
+      });
     }
 
     // Try to find the site using the (possibly corrected) siteId
     let site = await Site.findById(siteId).populate("teamMembers", "-password");
-    
+
     // If not found with findById, try with findOne using ObjectId
     if (!site) {
       try {
         const siteObjectId = new Types.ObjectId(siteId);
-        site = await Site.findOne({ _id: siteObjectId }).populate("teamMembers", "-password");
+        site = await Site.findOne({ _id: siteObjectId }).populate(
+          "teamMembers",
+          "-password"
+        );
       } catch (objIdErr) {
         console.error("Error creating ObjectId:", objIdErr);
       }
     }
-    
+
     console.log("Site found:", site ? "Yes" : "No");
     if (site) {
-      console.log("Site details:", { id: (site as any)._id.toString(), name: (site as any).name });
+      console.log("Site details:", {
+        id: (site as any)._id.toString(),
+        name: (site as any).name,
+      });
       return res.status(StatusCodes.OK).json(site);
     }
-    
+
     // Site not found - return detailed error
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ 
-        message: `Site not found with ID: ${siteId}`,
-        receivedSiteId: req.params.siteId,
-        searchedSiteId: siteId,
-        availableSiteIds: allSiteIds,
-        siteCount: allSites.length,
-        suggestion: allSiteIds.length > 0 
-          ? `Available sites: ${allSiteIds.slice(0, 5).join(", ")}${allSiteIds.length > 5 ? "..." : ""}`
-          : "No sites found in database"
-      });
+    return res.status(StatusCodes.NOT_FOUND).json({
+      message: `Site not found with ID: ${siteId}`,
+      receivedSiteId: req.params.siteId,
+      searchedSiteId: siteId,
+      availableSiteIds: allSiteIds,
+      siteCount: allSites.length,
+      suggestion:
+        allSiteIds.length > 0
+          ? `Available sites: ${allSiteIds.slice(0, 5).join(", ")}${
+              allSiteIds.length > 5 ? "..." : ""
+            }`
+          : "No sites found in database",
+    });
   } catch (err) {
     console.error("Error in getSiteById:", err);
     res
@@ -381,7 +394,7 @@ export const getTreesBySite = async (req: Request, res: Response) => {
     const trees = await Tree.find({ siteId: new Types.ObjectId(siteId) })
       .populate("plantedBy", "name email")
       .sort({ datePlanted: -1 });
-    
+
     res.status(StatusCodes.OK).json(trees);
   } catch (err) {
     console.error(err);
@@ -427,7 +440,17 @@ export const resetDatabase = async (req: Request, res: Response) => {
 
 export const addTree = async (req: AuthRequest, res: Response) => {
   try {
-    const { siteId, treeName, treeType, coordinates, datePlanted, timestamp, status, remarks, images } = req.body;
+    const {
+      siteId,
+      treeName,
+      treeType,
+      coordinates,
+      datePlanted,
+      timestamp,
+      status,
+      remarks,
+      images,
+    } = req.body;
     const userId = req.user?.id;
 
     if (!siteId || !treeName || !coordinates || !userId)
@@ -472,7 +495,16 @@ export const addTree = async (req: AuthRequest, res: Response) => {
 export const updateTree = async (req: AuthRequest, res: Response) => {
   try {
     const { treeId } = req.params;
-    const { treeName, treeType, coordinates, datePlanted, timestamp, status, remarks, images } = req.body;
+    const {
+      treeName,
+      treeType,
+      coordinates,
+      datePlanted,
+      timestamp,
+      status,
+      remarks,
+      images,
+    } = req.body;
 
     if (!treeId)
       return res
@@ -495,11 +527,10 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
       }));
     }
 
-    const tree = await Tree.findByIdAndUpdate(
-      treeId,
-      updateData,
-      { new: true, runValidators: true }
-    )
+    const tree = await Tree.findByIdAndUpdate(treeId, updateData, {
+      new: true,
+      runValidators: true,
+    })
       .populate("plantedBy", "name email")
       .populate("siteId", "name");
 
@@ -591,11 +622,10 @@ export const addTreeRecord = async (req: AuthRequest, res: Response) => {
       updateData.remarks = remarks;
     }
 
-    const updatedTree = await Tree.findByIdAndUpdate(
-      treeId,
-      updateData,
-      { new: true, runValidators: true }
-    )
+    const updatedTree = await Tree.findByIdAndUpdate(treeId, updateData, {
+      new: true,
+      runValidators: true,
+    })
       .populate("plantedBy", "name email")
       .populate("siteId", "name address status");
 
@@ -603,6 +633,55 @@ export const addTreeRecord = async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error(err);
     res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Server error" });
+  }
+};
+
+// Delete a single tree record (image) by its subdocument _id
+export const deleteTreeRecord = async (req: AuthRequest, res: Response) => {
+  try {
+    const { treeId, recordId } = req.params as {
+      treeId?: string;
+      recordId?: string;
+    };
+
+    if (!treeId || !recordId) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Missing treeId or recordId" });
+    }
+
+    // Ensure tree exists first (optional but provides clearer errors)
+    const treeExists = await Tree.findById(treeId).select("_id images");
+    if (!treeExists) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Tree not found" });
+    }
+
+    // Check if the record exists within the tree's images array
+    const recordFound = treeExists.images.some(
+      (img: any) => String(img._id) === String(recordId)
+    );
+    if (!recordFound) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Record not found on this tree" });
+    }
+
+    const updatedTree = await Tree.findByIdAndUpdate(
+      treeId,
+      { $pull: { images: { _id: recordId } } },
+      { new: true }
+    )
+      .populate("plantedBy", "name email")
+      .populate("siteId", "name address status");
+
+    return res.status(StatusCodes.OK).json(updatedTree);
+  } catch (err) {
+    console.error(err);
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Server error" });
   }

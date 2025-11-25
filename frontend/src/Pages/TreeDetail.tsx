@@ -14,6 +14,7 @@ interface Site {
 }
 
 interface TreeImage {
+  _id?: string; // Mongoose assigns _id to subdocuments by default
   url: string;
   timestamp: string;
 }
@@ -44,6 +45,12 @@ export default function TreeDetail() {
   const [showRecordDrawer, setShowRecordDrawer] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    recordId: null as string | null,
+    timestamp: "",
+    deleting: false,
+  });
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -487,9 +494,29 @@ export default function TreeDetail() {
                           ).toLocaleTimeString()}
                         </p>
                       </div>
-                      <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                        Record {selectedImageIndex + 1} of {sortedImages.length}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                          Record {selectedImageIndex + 1} of{" "}
+                          {sortedImages.length}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!sortedImages[selectedImageIndex]?._id}
+                          onClick={() => {
+                            const current = sortedImages[selectedImageIndex];
+                            if (!current?._id) return;
+                            setDeleteConfirm({
+                              show: true,
+                              recordId: current._id,
+                              timestamp: current.timestamp,
+                              deleting: false,
+                            });
+                          }}
+                          className="px-3 py-1 text-xs font-medium rounded-md bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -504,9 +531,8 @@ export default function TreeDetail() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                   {sortedImages.map((image, index) => (
-                    <button
+                    <div
                       key={index}
-                      onClick={() => setSelectedImageIndex(index)}
                       className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                         selectedImageIndex === index
                           ? "ring-2 ring-offset-2"
@@ -522,6 +548,12 @@ export default function TreeDetail() {
                         }),
                       }}
                     >
+                      <button
+                        type="button"
+                        onClick={() => setSelectedImageIndex(index)}
+                        className="absolute inset-0 w-full h-full"
+                        aria-label={`Select record ${index + 1}`}
+                      />
                       <img
                         src={image.url}
                         alt={`Tree record ${index + 1}`}
@@ -539,6 +571,23 @@ export default function TreeDetail() {
                           year: "2-digit",
                         })}
                       </div>
+                      {image._id && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({
+                              show: true,
+                              recordId: image._id || null,
+                              timestamp: image.timestamp,
+                              deleting: false,
+                            });
+                          }}
+                          className="absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-medium bg-red-600 text-white rounded shadow hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Delete
+                        </button>
+                      )}
                       {index === 0 && (
                         <div
                           className="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded text-white"
@@ -547,7 +596,7 @@ export default function TreeDetail() {
                           Latest
                         </div>
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -582,6 +631,108 @@ export default function TreeDetail() {
           )}
         </div>
       </div>
+      {/* DELETE RECORD CONFIRMATION MODAL */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Record
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this record from{" "}
+                <span className="font-semibold">
+                  {new Date(deleteConfirm.timestamp).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                </span>
+                ? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: false,
+                      recordId: null,
+                      timestamp: "",
+                      deleting: false,
+                    })
+                  }
+                  disabled={deleteConfirm.deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  disabled={deleteConfirm.deleting}
+                  onClick={async () => {
+                    if (!token || !treeId || !deleteConfirm.recordId) return;
+                    const recordId = deleteConfirm.recordId;
+                    setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
+                    const backup = tree?.images || [];
+                    // Optimistically update local state
+                    setTree((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            images: prev.images.filter(
+                              (img: any) =>
+                                String((img as any)._id) !== String(recordId)
+                            ),
+                          }
+                        : prev
+                    );
+                    try {
+                      await API.delete(
+                        `/admin/trees/${treeId}/records/${recordId}`,
+                        {
+                          headers: { Authorization: `Bearer ${token}` },
+                        }
+                      );
+                      // Adjust selected index if needed
+                      setSelectedImageIndex((idx) =>
+                        idx >= sortedImages.length - 1
+                          ? Math.max(0, sortedImages.length - 2)
+                          : idx
+                      );
+                      setDeleteConfirm({
+                        show: false,
+                        recordId: null,
+                        timestamp: "",
+                        deleting: false,
+                      });
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(
+                        err?.response?.data?.message ||
+                          "Failed to delete record"
+                      );
+                      // Rollback on error
+                      setTree((prev) =>
+                        prev ? { ...prev, images: backup } : prev
+                      );
+                      setDeleteConfirm({
+                        show: false,
+                        recordId: null,
+                        timestamp: "",
+                        deleting: false,
+                      });
+                    }
+                  }}
+                >
+                  {deleteConfirm.deleting ? "Deleting..." : "Delete Record"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

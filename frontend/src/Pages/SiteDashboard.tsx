@@ -67,6 +67,12 @@ export default function SiteDashboard() {
   const [showPlantDrawer, setShowPlantDrawer] = useState(false);
   const [editingTreeId, setEditingTreeId] = useState<string | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    show: false,
+    treeId: null as string | null,
+    treeName: "",
+  });
+  const [deleting, setDeleting] = useState(false);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -141,20 +147,30 @@ export default function SiteDashboard() {
     setShowPlantDrawer(true);
   };
 
-  const handleDeleteTree = async (treeId: string) => {
-    if (!window.confirm("Are you sure you want to delete this tree?")) return;
+  const performDeleteTree = async () => {
+    if (!deleteConfirm.treeId || !token || !siteId) return;
+    const id = deleteConfirm.treeId;
+    const backup = trees.find((t) => t._id === id);
 
+    // Optimistic removal
+    setTrees((prev) => prev.filter((t) => t._id !== id));
+    setDeleteConfirm({ show: false, treeId: null, treeName: "" });
+    setDeleting(true);
     try {
-      await API.delete(`/admin/trees/${treeId}`, {
+      await API.delete(`/admin/trees/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      // Fetch fresh list to ensure consistency
       const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTrees(treesRes.data);
     } catch (err: any) {
+      // Rollback on error
+      if (backup) setTrees((prev) => [...prev, backup]);
       alert(err?.response?.data?.message || "Failed to delete tree");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -396,7 +412,13 @@ export default function SiteDashboard() {
                           Update
                         </button>
                         <button
-                          onClick={() => handleDeleteTree(tree._id)}
+                          onClick={() =>
+                            setDeleteConfirm({
+                              show: true,
+                              treeId: tree._id,
+                              treeName: tree.treeName,
+                            })
+                          }
                           className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
                         >
                           Delete
@@ -476,7 +498,13 @@ export default function SiteDashboard() {
                   Update
                 </button>
                 <button
-                  onClick={() => handleDeleteTree(tree._id)}
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: true,
+                      treeId: tree._id,
+                      treeName: tree.treeName,
+                    })
+                  }
                   className="flex-1 px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
                 >
                   Delete
@@ -531,6 +559,46 @@ export default function SiteDashboard() {
           )}
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Tree
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">{deleteConfirm.treeName}</span>?
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: false,
+                      treeId: null,
+                      treeName: "",
+                    })
+                  }
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  onClick={performDeleteTree}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete Tree"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
