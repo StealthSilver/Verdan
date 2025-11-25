@@ -169,7 +169,7 @@ export default function AddTeamMember({
     <div
       className={
         isModal
-          ? "h-full bg-white text-gray-900"
+          ? "h-full max-h-screen overflow-y-auto bg-white text-gray-900 flex flex-col"
           : "min-h-screen bg-gray-50 text-gray-900"
       }
     >
@@ -194,7 +194,7 @@ export default function AddTeamMember({
       )}
       <div
         className={
-          isModal ? "p-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+          isModal ? "p-4 sm:p-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
         }
       >
         <div
@@ -294,7 +294,7 @@ export default function AddTeamMember({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="role"

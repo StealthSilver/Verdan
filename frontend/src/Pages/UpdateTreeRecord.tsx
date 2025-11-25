@@ -567,7 +567,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
   // When embedded in drawer, use full-height flex layout with internal scroll to keep save button accessible
   const rootClasses = embedded
-    ? "h-full flex flex-col bg-gray-50 text-gray-900"
+    ? "h-full max-h-screen overflow-y-auto flex flex-col bg-gray-50 text-gray-900"
     : "min-h-screen bg-gray-50 text-gray-900";
   return (
     <div className={rootClasses}>
@@ -601,7 +601,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         <div
           className={
             embedded
-              ? "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8 mb-8"
+              ? "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-8 mb-8"
               : "w-full max-w-3xl mx-auto bg-white rounded-lg border border-gray-200 shadow-sm p-8"
           }
         >
