@@ -51,6 +51,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraInitializing, setCameraInitializing] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [autoCapturePending, setAutoCapturePending] = useState(false);
+  const [cameraAttempts, setCameraAttempts] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -311,52 +313,113 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
   };
 
-  // Open camera for image capture
-  const openCamera = async () => {
+  // Helper: wait for video dimensions to become available
+  const waitForVideoReady = (video: HTMLVideoElement): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      let tries = 0;
+      const maxTries = 60; // ~2s at 30fps
+      const check = () => {
+        tries++;
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          resolve();
+          return;
+        }
+        if (tries >= maxTries) {
+          reject(new Error("Camera initialization timeout"));
+          return;
+        }
+        requestAnimationFrame(check);
+      };
+      check();
+    });
+  };
+
+  // Helper: get media stream with fallback attempts
+  const getStreamWithFallback = async (): Promise<MediaStream> => {
+    const constraintsList: MediaStreamConstraints[] = [
+      { video: { facingMode: { ideal: "environment" } }, audio: false },
+      { video: true, audio: false },
+    ];
+    // Try to find back camera explicitly if enumerateDevices available
     try {
-      setError("");
-      setCameraInitializing(true);
-      setCameraReady(false);
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const backCam = devices.find(
+        (d) => d.kind === "videoinput" && /back|rear|environment/i.test(d.label)
+      );
+      if (backCam) {
+        constraintsList.unshift({
+          video: { deviceId: { exact: backCam.deviceId } },
+          audio: false,
+        });
       }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
+    } catch {
+      // ignore
+    }
+    let lastError: any = null;
+    for (const c of constraintsList) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(c);
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError || new Error("Unable to access camera");
+  };
+
+  // Open camera for image capture (with fallback + auto capture)
+  const openCamera = async () => {
+    setError("");
+    setCameraInitializing(true);
+    setCameraReady(false);
+    setCameraAttempts((a) => a + 1);
+    // Cleanup previous stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    try {
+      const stream = await getStreamWithFallback();
       streamRef.current = stream;
       setCameraOpen(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          const playPromise = videoRef.current?.play();
-          if (playPromise && typeof playPromise.then === "function") {
-            playPromise.catch((err) =>
-              console.warn("Video play prevented:", err)
-            );
-          }
-          setCameraInitializing(false);
-          setCameraReady(true);
-        };
-        setTimeout(() => {
-          if (
-            !cameraReady &&
-            videoRef.current &&
-            videoRef.current.videoWidth > 0
-          ) {
-            setCameraInitializing(false);
-            setCameraReady(true);
-          }
-        }, 1500);
+      if (!videoRef.current) {
+        setError("Video element not ready");
+        return;
       }
-    } catch (err) {
+      videoRef.current.srcObject = stream;
+      // Attempt to play
+      try {
+        await videoRef.current.play();
+      } catch (playErr) {
+        console.warn("Video play prevented:", playErr);
+      }
+      try {
+        await waitForVideoReady(videoRef.current);
+        setCameraInitializing(false);
+        setCameraReady(true);
+        if (autoCapturePending) {
+          // slight delay to allow final frame settle
+          setTimeout(() => {
+            capturePhoto();
+            setAutoCapturePending(false);
+          }, 100);
+        }
+      } catch (readyErr) {
+        console.error(readyErr);
+        setError(
+          "Camera initialization timed out. Click capture again to retry."
+        );
+        setCameraInitializing(false);
+        setCameraReady(false);
+      }
+    } catch (err: any) {
       console.error("Error accessing camera:", err);
       setError(
-        "Failed to access camera. Please check permissions or use file upload instead."
+        (err?.message || "Failed to access camera") +
+          ". Please check permissions or use file upload."
       );
       setCameraInitializing(false);
       setCameraReady(false);
+      setCameraOpen(false);
     }
   };
 
@@ -379,22 +442,33 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       videoRef.current.videoWidth === 0 ||
       videoRef.current.videoHeight === 0
     ) {
-      setError("Camera not ready yet. Wait until video appears, then retry.");
+      // If not ready, attempt reopen (auto retry)
+      setError("Camera not ready, retrying...");
+      setAutoCapturePending(true);
+      openCamera();
       return;
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      setError("Failed to capture image context.");
-      return;
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Failed to get canvas context");
+      ctx.drawImage(videoRef.current, 0, 0);
+      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      setImagePreview(imageDataUrl);
+      setForm((prev) => ({ ...prev, image: imageDataUrl }));
+    } catch (e: any) {
+      setError(e?.message || "Failed to capture photo");
+    } finally {
+      closeCamera();
     }
-    ctx.drawImage(videoRef.current, 0, 0);
-    const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
-    setImagePreview(imageDataUrl);
-    setForm((prev) => ({ ...prev, image: imageDataUrl }));
-    closeCamera();
+  };
+
+  // Public handler: single button to perform auto capture
+  const handleAutoCapture = () => {
+    setAutoCapturePending(true);
+    openCamera();
   };
 
   // Handle file input change
@@ -736,12 +810,16 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={openCamera}
-                  disabled={cameraOpen}
+                  onClick={handleAutoCapture}
+                  disabled={cameraInitializing}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: "#1D4ED8" }}
                 >
-                  📷 Capture Photo
+                  {cameraInitializing
+                    ? "Opening Camera..."
+                    : cameraAttempts > 0 && !cameraOpen && !imagePreview
+                    ? "Retry Capture"
+                    : "📷 Capture Photo"}
                 </button>
                 <label
                   className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
