@@ -1,9 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  // baseURL: "https://meshspire-core-vjqd.onrender.com/api/v0",
-  // baseURL:"https://verdan-1.onrender.com/",
-  baseURL: "http://localhost:8000/", // Local backend
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/",
   headers: {
     "Content-Type": "application/json",
   },
