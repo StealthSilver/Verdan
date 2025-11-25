@@ -1,8 +1,14 @@
 {
+  "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "installCommand": "npm install",
   "env": {
     "VITE_API_BASE_URL": "https://verdan-787l.vercel.app/"
+  },
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "https://verdan-787l.vercel.app/"
+    }
   }
 }
