@@ -134,9 +134,12 @@ export const sendSignupRequest = async (req: Request, res: Response) => {
 
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Invalid data" });
+      const details = parsed.error.flatten();
+      console.warn("[SignupRequest] Validation failed", details);
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Invalid data",
+        errors: details,
+      });
     }
 
     const { name, email, company, message } = parsed.data;
@@ -155,7 +158,7 @@ export const sendSignupRequest = async (req: Request, res: Response) => {
       </div>
     `;
 
-    await sendResendEmail({
+    const result = await sendResendEmail({
       to: process.env.SIGNUP_NOTIFY_TO || "rajatsaraswat1729@gmail.com",
       subject: "VERDAN – New Signup Request",
       html,
@@ -164,7 +167,9 @@ export const sendSignupRequest = async (req: Request, res: Response) => {
       }\nMessage: ${message}`,
     });
 
-    return res.status(StatusCodes.OK).json({ message: "Request sent" });
+    return res
+      .status(StatusCodes.OK)
+      .json({ message: "Request sent", id: (result as any)?.data?.id });
   } catch (err) {
     console.error(err);
     return res

@@ -163,10 +163,10 @@ export default function Signin() {
         {showSignupModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black"
               onClick={() => setShowSignupModal(false)}
             />
-            <div className="relative backdrop-blur-xl bg-white/5 p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/10">
+            <div className="relative backdrop-blur-xl bg-slate-950 p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/10">
               <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">
                 Request Admin Access
               </h3>
