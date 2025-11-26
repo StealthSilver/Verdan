@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Select, { type MultiValue, type StylesConfig } from "react-select";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
@@ -48,6 +49,11 @@ export default function AddTeamMember({
     Array<{ _id: string; name: string }>
   >([]);
 
+  const siteOptions = availableSites.map((s) => ({
+    value: s._id,
+    label: s.name,
+  }));
+
   // Fetch sites the admin can assign
   useEffect(() => {
     const loadSites = async () => {
@@ -71,6 +77,18 @@ export default function AddTeamMember({
     loadSites();
   }, [token]);
 
+  const customSelectStyles: StylesConfig<
+    { value: string; label: string },
+    true
+  > = {
+    control: (base) => ({
+      ...base,
+      borderColor: "#D1D5DB",
+      boxShadow: "none",
+      minHeight: 40,
+    }),
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -81,11 +99,11 @@ export default function AddTeamMember({
     });
   };
 
-  const handleSiteSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const options = Array.from(e.target.selectedOptions).map(
-      (opt) => opt.value
-    );
-    setForm({ ...form, siteIds: options });
+  const handleSiteSelection = (
+    selected: MultiValue<{ value: string; label: string }>
+  ) => {
+    const ids = (selected || []).map((opt) => opt.value);
+    setForm({ ...form, siteIds: ids });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,7 +218,6 @@ export default function AddTeamMember({
       setLoading(false);
     }
   };
-
   const handleBack = () => {
     if (onClose) {
       onClose();
@@ -355,10 +372,13 @@ export default function AddTeamMember({
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled
                 >
                   <option value="user">User</option>
-                  <option value="admin">Admin</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Admins can only add users.
+                </p>
               </div>
 
               <div>
@@ -391,22 +411,27 @@ export default function AddTeamMember({
               >
                 Assign Sites <span className="text-red-500">*</span>
               </label>
-              <select
-                id="siteIds"
-                name="siteIds"
-                multiple
-                value={form.siteIds}
-                onChange={handleSiteSelection}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {availableSites.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                inputId="siteIds"
+                isMulti
+                options={siteOptions}
+                value={siteOptions.filter((o) =>
+                  form.siteIds.includes(o.value)
+                )}
+                onChange={(selected) =>
+                  handleSiteSelection(
+                    selected as unknown as MultiValue<{
+                      value: string;
+                      label: string;
+                    }>
+                  )
+                }
+                classNamePrefix="rs"
+                placeholder="Select one or more sites"
+                styles={customSelectStyles}
+              />
               <p className="mt-1 text-xs text-gray-500">
-                Hold Ctrl/Cmd to select multiple sites.
+                Click to toggle selections; checked items show as tags.
               </p>
             </div>
 
