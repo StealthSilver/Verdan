@@ -143,7 +143,14 @@ export default function SiteAnalytics() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [trees]);
 
-  // (Removed verification pie usage) Keep for potential future metrics if needed
+  const verificationCounts = useMemo(() => {
+    const verified = trees.filter((t) => t.verified).length;
+    const unverified = trees.filter((t) => !t.verified).length;
+    return [
+      ["Verified", verified],
+      ["Unverified", unverified],
+    ];
+  }, [trees]);
 
   const statusCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -190,31 +197,25 @@ export default function SiteAnalytics() {
     };
   }, [treesByType]);
 
-  const typePieData = useMemo(() => {
-    const labels = treesByType.map((e) => e[0]);
-    const data = treesByType.map((e) => e[1]);
-    const palette = [
-      "#34d399",
-      "#60a5fa",
-      "#f59e0b",
-      "#a78bfa",
-      "#f97316",
-      "#22c55e",
-      "#ef4444",
-    ];
+  const verificationPieData = useMemo(() => {
+    const labels = verificationCounts.map((e) => e[0]);
+    const data = verificationCounts.map((e) => e[1]);
     return {
       labels,
       datasets: [
         {
-          label: "Type Distribution",
+          label: "Verification Status",
           data,
-          backgroundColor: labels.map((_, i) => palette[i % palette.length]),
-          borderColor: labels.map(() => "#ffffff"),
-          borderWidth: 1,
+          backgroundColor: [
+            "#22c55e", // Green for verified
+            "#9ca3af", // Gray for unverified
+          ],
+          borderColor: ["#ffffff", "#ffffff"],
+          borderWidth: 2,
         },
       ],
     };
-  }, [treesByType]);
+  }, [verificationCounts]);
 
   const statusBarData = useMemo(() => {
     const labels = statusCounts.map((e) => e[0]);
@@ -343,13 +344,13 @@ export default function SiteAnalytics() {
             </div>
           </div>
 
-          {/* Pie: Type distribution */}
+          {/* Pie: Verification distribution */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 h-[360px] sm:h-[380px]">
             <h2 className="text-sm font-semibold text-gray-800 mb-3">
-              Type Distribution
+              Verification Status
             </h2>
             <div className="h-[300px] sm:h-[320px]">
-              <Pie data={typePieData} options={commonOptions} />
+              <Pie data={verificationPieData} options={commonOptions} />
             </div>
           </div>
 

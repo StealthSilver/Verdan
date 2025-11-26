@@ -335,6 +335,8 @@ export const deleteSite = async (req: Request, res: Response) => {
 export const verifyTree = async (req: Request, res: Response) => {
   try {
     const { treeId } = req.params;
+    console.log(`Verifying tree with ID: ${treeId}`);
+
     if (!treeId)
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -345,14 +347,20 @@ export const verifyTree = async (req: Request, res: Response) => {
       { verified: true },
       { new: true }
     );
-    if (!tree)
+
+    if (!tree) {
+      console.log(`Tree with ID ${treeId} not found`);
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
+    }
 
+    console.log(
+      `Tree ${treeId} verified successfully. Verified status: ${tree.verified}`
+    );
     res.status(StatusCodes.OK).json(tree);
   } catch (err) {
-    console.error(err);
+    console.error("Error verifying tree:", err);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Server error" });

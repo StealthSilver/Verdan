@@ -144,7 +144,15 @@ export default function SiteDashboard() {
           const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setTrees(treesRes.data);
+          const fetchedTrees = treesRes.data || [];
+
+          // Only update trees if we're not in the middle of a verification process
+          // This prevents overriding optimistic updates
+          if (!verifying) {
+            setTrees(fetchedTrees);
+          } else {
+            console.log("Skipping tree update during verification process");
+          }
         }
       } catch (err: any) {
         console.error(err);
@@ -154,7 +162,7 @@ export default function SiteDashboard() {
       }
     };
     fetchData();
-  }, [token, siteId, location.state?.refresh, refreshCounter, role]);
+  }, [token, siteId, location.state?.refresh, refreshCounter, role, verifying]);
 
   const handleLogout = () => {
     logout();
@@ -226,28 +234,46 @@ export default function SiteDashboard() {
 
   const handleVerifyTree = async (treeId: string) => {
     if (!token || role === "user") return;
+    console.log(`Starting verification for tree: ${treeId}`);
     setVerifying(treeId);
+
+    // Update local state optimistically first
+    setTrees((prev) => {
+      const updated = prev.map((tree) =>
+        tree._id === treeId ? { ...tree, verified: true } : tree
+      );
+      console.log("Optimistically updated trees state before API call");
+      return updated;
+    });
+
     try {
-      await API.patch(
+      const response = await API.patch(
         `/admin/verify/${treeId}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // Update local state
+      console.log("Verification API response:", response.data);
+
+      // Verify the API response matches our optimistic update
+      if (response.data.verified === true) {
+        console.log("Verification confirmed by server");
+      }
+    } catch (err: any) {
+      console.error("Verification failed:", err);
+      // Rollback optimistic update on error
       setTrees((prev) =>
         prev.map((tree) =>
-          tree._id === treeId ? { ...tree, verified: true } : tree
+          tree._id === treeId ? { ...tree, verified: false } : tree
         )
       );
-    } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to verify tree");
     } finally {
       setVerifying(null);
+      console.log(`Verification process completed for tree: ${treeId}`);
     }
   };
-
   if (loading)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
