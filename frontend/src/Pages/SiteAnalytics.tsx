@@ -750,10 +750,8 @@ export default function SiteAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[280px] flex items-center justify-center">
-              <div className="w-full max-w-[280px]">
-                <Pie data={verificationPieData} options={pieOptions} />
-              </div>
+            <div className="h-[280px]">
+              <Pie data={verificationPieData} options={pieOptions} />
             </div>
           </div>
 
