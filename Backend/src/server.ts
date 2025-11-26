@@ -92,8 +92,9 @@ app.get("/debug/origin", (req, res) => {
   });
 });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Increase body parser limits to support larger base64 image payloads
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 
 // Enhanced logging middleware
 app.use(

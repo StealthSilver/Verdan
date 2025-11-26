@@ -303,10 +303,20 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       }
     } catch (err: any) {
       console.error(err);
-      setError(
-        err?.response?.data?.message ||
-          "Failed to add record. Please try again."
-      );
+      const status = err?.response?.status;
+      const msg: string | undefined =
+        err?.response?.data?.message || err?.message;
+      const isTooLarge =
+        status === 413 ||
+        (typeof msg === "string" &&
+          /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
+      if (isTooLarge) {
+        setError(
+          "Image size limit exceeded (~600KB). Please use a smaller image."
+        );
+      } else {
+        setError(msg || "Failed to add record. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -384,8 +394,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Backend uses express.json default (~100kb). Keep image < ~90kb for safe payload.
-  const MAX_IMAGE_BYTES = 90_000;
+  // Backend JSON limit increased; allow larger but still bounded images (~600KB)
+  const MAX_IMAGE_BYTES = 600_000;
 
   const dataUrlBytes = (dataUrl: string): number => {
     const base64 = dataUrl.split(",")[1] || "";
@@ -478,7 +488,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image too large to upload after compression. Please capture a closer or lower resolution image."
+          "Image size limit exceeded (~600KB). Capture closer or lower resolution."
         );
         return;
       }
@@ -500,7 +510,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Selected image exceeds upload size limit (~90KB). Please choose a smaller image."
+            "Image size limit exceeded (~600KB). Please choose a smaller image."
           );
           setImagePreview(null);
           setForm((prev) => ({ ...prev, image: null }));

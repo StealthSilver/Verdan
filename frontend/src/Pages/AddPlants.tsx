@@ -426,10 +426,23 @@ export default function AddPlants({
       }
     } catch (err: any) {
       console.error(err);
-      setError(
-        err?.response?.data?.message ||
-          `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`
-      );
+      const status = err?.response?.status;
+      const msg: string | undefined =
+        err?.response?.data?.message || err?.message;
+      const isTooLarge =
+        status === 413 ||
+        (typeof msg === "string" &&
+          /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
+      if (isTooLarge) {
+        setError(
+          "Image size limit exceeded (~600KB). Please use a smaller image."
+        );
+      } else {
+        setError(
+          msg ||
+            `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -507,8 +520,8 @@ export default function AddPlants({
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Express default JSON limit (~100kb). Keep image payload safely < ~90kb.
-  const MAX_IMAGE_BYTES = 90_000;
+  // Backend JSON limit increased; allow larger but bounded images (~600KB)
+  const MAX_IMAGE_BYTES = 600_000;
   const dataUrlBytes = (dataUrl: string): number => {
     const base64 = dataUrl.split(",")[1] || "";
     const padding = (base64.match(/=+$/) || [""])[0].length;
@@ -598,7 +611,7 @@ export default function AddPlants({
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image too large after compression (~90KB limit). Capture a closer or lower resolution image."
+          "Image size limit exceeded (~600KB). Capture closer or lower resolution."
         );
         return;
       }
@@ -620,7 +633,7 @@ export default function AddPlants({
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Selected image exceeds upload size limit (~90KB). Please choose a smaller image."
+            "Image size limit exceeded (~600KB). Please choose a smaller image."
           );
           setImagePreview(null);
           setForm((prev) => ({ ...prev, image: null }));
