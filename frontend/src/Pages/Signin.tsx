@@ -78,9 +78,24 @@ export default function Signin() {
       setSignupMsg("Request sent! We'll reach out shortly.");
       setSignupForm({ name: "", email: "", company: "", message: "" });
     } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.message || err?.message || "Failed to send";
-      setSignupMsg(serverMsg);
+      const data = err?.response?.data;
+      // Prefer detailed field errors from backend if present
+      const fieldErrors = data?.errors?.fieldErrors;
+      if (fieldErrors) {
+        const parts: string[] = [];
+        if (fieldErrors.name?.length)
+          parts.push(`Name: ${fieldErrors.name.join(" ")}`);
+        if (fieldErrors.email?.length)
+          parts.push(`Email: ${fieldErrors.email.join(" ")}`);
+        if (fieldErrors.company?.length)
+          parts.push(`Company: ${fieldErrors.company.join(" ")}`);
+        if (fieldErrors.message?.length)
+          parts.push(`Message: ${fieldErrors.message.join(" ")}`);
+        setSignupMsg(parts.join("\n"));
+      } else {
+        const serverMsg = data?.message || err?.message || "Failed to send";
+        setSignupMsg(serverMsg);
+      }
     } finally {
       setSignupLoading(false);
     }

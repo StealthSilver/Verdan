@@ -159,7 +159,7 @@ export const sendSignupRequest = async (req: Request, res: Response) => {
     `;
 
     const result = await sendResendEmail({
-      to: process.env.SIGNUP_NOTIFY_TO || "rajatsaraswat1729@gmail.com",
+      to: process.env.SIGNUP_NOTIFY_TO || "rajat.saraswat.0409@gmail.com",
       subject: "VERDAN – New Signup Request",
       html,
       text: `New signup request\nName: ${name}\nEmail: ${email}\nCompany: ${
@@ -172,9 +172,17 @@ export const sendSignupRequest = async (req: Request, res: Response) => {
       .json({ message: "Request sent", id: (result as any)?.data?.id });
   } catch (err) {
     console.error(err);
+    const msg = (err as any)?.message || "Failed to send email";
+    // If Resend returns testing restriction, surface as 400 for clarity
+    if (msg.includes("You can only send testing emails")) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: msg,
+        hint: "For Resend testing, set SIGNUP_NOTIFY_TO to your Resend account email or verify a domain and set RESEND_FROM to use that domain.",
+      });
+    }
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Failed to send email" });
+      .json({ message: "Failed to send email", error: msg });
   }
 };
 
