@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Signin from "./Pages/Signin";
 import "./App.css";
 import UserDashboard from "./Pages/UserDashboard";
+import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
 import AddSites from "./Pages/AddSite";
 import TeamDashboard from "./Pages/TeamDashboard";
@@ -19,7 +20,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Signin />}></Route>
         <Route path="/test-connection" element={<ConnectionTest />}></Route>
-        <Route path="/admin/Dashboard" element={<UserDashboard />}></Route>
+        <Route path="/admin/Dashboard" element={<AdminDashboard />}></Route>
+        <Route path="/user/dashboard" element={<UserDashboard />}></Route>
         <Route
           path="/user/site/:siteId"
           element={<UserSiteDashboard />}
