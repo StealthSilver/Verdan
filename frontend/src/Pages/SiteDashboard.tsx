@@ -465,7 +465,13 @@ export default function SiteDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {tree.images?.length ? (
                         <img
-                          src={tree.images[0].url}
+                          src={
+                            [...tree.images].sort(
+                              (a, b) =>
+                                new Date(b.timestamp).getTime() -
+                                new Date(a.timestamp).getTime()
+                            )[0].url
+                          }
                           alt={tree.treeName}
                           className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                           onError={(e) => {
@@ -576,7 +582,13 @@ export default function SiteDashboard() {
               <div className="flex gap-3 mb-3">
                 {tree.images?.length ? (
                   <img
-                    src={tree.images[0].url}
+                    src={
+                      [...tree.images].sort(
+                        (a, b) =>
+                          new Date(b.timestamp).getTime() -
+                          new Date(a.timestamp).getTime()
+                      )[0].url
+                    }
                     alt={tree.treeName}
                     className="w-20 h-20 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                     onError={(e) => {

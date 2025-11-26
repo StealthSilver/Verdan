@@ -133,7 +133,7 @@ export default function UserSiteDashboard() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {t.images?.length ? (
                       <img
-                        src={t.images[0].url}
+                        src={[...t.images].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0].url}
                         alt={t.treeName}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                         onError={(e) => {

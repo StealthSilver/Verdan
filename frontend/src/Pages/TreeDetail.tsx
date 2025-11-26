@@ -90,7 +90,18 @@ export default function TreeDetail() {
             headers: { Authorization: `Bearer ${token}` },
           });
         }
-        if (res) setTree(res.data);
+        if (res) {
+          setTree(res.data);
+          // Set selectedImageIndex to the latest image (last in chronologically sorted array)
+          if (res.data.images && res.data.images.length > 0) {
+            const sorted = [...res.data.images].sort((a, b) => {
+              const dateA = new Date(a.timestamp).getTime();
+              const dateB = new Date(b.timestamp).getTime();
+              return dateA - dateB;
+            });
+            setSelectedImageIndex(sorted.length - 1);
+          }
+        }
       } catch (err: any) {
         console.error(err);
         setError(err?.response?.data?.message || "Failed to fetch tree data");
@@ -608,7 +619,8 @@ export default function TreeDetail() {
                   {sortedImages.map((image, index) => (
                     <div
                       key={index}
-                      className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         selectedImageIndex === index
                           ? "ring-2 ring-offset-2"
                           : "border-gray-200 hover:border-gray-300"
@@ -623,12 +635,6 @@ export default function TreeDetail() {
                         }),
                       }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => setSelectedImageIndex(index)}
-                        className="absolute inset-0 w-full h-full"
-                        aria-label={`Select record ${index + 1}`}
-                      />
                       <img
                         src={image.url}
                         alt={`Tree record ${index + 1}`}
