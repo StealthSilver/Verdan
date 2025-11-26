@@ -10,7 +10,12 @@ interface EmailPayload {
 export async function sendResendEmail(payload: EmailPayload) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    throw new Error("RESEND_API_KEY is not configured");
+    console.error(
+      "[Resend] Missing RESEND_API_KEY. Set it in backend environment (.env or hosting platform env)."
+    );
+    throw new Error(
+      "Email service unavailable: RESEND_API_KEY is not configured on the backend"
+    );
   }
 
   const resend = new Resend(apiKey);
