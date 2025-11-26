@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
 
 // Chart.js + React wrapper
 import {
@@ -58,12 +58,17 @@ export default function SiteAnalytics() {
   const { siteId: rawId } = useParams<{ siteId: string }>();
   const siteId = rawId ? decodeURIComponent(rawId).trim() : undefined;
   const navigate = useNavigate();
-  const { token, role } = useAuth();
+  const { token, role, logout } = useAuth();
 
   const [site, setSite] = useState<Site | null>(null);
   const [trees, setTrees] = useState<Tree[]>([]);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const hasScheduledRefresh = useRef(false);
   const initialLoadDone = useRef(false);
 
@@ -73,6 +78,36 @@ export default function SiteAnalytics() {
       navigate("/user/dashboard");
     }
   }, [role, navigate]);
+
+  // Close dropdown when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch user info
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!token) return;
+      try {
+        const res = await API.get("/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUser();
+  }, [token]);
 
   // Fetch site + trees; auto-refresh every 15s (without full-page loading)
   useEffect(() => {
@@ -154,14 +189,17 @@ export default function SiteAnalytics() {
 
   const statusCounts = useMemo(() => {
     const map = new Map<string, number>();
+    const allowedStatuses = ["healthy", "dead", "sick", "needs attention"];
     trees.forEach((t) => {
-      const s = t.status || "unknown";
-      map.set(s, (map.get(s) || 0) + 1);
+      const s = t.status?.toLowerCase() || "unknown";
+      if (allowedStatuses.includes(s)) {
+        map.set(s, (map.get(s) || 0) + 1);
+      }
     });
     return Array.from(map.entries());
   }, [trees]);
 
-  // Chart data
+  // Chart data with Verdan brand colors
   const lineData = useMemo(() => {
     const labels = treesByDate.map((e) => e[0]);
     const data = treesByDate.map((e) => e[1]);
@@ -169,12 +207,17 @@ export default function SiteAnalytics() {
       labels,
       datasets: [
         {
-          label: "Trees Planted per Day",
+          label: "Trees Planted",
           data,
           borderColor: VERDAN_GREEN,
-          backgroundColor: "rgba(72,132,92,0.2)",
-          tension: 0.3,
-          pointRadius: 3,
+          backgroundColor: `${VERDAN_GREEN}15`,
+          pointBackgroundColor: VERDAN_GREEN,
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.4,
+          fill: true,
         },
       ],
     };
@@ -183,15 +226,34 @@ export default function SiteAnalytics() {
   const typeBarData = useMemo(() => {
     const labels = treesByType.map((e) => e[0]);
     const data = treesByType.map((e) => e[1]);
+    // Create a cohesive color palette that complements Verdan green
+    const treeTypeColors = [
+      "#48845C", // Main Verdan green
+      "#5B9A6F", // Lighter green
+      "#6B8E7A", // Muted green
+      "#7AA68C", // Sage green
+      "#8BB39E", // Light sage
+      "#4A7C59", // Forest green
+      "#5C8A69", // Medium green
+      "#3E6B4A", // Dark forest
+      "#6BA382", // Mint green
+      "#859B8C", // Gray green
+    ];
     return {
       labels,
       datasets: [
         {
-          label: "Trees by Type",
+          label: "Tree Count",
           data,
-          backgroundColor: labels.map(() => "rgba(72,132,92,0.25)"),
-          borderColor: labels.map(() => VERDAN_GREEN),
+          backgroundColor: labels.map(
+            (_, i) => `${treeTypeColors[i % treeTypeColors.length]}E6`
+          ),
+          borderColor: labels.map(
+            (_, i) => treeTypeColors[i % treeTypeColors.length]
+          ),
           borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
         },
       ],
     };
@@ -204,14 +266,18 @@ export default function SiteAnalytics() {
       labels,
       datasets: [
         {
-          label: "Verification Status",
+          label: "Trees",
           data,
           backgroundColor: [
-            "#22c55e", // Green for verified
-            "#9ca3af", // Gray for unverified
+            VERDAN_GREEN, // Verdan green for verified
+            "#e5e7eb", // Light gray for unverified
           ],
           borderColor: ["#ffffff", "#ffffff"],
-          borderWidth: 2,
+          borderWidth: 3,
+          hoverBackgroundColor: [
+            "#5B9A6F", // Lighter green on hover
+            "#d1d5db", // Darker gray on hover
+          ],
         },
       ],
     };
@@ -220,16 +286,27 @@ export default function SiteAnalytics() {
   const statusBarData = useMemo(() => {
     const labels = statusCounts.map((e) => e[0]);
     const data = statusCounts.map((e) => e[1]);
-    const palette = ["#60a5fa", "#a78bfa", "#f59e0b", "#f97316", "#22c55e"];
+    // Status-specific colors for health indicators
+    const statusColors: { [key: string]: string } = {
+      healthy: "#22c55e", // Green for healthy
+      sick: "#f59e0b", // Amber/yellow for sick
+      dead: "#ef4444", // Red for dead
+      "needs attention": "#f97316", // Orange for needs attention
+    };
+
     return {
       labels,
       datasets: [
         {
-          label: "Trees by Status",
+          label: "Tree Count",
           data,
-          backgroundColor: labels.map((_, i) => palette[i % palette.length]),
-          borderColor: labels.map(() => "#ffffff"),
+          backgroundColor: labels.map(
+            (label) => `${statusColors[label] || "#6b7280"}E6`
+          ),
+          borderColor: labels.map((label) => statusColors[label] || "#6b7280"),
           borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
         },
       ],
     };
@@ -241,19 +318,88 @@ export default function SiteAnalytics() {
     plugins: {
       legend: {
         position: "top" as const,
-        labels: { color: "#374151" },
+        labels: {
+          color: "#374151",
+          font: {
+            size: 12,
+          },
+          padding: 20,
+          usePointStyle: true,
+          pointStyle: "circle" as const,
+        },
       },
       title: { display: false },
-      tooltip: { enabled: true },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "#1f2937",
+        titleColor: "#f9fafb",
+        bodyColor: "#f9fafb",
+        borderColor: VERDAN_GREEN,
+        borderWidth: 1,
+        cornerRadius: 8,
+      },
     },
     scales: {
       x: {
-        ticks: { color: "#6b7280" },
-        grid: { color: "#e5e7eb" },
+        ticks: {
+          color: "#6b7280",
+          font: {
+            size: 11,
+          },
+        },
+        grid: {
+          color: "#f3f4f6",
+          lineWidth: 1,
+        },
+        border: {
+          color: "#e5e7eb",
+          width: 1,
+        },
       },
       y: {
-        ticks: { color: "#6b7280" },
-        grid: { color: "#f3f4f6" },
+        ticks: {
+          color: "#6b7280",
+          font: {
+            size: 11,
+          },
+        },
+        grid: {
+          color: "#f9fafb",
+          lineWidth: 1,
+        },
+        border: {
+          color: "#e5e7eb",
+          width: 1,
+        },
+      },
+    },
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          color: "#374151",
+          font: {
+            size: 12,
+          },
+          padding: 20,
+          usePointStyle: true,
+          pointStyle: "circle" as const,
+        },
+      },
+      title: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "#1f2937",
+        titleColor: "#f9fafb",
+        bodyColor: "#f9fafb",
+        borderColor: VERDAN_GREEN,
+        borderWidth: 1,
+        cornerRadius: 8,
       },
     },
   };
@@ -289,7 +435,7 @@ export default function SiteAnalytics() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Thin navbar */}
+      {/* Enhanced navbar */}
       <nav
         className="bg-white border-b border-gray-200 sticky top-0 z-40"
         style={{ borderBottomColor: VERDAN_GREEN + "15" }}
@@ -297,78 +443,298 @@ export default function SiteAnalytics() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaArrowLeft className="text-gray-600" />
-              <span className="font-medium text-gray-800 text-sm hidden sm:block">
-                Back
-              </span>
-            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <FaArrowLeft className="text-gray-600" />
+                <span className="font-medium text-gray-800 text-sm hidden sm:block">
+                  Back
+                </span>
+              </button>
+
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FaUserCircle className="text-2xl text-gray-600" />
+                  <span className="font-medium text-gray-800 text-sm hidden sm:block">
+                    {user?.name || "User"}
+                  </span>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg border border-gray-200 overflow-hidden z-50">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                      <p className="font-semibold text-sm text-gray-900">
+                        {user?.name || "User"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {user?.email || ""}
+                      </p>
+                    </div>
+                    <ul className="py-1">
+                      <li
+                        onClick={() => {
+                          navigate("/profile");
+                          setDropdownOpen(false);
+                        }}
+                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        Profile
+                      </li>
+                      <li
+                        onClick={() => {
+                          navigate("/admin/dashboard");
+                          setDropdownOpen(false);
+                        }}
+                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        Dashboard
+                      </li>
+                      <li
+                        onClick={() => {
+                          logout();
+                          navigate("/");
+                        }}
+                        className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer border-t border-gray-200 transition-colors"
+                      >
+                        Logout
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="flex items-center justify-between mb-6">
+        {/* HEADER WITH SITE INFO */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Site Analytics
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {site?.name} • ID: {site?._id}
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Site Analytics
+              </h1>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  site?.status === "active"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {site?.status || "Unknown"}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 font-mono">
+              ID: {site?._id || siteId}
             </p>
+            <p className="text-sm text-gray-600 mt-1">
+              {site?.name} {site?.address && `• ${site.address}`}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-gray-500">Total Trees</p>
+              <p className="text-lg font-bold text-gray-900">{trees.length}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* SUMMARY STATS */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Total Trees
+                </p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {trees.length}
+                </p>
+              </div>
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${VERDAN_GREEN}15` }}
+              >
+                <svg
+                  className="w-5 h-5"
+                  style={{ color: VERDAN_GREEN }}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v18m9-9H3"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Verified
+                </p>
+                <p className="text-2xl font-bold text-green-600 mt-1">
+                  {verificationCounts.find((v) => v[0] === "Verified")?.[1] ||
+                    0}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Tree Types
+                </p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">
+                  {treesByType.length}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Days Active
+                </p>
+                <p className="text-2xl font-bold text-purple-600 mt-1">
+                  {treesByDate.length}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Grid of charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Line: Trees per day */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 h-[360px] sm:h-[380px]">
-            <h2 className="text-sm font-semibold text-gray-800 mb-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-5 h-[400px]">
+            <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
               Trees Planted Over Time
             </h2>
-            <div className="h-[300px] sm:h-[320px]">
+            <div className="h-[320px]">
               <Line data={lineData} options={commonOptions} />
             </div>
           </div>
 
           {/* Bar: Types */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 h-[360px] sm:h-[380px]">
-            <h2 className="text-sm font-semibold text-gray-800 mb-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-5 h-[400px]">
+            <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
               Trees by Type
             </h2>
-            <div className="h-[300px] sm:h-[320px]">
+            <div className="h-[320px]">
               <Bar data={typeBarData} options={commonOptions} />
             </div>
           </div>
 
           {/* Pie: Verification distribution */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 h-[360px] sm:h-[380px]">
-            <h2 className="text-sm font-semibold text-gray-800 mb-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-5 h-[400px]">
+            <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
               Verification Status
             </h2>
-            <div className="h-[300px] sm:h-[320px]">
-              <Pie data={verificationPieData} options={commonOptions} />
+            <div className="h-[320px]">
+              <Pie data={verificationPieData} options={pieOptions} />
             </div>
           </div>
 
           {/* Bar: Status distribution */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 h-[360px] sm:h-[380px]">
-            <h2 className="text-sm font-semibold text-gray-800 mb-3">
-              Trees by Status
+          <div className="bg-white rounded-lg border border-gray-200 p-5 h-[400px]">
+            <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
+              Tree Health Status
             </h2>
-            <div className="h-[300px] sm:h-[320px]">
+            <div className="h-[320px]">
               <Bar data={statusBarData} options={commonOptions} />
             </div>
           </div>
         </div>
 
         {trees.length === 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 py-12 text-center mt-6">
-            <p className="text-gray-500">
-              No data yet. Plant trees to see analytics.
+          <div className="bg-white rounded-lg border border-gray-200 py-16 text-center mt-6">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: VERDAN_GREEN + "15" }}
+            >
+              <svg
+                className="w-8 h-8"
+                style={{ color: VERDAN_GREEN }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No Analytics Available
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Plant trees at this site to see detailed analytics and insights.
             </p>
           </div>
         )}

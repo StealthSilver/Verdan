@@ -76,7 +76,7 @@ export const getSiteDashboard = async (req: AuthRequest, res: Response) => {
         .json({ message: "User has no site assigned" });
 
     const trees = await Tree.find({ siteId: user.siteId }).select(
-      "treeName coordinates datePlanted status"
+      "treeName coordinates datePlanted status verified"
     );
 
     res.status(StatusCodes.OK).json({ count: trees.length, trees });
@@ -221,7 +221,7 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
     }
     // Include images and treeType so frontend can render thumbnails and show type in fallback detail view
     const trees = await Tree.find({ siteId }).select(
-      "treeName treeType coordinates datePlanted timestamp status images remarks"
+      "treeName treeType coordinates datePlanted timestamp status images remarks verified"
     );
     return res.status(StatusCodes.OK).json({ count: trees.length, trees });
   } catch (err) {

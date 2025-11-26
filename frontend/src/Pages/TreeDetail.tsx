@@ -231,12 +231,12 @@ export default function TreeDetail() {
                   tree.status
                 )}`}
               >
-                {tree.status}
+                {tree.status.charAt(0).toUpperCase() + tree.status.slice(1)}
               </span>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   tree.verified
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-blue-100 text-blue-800"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
@@ -273,7 +273,7 @@ export default function TreeDetail() {
           <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-4">
             Tree Information
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <div>
               <span className="text-xs text-gray-500 block mb-1">Type</span>
               <p className="text-sm font-medium text-gray-900">
@@ -303,6 +303,16 @@ export default function TreeDetail() {
               </p>
             </div>
             <div>
+              <span className="text-xs text-gray-500 block mb-1">
+                Total Records
+              </span>
+              <p className="text-sm font-medium text-gray-900">
+                {sortedImages.length}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            <div>
               <span className="text-xs text-gray-500 block mb-1">Latitude</span>
               <p className="text-sm font-mono text-gray-900">
                 {tree.coordinates.lat.toFixed(6)}
@@ -316,17 +326,7 @@ export default function TreeDetail() {
                 {tree.coordinates.lng.toFixed(6)}
               </p>
             </div>
-            <div>
-              <span className="text-xs text-gray-500 block mb-1">
-                Total Records
-              </span>
-              <p className="text-sm font-medium text-gray-900">
-                {sortedImages.length}
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
-            <div className="lg:col-start-6">
+            <div className="sm:col-span-2">
               <span className="text-xs text-gray-500 block mb-1">
                 Last Updated
               </span>
@@ -598,7 +598,7 @@ export default function TreeDetail() {
                               deleting: false,
                             });
                           }}
-                          className="px-3 py-1 text-xs font-medium rounded-md bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+                          className="px-3 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50"
                         >
                           Delete
                         </button>
@@ -664,7 +664,7 @@ export default function TreeDetail() {
                               deleting: false,
                             });
                           }}
-                          className="absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-medium bg-red-600 text-white rounded shadow hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 left-2 px-2 py-1 text-[10px] font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           Delete
                         </button>
