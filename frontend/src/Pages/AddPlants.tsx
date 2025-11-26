@@ -110,67 +110,46 @@ export default function AddPlants({
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError(
-        "Geolocation is not supported by your browser. Please enter coordinates manually."
+        "Geolocation not supported. Please use a compatible browser/device."
       );
       return;
     }
-
     setLocationLoading(true);
     setLocationError("");
-
     const options: PositionOptions = {
       enableHighAccuracy: true,
-      timeout: 15000, // Increased timeout
+      timeout: 15000,
       maximumAge: 0,
     };
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-
-        // Strict validation
         if (validateCoordinates(latitude, longitude)) {
           setForm((prev) => ({
             ...prev,
-            coordinates: {
-              lat: latitude,
-              lng: longitude,
-            },
+            coordinates: { lat: latitude, lng: longitude },
           }));
           setLocationError("");
         } else {
-          setLocationError("Invalid coordinates received. Please try again.");
+          setLocationError("Invalid coordinates received. Please retry.");
         }
         setLocationLoading(false);
       },
       (error) => {
-        let errorMessage = "";
-        let instructions = "";
-
+        let msg = "Failed to obtain location.";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Location permission denied.";
-            instructions =
-              "Please allow location access in your browser settings and try again. Click the button to request permission again.";
+            msg =
+              "Location permission denied. Allow access and press 'Get Location' again.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable.";
-            instructions =
-              "Your device location could not be determined. Please check your device's location settings or try again.";
+            msg = "Location unavailable. Check device settings and retry.";
             break;
           case error.TIMEOUT:
-            errorMessage = "Location request timed out.";
-            instructions =
-              "The location request took too long. Please check your internet connection and try again.";
-            break;
-          default:
-            errorMessage = "Failed to get location.";
-            instructions =
-              "An unknown error occurred. Please try again or check your device settings.";
+            msg = "Location request timed out. Ensure connectivity and retry.";
             break;
         }
-
-        setLocationError(`${errorMessage} ${instructions}`);
+        setLocationError(msg);
         setLocationLoading(false);
         setCoordinatesValid(false);
       },
@@ -294,6 +273,20 @@ export default function AddPlants({
     fetchData();
   }, [token, siteId, treeId, role]);
 
+  // Auto geolocation attempt for new entries (runs once shortly after mount if coords unset)
+  useEffect(() => {
+    if (
+      !isEditMode &&
+      form.coordinates.lat === 0 &&
+      form.coordinates.lng === 0
+    ) {
+      const timer = setTimeout(() => {
+        getCurrentLocation();
+      }, 300); // slight delay to allow initial render
+      return () => clearTimeout(timer);
+    }
+  }, [isEditMode, form.coordinates.lat, form.coordinates.lng]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -414,24 +407,53 @@ export default function AddPlants({
         const createUrl = isUser
           ? `/user/sites/${siteId}/trees`
           : `/admin/trees/add`;
-        await API.post(
-          createUrl,
-          {
-            siteId,
-            treeName: form.treeName,
-            treeType: form.treeType,
-            coordinates: {
-              lat: form.coordinates.lat,
-              lng: form.coordinates.lng,
+        try {
+          await API.post(
+            createUrl,
+            {
+              siteId,
+              treeName: form.treeName,
+              treeType: form.treeType,
+              coordinates: {
+                lat: form.coordinates.lat,
+                lng: form.coordinates.lng,
+              },
+              datePlanted: form.datePlanted,
+              timestamp: form.timestamp,
+              status: form.status,
+              remarks: form.remarks || undefined,
+              images,
             },
-            datePlanted: form.datePlanted,
-            timestamp: form.timestamp,
-            status: form.status,
-            remarks: form.remarks || undefined,
-            images,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (primaryErr: any) {
+          // Fallback: older user endpoint (pre site-scoped CRUD) if new route not deployed yet
+          const notFound =
+            primaryErr?.response?.status === 404 &&
+            /Route not found/i.test(primaryErr?.response?.data?.message || "");
+          if (isUser && notFound) {
+            try {
+              await API.post(
+                `/user/site/dashboard/add`,
+                {
+                  treeName: form.treeName,
+                  coordinates: {
+                    lat: form.coordinates.lat,
+                    lng: form.coordinates.lng,
+                  },
+                  image: images[0]?.url, // legacy endpoint expects single image field
+                  status: form.status,
+                  remarks: form.remarks || undefined,
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+            } catch (fallbackErr: any) {
+              throw fallbackErr; // propagate fallback error to outer catch
+            }
+          } else {
+            throw primaryErr; // propagate original
+          }
+        }
       }
 
       // Notify parent and close or navigate depending on context

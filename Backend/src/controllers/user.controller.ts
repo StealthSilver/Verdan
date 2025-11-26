@@ -125,37 +125,47 @@ export const addTree = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "User has no site assigned" });
 
-    const { treeName, coordinates, image, status, remarks } = req.body;
+    const { treeName, coordinates, image, images, status, remarks } = req.body;
 
-    if (!treeName || !coordinates || !image)
+    if (!treeName || !coordinates || (!image && !images))
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Missing fields" });
+        .json({ message: "Missing required fields" });
 
     const normalizedCoordinates = {
       lat: coordinates.lat || coordinates.latitude,
       lng: coordinates.lng || coordinates.longitude,
     };
 
+    // Normalize incoming image(s) to images array expected by schema
+    let imagesArray: { url: string; timestamp: Date }[] = [];
+    if (Array.isArray(images) && images.length) {
+      imagesArray = images.map((img: any) => ({
+        url: img.url || img,
+        timestamp: img.timestamp ? new Date(img.timestamp) : new Date(),
+      }));
+    } else if (image) {
+      imagesArray = [{ url: image, timestamp: new Date() }];
+    }
+
     const tree = await Tree.create({
       treeName,
       coordinates: normalizedCoordinates,
-      image,
       plantedBy: new Types.ObjectId(userId),
-      siteId: new Types.ObjectId(user.siteId),
+      siteId: new Types.ObjectId(user.siteId as any),
       datePlanted: new Date(),
+      timestamp: new Date(),
       status: status || "healthy",
       remarks: remarks || "",
-      history: [
-        {
-          image,
-          timestamp: new Date(),
-          remarks: remarks || "",
-        },
-      ],
+      images: imagesArray,
+      verified: false,
     });
 
-    res.status(StatusCodes.CREATED).json(tree);
+    const populated = await Tree.findById(tree._id)
+      .populate("plantedBy", "name email")
+      .populate("siteId", "name status address");
+
+    res.status(StatusCodes.CREATED).json(populated);
   } catch (err) {
     console.error(err);
     res
@@ -174,8 +184,12 @@ export const getAssignedSites = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.UNAUTHORIZED)
         .json({ message: "Unauthorized" });
 
+    // For non-admin users restrict to sites where they are a team member; admins see all.
     const query = role === "admin" ? {} : ({ teamMembers: userId } as any);
-    const sites = await Site.find(query).select("name location status").lean();
+    // Select real field names present on Site model: address & coordinates (location was not a schema field)
+    const sites = await Site.find(query)
+      .select("name address status coordinates")
+      .lean();
     return res.status(StatusCodes.OK).json(sites);
   } catch (err) {
     console.error(err);
@@ -205,8 +219,9 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
       if (!site)
         return res.status(StatusCodes.FORBIDDEN).json({ message: "Forbidden" });
     }
+    // Include images and treeType so frontend can render thumbnails and show type in fallback detail view
     const trees = await Tree.find({ siteId }).select(
-      "treeName coordinates datePlanted status"
+      "treeName treeType coordinates datePlanted timestamp status images remarks"
     );
     return res.status(StatusCodes.OK).json({ count: trees.length, trees });
   } catch (err) {
@@ -516,13 +531,11 @@ export const deleteTreeRecordInSite = async (
     const updated = await Tree.findById(treeId)
       .populate("plantedBy", "name email")
       .populate("siteId", "name status address");
-    return res
-      .status(StatusCodes.OK)
-      .json({
-        message: "Record deleted",
-        tree: updated,
-        deletedRecordId: recordId,
-      });
+    return res.status(StatusCodes.OK).json({
+      message: "Record deleted",
+      tree: updated,
+      deletedRecordId: recordId,
+    });
   } catch (err) {
     console.error(err);
     res

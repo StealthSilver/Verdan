@@ -212,6 +212,11 @@ export default function SiteDashboard() {
     else navigate(`/admin/dashboard/${siteId}/${treeId}`);
   };
 
+  const handleEditTree = (treeId: string) => {
+    setEditingTreeId(treeId);
+    setShowPlantDrawer(true);
+  };
+
   if (loading)
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -430,6 +435,12 @@ export default function SiteDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end gap-2">
                         <button
+                          onClick={() => handleEditTree(tree._id)}
+                          className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
                           onClick={() => handleUpdateTree(tree._id)}
                           className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
                           style={{
@@ -530,6 +541,12 @@ export default function SiteDashboard() {
                   style={{ backgroundColor: VERDAN_GREEN }}
                 >
                   Details
+                </button>
+                <button
+                  onClick={() => handleEditTree(tree._id)}
+                  className="flex-1 px-3 py-2 text-xs font-medium bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                >
+                  Edit
                 </button>
                 <button
                   onClick={() =>

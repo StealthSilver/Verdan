@@ -165,11 +165,11 @@ export default function TreeDetail() {
   const siteStatus = site?.status || "unknown";
   const siteIdValue = site?._id || siteId || "";
 
-  // Sort images by timestamp (latest first)
+  // Sort images chronologically (earliest first) so first record is the first uploaded
   const sortedImages = [...(tree.images || [])].sort((a, b) => {
     const dateA = new Date(a.timestamp).getTime();
     const dateB = new Date(b.timestamp).getTime();
-    return dateB - dateA;
+    return dateA - dateB;
   });
 
   const getStatusColor = (status: string) => {
@@ -295,7 +295,9 @@ export default function TreeDetail() {
               </span>
               <p className="text-sm font-medium text-gray-900">
                 {sortedImages.length > 0
-                  ? new Date(sortedImages[0].timestamp).toLocaleDateString()
+                  ? new Date(
+                      sortedImages[sortedImages.length - 1].timestamp
+                    ).toLocaleDateString()
                   : "No records"}
               </p>
             </div>
@@ -422,9 +424,18 @@ export default function TreeDetail() {
                             className="inline-block mt-1.5 px-2 py-0.5 text-xs font-medium rounded-full text-white"
                             style={{ backgroundColor: VERDAN_GREEN }}
                           >
-                            Latest
+                            First
                           </span>
                         )}
+                        {index === sortedImages.length - 1 &&
+                          sortedImages.length > 1 && (
+                            <span
+                              className="inline-block mt-1.5 ml-1 px-2 py-0.5 text-xs font-medium rounded-full text-white"
+                              style={{ backgroundColor: VERDAN_GREEN }}
+                            >
+                              Latest
+                            </span>
+                          )}
                       </div>
                     </div>
                   ))}
@@ -482,9 +493,18 @@ export default function TreeDetail() {
                         className="text-xs mt-1 px-1.5 py-0.5 rounded text-white"
                         style={{ backgroundColor: VERDAN_GREEN }}
                       >
-                        Latest
+                        First
                       </span>
                     )}
+                    {index === sortedImages.length - 1 &&
+                      sortedImages.length > 1 && (
+                        <span
+                          className="text-xs mt-1 px-1.5 py-0.5 rounded text-white"
+                          style={{ backgroundColor: VERDAN_GREEN }}
+                        >
+                          Latest
+                        </span>
+                      )}
                   </button>
                 ))}
               </div>
@@ -622,9 +642,18 @@ export default function TreeDetail() {
                           className="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded text-white"
                           style={{ backgroundColor: VERDAN_GREEN }}
                         >
-                          Latest
+                          First
                         </div>
                       )}
+                      {index === sortedImages.length - 1 &&
+                        sortedImages.length > 1 && (
+                          <div
+                            className="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded text-white"
+                            style={{ backgroundColor: VERDAN_GREEN }}
+                          >
+                            Latest
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>

@@ -9,6 +9,7 @@ interface TreeItem {
   coordinates: { lat: number; lng: number };
   status: string;
   datePlanted: string;
+  images?: { url: string; timestamp: string }[];
 }
 
 const VERDAN_GREEN = "#48845C";
@@ -29,7 +30,8 @@ export default function UserSiteDashboard() {
       const res = await API.get(`/user/sites/${siteId}/trees`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTrees(res.data.trees || res.data);
+      const data = res.data.trees || res.data;
+      setTrees(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to fetch plants");
     } finally {
@@ -92,7 +94,7 @@ export default function UserSiteDashboard() {
           <button
             className="px-4 py-2 text-sm font-medium text-white rounded-lg"
             style={{ backgroundColor: VERDAN_GREEN }}
-            onClick={() => navigate(`/admin/Dashboard/${siteId}/addplant`)}
+            onClick={() => navigate(`/user/site/${siteId}/plants`)}
           >
             + Add Plant
           </button>
@@ -104,6 +106,9 @@ export default function UserSiteDashboard() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Image
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Plant
                 </th>
@@ -121,6 +126,23 @@ export default function UserSiteDashboard() {
             <tbody className="bg-white divide-y divide-gray-200">
               {trees.map((t) => (
                 <tr key={t._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {t.images?.length ? (
+                      <img
+                        src={t.images[0].url}
+                        alt={t.treeName}
+                        className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%23f3f4f6' width='48' height='48'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='10'%3ENo Image%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                        <span className="text-xs text-gray-400">N/A</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-medium text-gray-900">
                       {t.treeName}
@@ -148,14 +170,20 @@ export default function UserSiteDashboard() {
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex justify-end gap-2">
                       <button
-                        className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
                         onClick={() =>
-                          navigate(
-                            `/admin/Dashboard/${siteId}/update-tree/${t._id}`
-                          )
+                          navigate(`/user/site/${siteId}/${t._id}`)
                         }
                       >
-                        Update
+                        Details
+                      </button>
+                      <button
+                        className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        onClick={() =>
+                          navigate(`/user/site/${siteId}/plants?edit=${t._id}`)
+                        }
+                      >
+                        Edit
                       </button>
                       <button
                         className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
@@ -178,7 +206,7 @@ export default function UserSiteDashboard() {
           <button
             className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
             style={{ backgroundColor: VERDAN_GREEN }}
-            onClick={() => navigate(`/admin/Dashboard/${siteId}/addplant`)}
+            onClick={() => navigate(`/user/site/${siteId}/plants`)}
           >
             Add First Plant
           </button>
