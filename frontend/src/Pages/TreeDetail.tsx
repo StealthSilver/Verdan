@@ -31,6 +31,7 @@ interface Tree {
   timestamp?: string;
   status: string;
   remarks?: string;
+  verified: boolean;
   images: TreeImage[];
   siteId: Site | string;
 }
@@ -221,6 +222,15 @@ export default function TreeDetail() {
               >
                 {tree.status}
               </span>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  tree.verified
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {tree.verified ? "Verified" : "Pending"}
+              </span>
             </div>
             <p className="text-xs text-gray-500 font-mono">
               ID: {tree._id.slice(-8)}
@@ -268,6 +278,20 @@ export default function TreeDetail() {
               </p>
             </div>
             <div>
+              <span className="text-xs text-gray-500 block mb-1">Verified</span>
+              <p className="text-sm font-medium">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                    tree.verified
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {tree.verified ? "Yes" : "No"}
+                </span>
+              </p>
+            </div>
+            <div>
               <span className="text-xs text-gray-500 block mb-1">Latitude</span>
               <p className="text-sm font-mono text-gray-900">
                 {tree.coordinates.lat.toFixed(6)}
@@ -289,7 +313,9 @@ export default function TreeDetail() {
                 {sortedImages.length}
               </p>
             </div>
-            <div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
+            <div className="lg:col-start-6">
               <span className="text-xs text-gray-500 block mb-1">
                 Last Updated
               </span>

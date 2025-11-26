@@ -9,6 +9,7 @@ interface TreeItem {
   coordinates: { lat: number; lng: number };
   status: string;
   datePlanted: string;
+  verified: boolean;
   images?: { url: string; timestamp: string }[];
 }
 
@@ -118,6 +119,9 @@ export default function UserSiteDashboard() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Verified
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
@@ -165,6 +169,17 @@ export default function UserSiteDashboard() {
                       }`}
                     >
                       {t.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        t.verified
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {t.verified ? "Verified" : "Pending"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">

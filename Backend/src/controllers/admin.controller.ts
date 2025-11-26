@@ -342,7 +342,7 @@ export const verifyTree = async (req: Request, res: Response) => {
 
     const tree = await Tree.findByIdAndUpdate(
       treeId,
-      { status: "verified" },
+      { verified: true },
       { new: true }
     );
     if (!tree)

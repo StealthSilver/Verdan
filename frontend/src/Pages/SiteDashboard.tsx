@@ -73,6 +73,7 @@ export default function SiteDashboard() {
     treeName: "",
   });
   const [deleting, setDeleting] = useState(false);
+  const [verifying, setVerifying] = useState<string | null>(null);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -221,6 +222,30 @@ export default function SiteDashboard() {
   const handleEditTree = (treeId: string) => {
     setEditingTreeId(treeId);
     setShowPlantDrawer(true);
+  };
+
+  const handleVerifyTree = async (treeId: string) => {
+    if (!token || role === "user") return;
+    setVerifying(treeId);
+    try {
+      await API.patch(
+        `/admin/verify/${treeId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // Update local state
+      setTrees((prev) =>
+        prev.map((tree) =>
+          tree._id === treeId ? { ...tree, verified: true } : tree
+        )
+      );
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to verify tree");
+    } finally {
+      setVerifying(null);
+    }
   };
 
   if (loading)
@@ -394,6 +419,9 @@ export default function SiteDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Coordinates
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Verified
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
@@ -447,6 +475,17 @@ export default function SiteDashboard() {
                       {tree.coordinates.lat.toFixed(6)},{" "}
                       {tree.coordinates.lng.toFixed(6)}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          tree.verified
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {tree.verified ? "Verified" : "Pending"}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -471,6 +510,15 @@ export default function SiteDashboard() {
                         >
                           Details
                         </button>
+                        {role !== "user" && !tree.verified && (
+                          <button
+                            onClick={() => handleVerifyTree(tree._id)}
+                            disabled={verifying === tree._id}
+                            className="px-3 py-1.5 text-xs font-medium bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors disabled:opacity-50"
+                          >
+                            {verifying === tree._id ? "Verifying..." : "Verify"}
+                          </button>
+                        )}
                         <button
                           onClick={() =>
                             setDeleteConfirm({
@@ -547,6 +595,18 @@ export default function SiteDashboard() {
                     {tree.coordinates.lng.toFixed(4)}
                   </span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Verified:</span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      tree.verified
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {tree.verified ? "Verified" : "Pending"}
+                  </span>
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -563,6 +623,15 @@ export default function SiteDashboard() {
                 >
                   Edit
                 </button>
+                {role !== "user" && !tree.verified && (
+                  <button
+                    onClick={() => handleVerifyTree(tree._id)}
+                    disabled={verifying === tree._id}
+                    className="flex-1 px-3 py-2 text-xs font-medium bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors disabled:opacity-50"
+                  >
+                    {verifying === tree._id ? "Verifying..." : "Verify"}
+                  </button>
+                )}
                 <button
                   onClick={() =>
                     setDeleteConfirm({
