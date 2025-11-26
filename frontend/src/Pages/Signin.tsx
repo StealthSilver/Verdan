@@ -15,17 +15,19 @@ interface SigninResponse {
     id: string;
     name: string;
     email: string;
-    role: string; // role included
+    role: string;
     avatarUrl?: string;
   };
 }
+
+const VERDAN_GREEN = "#48845C";
 
 export default function Signin() {
   const [form, setForm] = useState<SigninForm>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
   const [signupLoading, setSignupLoading] = useState(false);
   const [signupMsg, setSignupMsg] = useState<string>("");
   const [signupForm, setSignupForm] = useState({
@@ -48,10 +50,8 @@ export default function Signin() {
     try {
       const res = await API.post<SigninResponse>("/auth/signin", form);
 
-      // Save user, token, and role
       setUser(res.data.user.name, res.data.access, res.data.user.role);
 
-      // ✅ Role-based redirection
       if (res.data.user.role.toLowerCase() === "user") {
         navigate("/user/dashboard");
       } else {
@@ -73,13 +73,11 @@ export default function Signin() {
     setSignupLoading(true);
     setSignupMsg("");
     try {
-      // Send to backend Resend endpoint
       await API.post("/auth/signup-request", signupForm);
       setSignupMsg("Request sent! We'll reach out shortly.");
       setSignupForm({ name: "", email: "", company: "", message: "" });
     } catch (err: any) {
       const data = err?.response?.data;
-      // Prefer detailed field errors from backend if present
       const fieldErrors = data?.errors?.fieldErrors;
       if (fieldErrors) {
         const parts: string[] = [];
@@ -101,161 +99,313 @@ export default function Signin() {
     }
   };
 
+  const inputStyles = {
+    border: "1px solid #D1D5DB",
+    transition: "all 0.2s ease-in-out",
+  };
+
+  const inputFocusStyles = {
+    borderColor: VERDAN_GREEN,
+    outline: "none",
+    boxShadow: `0 0 0 3px ${VERDAN_GREEN}20`,
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-950 via-black to-cyan-950 text-white px-4">
-      <div className="backdrop-blur-xl bg-white/5 p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/10">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6">
-          Welcome to VERDAN
-        </h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <h1
+            className="text-4xl font-bold mb-2"
+            style={{ color: VERDAN_GREEN }}
+          >
+            VERDAN
+          </h1>
+          <p className="text-gray-600 text-sm">
+            Sustainable Solutions Platform
+          </p>
+        </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!loading) handleSubmit();
-          }}
-          className="space-y-4"
-        >
-          <input
-            type="email"
-            className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-            placeholder="Email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-          />
-
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-              placeholder="Password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="current-password"
-            />
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200">
             <button
               type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={() => setActiveTab("signin")}
+              className="flex-1 py-4 text-center font-semibold transition-all relative"
+              style={{
+                color: activeTab === "signin" ? VERDAN_GREEN : "#9CA3AF",
+              }}
             >
-              {showPassword ? (
-                <AiFillEyeInvisible size={20} />
-              ) : (
-                <AiFillEye size={20} />
+              Sign In
+              {activeTab === "signin" && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ backgroundColor: VERDAN_GREEN }}
+                />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("signup")}
+              className="flex-1 py-4 text-center font-semibold transition-all relative"
+              style={{
+                color: activeTab === "signup" ? VERDAN_GREEN : "#9CA3AF",
+              }}
+            >
+              Request Access
+              {activeTab === "signup" && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ backgroundColor: VERDAN_GREEN }}
+                />
               )}
             </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50"
-          >
-            {loading ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
+          {/* Content */}
+          <div className="p-8">
+            {activeTab === "signin" ? (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Welcome Back
+                </h2>
 
-        {errorMsg && (
-          <div className="mt-4 mb-4 text-sm text-red-400 bg-white/5 p-2 rounded-xl">
-            {errorMsg}
-          </div>
-        )}
-
-        <p className="text-sm mt-6 text-gray-400 text-center">
-          Don’t have an account?{" "}
-          <button
-            type="button"
-            className="text-blue-400 hover:underline"
-            onClick={() => setShowSignupModal(true)}
-          >
-            Sign up
-          </button>
-        </p>
-
-        {showSignupModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black"
-              onClick={() => setShowSignupModal(false)}
-            />
-            <div className="relative backdrop-blur-xl bg-slate-950 p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/10">
-              <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">
-                Request Admin Access
-              </h3>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!signupLoading) handleSignupSubmit();
-                }}
-                className="space-y-3"
-              >
-                <input
-                  type="text"
-                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-                  placeholder="Name"
-                  value={signupForm.name}
-                  onChange={(e) =>
-                    setSignupForm((s) => ({ ...s, name: e.target.value }))
-                  }
-                  required
-                />
-                <input
-                  type="email"
-                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-                  placeholder="Email"
-                  value={signupForm.email}
-                  onChange={(e) =>
-                    setSignupForm((s) => ({ ...s, email: e.target.value }))
-                  }
-                  required
-                />
-                <input
-                  type="text"
-                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-                  placeholder="Company (optional)"
-                  value={signupForm.company}
-                  onChange={(e) =>
-                    setSignupForm((s) => ({ ...s, company: e.target.value }))
-                  }
-                />
-                <textarea
-                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
-                  placeholder="Message"
-                  value={signupForm.message}
-                  onChange={(e) =>
-                    setSignupForm((s) => ({ ...s, message: e.target.value }))
-                  }
-                  rows={4}
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={signupLoading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50"
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!loading) handleSubmit();
+                  }}
+                  className="space-y-4"
                 >
-                  {signupLoading ? "Sending..." : "Send Request"}
-                </button>
-              </form>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                      style={inputStyles}
+                      placeholder="you@company.com"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      autoComplete="email"
+                      onFocus={(e) => {
+                        Object.assign(e.target.style, inputFocusStyles);
+                      }}
+                      onBlur={(e) => {
+                        Object.assign(e.target.style, inputStyles);
+                      }}
+                    />
+                  </div>
 
-              {signupMsg && (
-                <div className="mt-4 text-sm text-gray-300 bg-white/5 p-2 rounded-xl">
-                  {signupMsg}
-                </div>
-              )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                        style={inputStyles}
+                        placeholder="Enter your password"
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        autoComplete="current-password"
+                        onFocus={(e) => {
+                          Object.assign(e.target.style, inputFocusStyles);
+                        }}
+                        onBlur={(e) => {
+                          Object.assign(e.target.style, inputStyles);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <AiFillEyeInvisible size={20} />
+                        ) : (
+                          <AiFillEye size={20} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-              <button
-                type="button"
-                onClick={() => setShowSignupModal(false)}
-                className="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
-              >
-                Close
-              </button>
-            </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                    style={{ backgroundColor: VERDAN_GREEN }}
+                    onMouseEnter={(e) => {
+                      if (!loading)
+                        e.currentTarget.style.backgroundColor = "#3a6b4a";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = VERDAN_GREEN;
+                    }}
+                  >
+                    {loading ? "Signing In..." : "Sign In"}
+                  </button>
+                </form>
+
+                {errorMsg && (
+                  <div className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">
+                    {errorMsg}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Request Admin Access
+                </h2>
+                <p className="text-gray-600 text-sm mb-6">
+                  Fill out the form below and we'll get back to you shortly.
+                </p>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!signupLoading) handleSignupSubmit();
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                      style={inputStyles}
+                      placeholder="John Doe"
+                      value={signupForm.name}
+                      onChange={(e) =>
+                        setSignupForm((s) => ({ ...s, name: e.target.value }))
+                      }
+                      required
+                      onFocus={(e) => {
+                        Object.assign(e.target.style, inputFocusStyles);
+                      }}
+                      onBlur={(e) => {
+                        Object.assign(e.target.style, inputStyles);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                      style={inputStyles}
+                      placeholder="you@company.com"
+                      value={signupForm.email}
+                      onChange={(e) =>
+                        setSignupForm((s) => ({ ...s, email: e.target.value }))
+                      }
+                      required
+                      onFocus={(e) => {
+                        Object.assign(e.target.style, inputFocusStyles);
+                      }}
+                      onBlur={(e) => {
+                        Object.assign(e.target.style, inputStyles);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                      style={inputStyles}
+                      placeholder="Your Company Name"
+                      value={signupForm.company}
+                      onChange={(e) =>
+                        setSignupForm((s) => ({
+                          ...s,
+                          company: e.target.value,
+                        }))
+                      }
+                      onFocus={(e) => {
+                        Object.assign(e.target.style, inputFocusStyles);
+                      }}
+                      onBlur={(e) => {
+                        Object.assign(e.target.style, inputStyles);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Message *
+                    </label>
+                    <textarea
+                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400 resize-none"
+                      style={inputStyles}
+                      placeholder="Tell us why you need admin access..."
+                      value={signupForm.message}
+                      onChange={(e) =>
+                        setSignupForm((s) => ({
+                          ...s,
+                          message: e.target.value,
+                        }))
+                      }
+                      rows={4}
+                      required
+                      onFocus={(e) => {
+                        Object.assign(e.target.style, inputFocusStyles);
+                      }}
+                      onBlur={(e) => {
+                        Object.assign(e.target.style, inputStyles);
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={signupLoading}
+                    className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                    style={{ backgroundColor: VERDAN_GREEN }}
+                    onMouseEnter={(e) => {
+                      if (!signupLoading)
+                        e.currentTarget.style.backgroundColor = "#3a6b4a";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = VERDAN_GREEN;
+                    }}
+                  >
+                    {signupLoading ? "Sending..." : "Send Request"}
+                  </button>
+                </form>
+
+                {signupMsg && (
+                  <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line">
+                    {signupMsg}
+                  </div>
+                )}
+              </>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-gray-500 mt-6">
+          © 2024 VERDAN. All rights reserved.
+        </p>
       </div>
     </div>
   );
