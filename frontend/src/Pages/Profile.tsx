@@ -109,13 +109,18 @@ export default function Profile() {
 
   if (loading && !user)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: VERDAN_GREEN, borderTopColor: "transparent" }}
-          />
-          <p className="text-gray-600 text-sm">Loading profile...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-4 border-muted"></div>
+            <div
+              className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent animate-spin"
+              style={{ borderTopColor: VERDAN_GREEN }}
+            />
+          </div>
+          <p className="text-muted-foreground font-medium">
+            Loading profile...
+          </p>
         </div>
       </div>
     );
