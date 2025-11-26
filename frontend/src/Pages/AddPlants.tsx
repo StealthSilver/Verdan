@@ -43,7 +43,7 @@ export default function AddPlants({
   }>();
   const siteId = propSiteId || routeSiteId; // prefer explicit prop for modal usage
   const treeId = propTreeId || routeTreeId; // prefer explicit prop for modal usage
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [site, setSite] = useState<Site | null>(null);
@@ -206,25 +206,56 @@ export default function AddPlants({
     }
   }, [isEditMode]);
 
-  // Fetch site details and tree data if editing
+  // Fetch site details and tree data (edit mode) with role awareness
   useEffect(() => {
     const fetchData = async () => {
       if (!token || !siteId) return;
+      const isUser = role === "user";
       try {
-        const siteRes = await API.get<Site>(`/admin/sites/${siteId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSite(siteRes.data);
-
-        // If editing, fetch tree data
-        if (treeId) {
-          const treesRes = await API.get<any[]>(
-            `/admin/sites/${siteId}/trees`,
-            {
+        if (isUser) {
+          // Attempt admin site fetch (may fail if user); fallback minimal
+          try {
+            const siteRes = await API.get<Site>(`/admin/sites/${siteId}`, {
               headers: { Authorization: `Bearer ${token}` },
+            });
+            setSite(siteRes.data);
+          } catch {
+            setSite({ _id: siteId as string, name: "Site" });
+          }
+        } else {
+          const siteRes = await API.get<Site>(`/admin/sites/${siteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSite(siteRes.data);
+        }
+
+        if (treeId) {
+          let tree: any = null;
+          if (isUser) {
+            try {
+              const singleTreeRes = await API.get<any>(
+                `/user/sites/${siteId}/trees/${treeId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              tree = singleTreeRes.data;
+            } catch (e) {
+              // Fallback list
+              const listRes = await API.get<any>(
+                `/user/sites/${siteId}/trees`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const arr = listRes.data.trees || listRes.data;
+              tree = Array.isArray(arr)
+                ? arr.find((t: any) => t._id === treeId)
+                : null;
             }
-          );
-          const tree = treesRes.data.find((t) => t._id === treeId);
+          } else {
+            const treesRes = await API.get<any[]>(
+              `/admin/sites/${siteId}/trees`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            tree = treesRes.data.find((t: any) => t._id === treeId);
+          }
           if (tree) {
             const datePlanted = tree.datePlanted
               ? new Date(tree.datePlanted).toISOString().split("T")[0]
@@ -232,7 +263,6 @@ export default function AddPlants({
             const timestamp = tree.timestamp
               ? new Date(tree.timestamp).toISOString().slice(0, 16)
               : new Date().toISOString().slice(0, 16);
-
             setForm({
               treeName: tree.treeName || "",
               treeType: tree.treeType || "",
@@ -240,8 +270,8 @@ export default function AddPlants({
                 lat: tree.coordinates?.lat || 0,
                 lng: tree.coordinates?.lng || 0,
               },
-              datePlanted: datePlanted,
-              timestamp: timestamp,
+              datePlanted,
+              timestamp,
               status: tree.status || "healthy",
               remarks: tree.remarks || "",
               image:
@@ -249,27 +279,20 @@ export default function AddPlants({
                   ? tree.images[0].url
                   : null,
             });
-
-            // Set image preview for edit mode
-            if (tree.images && tree.images.length > 0) {
+            if (tree.images && tree.images.length > 0)
               setImagePreview(tree.images[0].url);
-            }
-
-            // Validate coordinates and timestamp for edit mode
-            if (tree.coordinates?.lat && tree.coordinates?.lng) {
+            if (tree.coordinates?.lat && tree.coordinates?.lng)
               validateCoordinates(tree.coordinates.lat, tree.coordinates.lng);
-            }
             validateTimestamp(timestamp);
           }
         }
-        // Note: We don't auto-fetch location - user must click the button
       } catch (err: any) {
         console.error(err);
         setError(err?.response?.data?.message || "Failed to fetch data");
       }
     };
     fetchData();
-  }, [token, siteId, treeId]);
+  }, [token, siteId, treeId, role]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -362,20 +385,16 @@ export default function AddPlants({
     }
 
     try {
-      // Prepare images array
       const images = form.image
-        ? [
-            {
-              url: form.image,
-              timestamp: new Date().toISOString(),
-            },
-          ]
+        ? [{ url: form.image, timestamp: new Date().toISOString() }]
         : [];
-
+      const isUser = role === "user";
       if (isEditMode && treeId) {
-        // Update existing tree
+        const updateUrl = isUser
+          ? `/user/sites/${siteId}/trees/${treeId}`
+          : `/admin/trees/${treeId}`;
         await API.put(
-          `/admin/trees/${treeId}`,
+          updateUrl,
           {
             treeName: form.treeName,
             treeType: form.treeType,
@@ -387,16 +406,16 @@ export default function AddPlants({
             timestamp: form.timestamp,
             status: form.status,
             remarks: form.remarks || undefined,
-            images: images,
+            images,
           },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        // Create new tree
+        const createUrl = isUser
+          ? `/user/sites/${siteId}/trees`
+          : `/admin/trees/add`;
         await API.post(
-          "/admin/trees/add",
+          createUrl,
           {
             siteId,
             treeName: form.treeName,
@@ -409,11 +428,9 @@ export default function AddPlants({
             timestamp: form.timestamp,
             status: form.status,
             remarks: form.remarks || undefined,
-            images: images,
+            images,
           },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       }
 
@@ -422,7 +439,11 @@ export default function AddPlants({
       if (onClose) {
         onClose();
       } else if (siteId) {
-        navigate(`/admin/dashboard/${siteId}`, { state: { refresh: true } });
+        if (role === "user") {
+          navigate(`/user/site/${siteId}`, { state: { refresh: true } });
+        } else {
+          navigate(`/admin/dashboard/${siteId}`, { state: { refresh: true } });
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -754,12 +775,13 @@ export default function AddPlants({
 
   const handleBack = () => {
     closeCamera();
-    if (onClose) {
-      onClose();
-    } else if (siteId) {
-      navigate(`/admin/dashboard/${siteId}`);
+    if (onClose) return onClose();
+    if (siteId) {
+      if (role === "user") navigate(`/user/site/${siteId}`);
+      else navigate(`/admin/dashboard/${siteId}`);
     } else {
-      navigate(`/admin/dashboard`);
+      if (role === "user") navigate(`/user/dashboard`);
+      else navigate(`/admin/dashboard`);
     }
   };
 

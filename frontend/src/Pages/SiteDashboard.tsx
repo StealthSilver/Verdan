@@ -55,7 +55,7 @@ export default function SiteDashboard() {
   const siteId = rawSiteId ? decodeURIComponent(rawSiteId).trim() : undefined;
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, logout } = useAuth();
+  const { token, logout, role } = useAuth();
 
   const [site, setSite] = useState<Site | null>(null);
   const [trees, setTrees] = useState<Tree[]>([]);
@@ -115,15 +115,36 @@ export default function SiteDashboard() {
       setError("");
 
       try {
-        const siteRes = await API.get(`/admin/sites/${siteId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSite(siteRes.data);
-
-        const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTrees(treesRes.data);
+        const isUser = role === "user";
+        if (isUser) {
+          // Users: fetch site via admin fallback if accessible endpoints absent (optional), else minimal site info
+          // Attempt to get trees first (will include count + trees)
+          const treesRes = await API.get(`/user/sites/${siteId}/trees`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Support either { count, trees } or array response
+          const treesArray = treesRes.data?.trees || treesRes.data;
+          setTrees(Array.isArray(treesArray) ? treesArray : []);
+          // Construct minimal site object if not previously set
+          if (!site) {
+            setSite({
+              _id: siteId,
+              name: "Site",
+              address: "",
+              status: "active",
+              coordinates: { lat: 0, lng: 0 },
+            });
+          }
+        } else {
+          const siteRes = await API.get(`/admin/sites/${siteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSite(siteRes.data);
+          const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setTrees(treesRes.data);
+        }
       } catch (err: any) {
         console.error(err);
         setError(err?.response?.data?.message || "Failed to fetch site");
@@ -131,16 +152,18 @@ export default function SiteDashboard() {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [token, siteId, location.state?.refresh, refreshCounter]);
+  }, [token, siteId, location.state?.refresh, refreshCounter, role]);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const handleBack = () => navigate("/admin/Dashboard");
+  const handleBack = () => {
+    if (role === "user") navigate("/user/dashboard");
+    else navigate("/admin/Dashboard");
+  };
 
   const handleAddPlants = () => {
     setEditingTreeId(null);
@@ -157,14 +180,24 @@ export default function SiteDashboard() {
     setDeleteConfirm({ show: false, treeId: null, treeName: "" });
     setDeleting(true);
     try {
-      await API.delete(`/admin/trees/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Fetch fresh list to ensure consistency
-      const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTrees(treesRes.data);
+      const isUser = role === "user";
+      if (isUser) {
+        await API.delete(`/user/sites/${siteId}/trees/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const treesRes = await API.get(`/user/sites/${siteId}/trees`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTrees(treesRes.data.trees || treesRes.data?.trees || treesRes.data);
+      } else {
+        await API.delete(`/admin/trees/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTrees(treesRes.data);
+      }
     } catch (err: any) {
       // Rollback on error
       if (backup) setTrees((prev) => [...prev, backup]);
@@ -175,7 +208,8 @@ export default function SiteDashboard() {
   };
 
   const handleUpdateTree = (treeId: string) => {
-    navigate(`/admin/dashboard/${siteId}/${treeId}`);
+    if (role === "user") navigate(`/user/site/${siteId}/${treeId}`);
+    else navigate(`/admin/dashboard/${siteId}/${treeId}`);
   };
 
   if (loading)
@@ -409,7 +443,7 @@ export default function SiteDashboard() {
                             (e.currentTarget.style.opacity = "1")
                           }
                         >
-                          Update
+                          Details
                         </button>
                         <button
                           onClick={() =>
@@ -495,7 +529,7 @@ export default function SiteDashboard() {
                   className="flex-1 px-3 py-2 text-xs font-medium rounded-md text-white transition-opacity"
                   style={{ backgroundColor: VERDAN_GREEN }}
                 >
-                  Update
+                  Details
                 </button>
                 <button
                   onClick={() =>

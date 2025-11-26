@@ -39,7 +39,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const effectiveSiteId = props.siteId || params.siteId;
   const effectiveTreeId = props.treeId || params.treeId;
   const embedded = !!props.embedded;
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tree, setTree] = useState<Tree | null>(null);
@@ -193,7 +193,11 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     const fetchData = async () => {
       if (!token || !effectiveTreeId) return;
       try {
-        const treeRes = await API.get<Tree>(`/admin/trees/${effectiveTreeId}`, {
+        const isUser = role === "user" && effectiveSiteId;
+        const url = isUser
+          ? `/user/sites/${effectiveSiteId}/trees/${effectiveTreeId}`
+          : `/admin/trees/${effectiveTreeId}`;
+        const treeRes = await API.get<Tree>(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTree(treeRes.data);
@@ -218,7 +222,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       }
     };
     fetchData();
-  }, [token, effectiveTreeId]);
+  }, [token, effectiveTreeId, role, effectiveSiteId]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -279,8 +283,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
 
     try {
+      const isUser = role === "user" && effectiveSiteId;
+      const postUrl = isUser
+        ? `/user/sites/${effectiveSiteId}/trees/${effectiveTreeId}/records`
+        : `/admin/trees/${effectiveTreeId}/records`;
       await API.post(
-        `/admin/trees/${effectiveTreeId}/records`,
+        postUrl,
         {
           image: form.image,
           coordinates: {
@@ -299,7 +307,11 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         props.onRecordSaved?.();
         props.onClose?.();
       } else {
-        navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+        if (isUser) {
+          navigate(`/user/site/${effectiveSiteId}`);
+        } else {
+          navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -637,7 +649,11 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     if (embedded) {
       props.onClose?.();
     } else {
-      navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+      if (role === "user" && effectiveSiteId) {
+        navigate(`/user/site/${effectiveSiteId}`);
+      } else {
+        navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
+      }
     }
   };
 

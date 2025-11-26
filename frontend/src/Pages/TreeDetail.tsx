@@ -38,7 +38,7 @@ interface Tree {
 export default function TreeDetail() {
   const { siteId, treeId } = useParams<{ siteId: string; treeId: string }>();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -58,10 +58,38 @@ export default function TreeDetail() {
 
       try {
         setLoading(true);
-        const res = await API.get<Tree>(`/admin/trees/${treeId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTree(res.data);
+        const isUser = role === "user";
+        let res;
+        if (isUser) {
+          // Use user site-scoped endpoint when siteId present
+          if (siteId) {
+            try {
+              res = await API.get<Tree>(
+                `/user/sites/${siteId}/trees/${treeId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+            } catch (e) {
+              // Fallback to list then filter
+              const list = await API.get<any>(`/user/sites/${siteId}/trees`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const arr = list.data.trees || list.data;
+              const found = Array.isArray(arr)
+                ? arr.find((t: any) => t._id === treeId)
+                : null;
+              if (!found) throw new Error("Tree not found in accessible site");
+              setTree(found);
+              return;
+            }
+          } else {
+            throw new Error("Missing site context for user access");
+          }
+        } else {
+          res = await API.get<Tree>(`/admin/trees/${treeId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+        if (res) setTree(res.data);
       } catch (err: any) {
         console.error(err);
         setError(err?.response?.data?.message || "Failed to fetch tree data");
@@ -70,14 +98,15 @@ export default function TreeDetail() {
       }
     };
     fetchTree();
-  }, [token, treeId, refreshCounter]);
+  }, [token, treeId, refreshCounter, role, siteId]);
 
   const handleAddRecord = () => {
     setShowRecordDrawer(true);
   };
 
   const handleBack = () => {
-    navigate(`/admin/dashboard/${siteId}`);
+    if (role === "user") navigate(`/user/site/${siteId}`);
+    else navigate(`/admin/dashboard/${siteId}`);
   };
 
   if (loading) {
@@ -689,12 +718,13 @@ export default function TreeDetail() {
                         : prev
                     );
                     try {
-                      await API.delete(
-                        `/admin/trees/${treeId}/records/${recordId}`,
-                        {
-                          headers: { Authorization: `Bearer ${token}` },
-                        }
-                      );
+                      const isUser = role === "user" && siteId;
+                      const delUrl = isUser
+                        ? `/user/sites/${siteId}/trees/${treeId}/records/${recordId}`
+                        : `/admin/trees/${treeId}/records/${recordId}`;
+                      await API.delete(delUrl, {
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
                       // Adjust selected index if needed
                       setSelectedImageIndex((idx) =>
                         idx >= sortedImages.length - 1
