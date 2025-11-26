@@ -185,16 +185,13 @@ export default function TreeDetail() {
   });
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "healthy":
-        return "bg-green-100 text-green-800";
-      case "sick":
-        return "bg-yellow-100 text-yellow-800";
-      case "dead":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-blue-100 text-blue-800";
-    }
+    const s = status.trim().toLowerCase();
+    if (s === "healthy") return "bg-[#B8E6C0] text-[#14532d]"; // pastel mint
+    if (s === "sick") return "bg-[#F8E3A1] text-[#7c2d12]"; // pastel amber
+    if (s === "dead") return "bg-[#F2B8B5] text-[#7f1d1d]"; // gentle rose
+    if (s === "need attention" || s === "needs attention")
+      return "bg-[#F7CDAA] text-[#7c2d12]"; // warm peach
+    return "bg-blue-100 text-blue-800";
   };
 
   return (

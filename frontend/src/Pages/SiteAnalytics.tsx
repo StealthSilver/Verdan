@@ -188,15 +188,31 @@ export default function SiteAnalytics() {
   }, [trees]);
 
   const statusCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    const allowedStatuses = ["healthy", "dead", "sick", "needs attention"];
+    // Always show all four categories in a fixed order
+    const orderedStatuses = [
+      "healthy",
+      "sick",
+      "dead",
+      "needs attention",
+    ] as const;
+    const counts: Record<(typeof orderedStatuses)[number], number> = {
+      healthy: 0,
+      sick: 0,
+      dead: 0,
+      "needs attention": 0,
+    };
     trees.forEach((t) => {
-      const s = t.status?.toLowerCase() || "unknown";
-      if (allowedStatuses.includes(s)) {
-        map.set(s, (map.get(s) || 0) + 1);
+      const raw = (t.status || "").trim().toLowerCase();
+      // Normalize common variants (e.g., "need attention" -> "needs attention")
+      const s =
+        raw === "need attention" || raw === "needs_attention"
+          ? "needs attention"
+          : raw;
+      if (orderedStatuses.includes(s as any)) {
+        counts[s as (typeof orderedStatuses)[number]] += 1;
       }
     });
-    return Array.from(map.entries());
+    return orderedStatuses.map((s) => [s, counts[s]] as [string, number]);
   }, [trees]);
 
   // Chart data with Verdan brand colors
@@ -210,7 +226,7 @@ export default function SiteAnalytics() {
           label: "Trees Planted",
           data,
           borderColor: VERDAN_GREEN,
-          backgroundColor: `${VERDAN_GREEN}15`,
+          backgroundColor: `${VERDAN_GREEN}22`,
           pointBackgroundColor: VERDAN_GREEN,
           pointBorderColor: "#ffffff",
           pointBorderWidth: 2,
@@ -226,18 +242,18 @@ export default function SiteAnalytics() {
   const typeBarData = useMemo(() => {
     const labels = treesByType.map((e) => e[0]);
     const data = treesByType.map((e) => e[1]);
-    // Create a cohesive color palette that complements Verdan green
-    const treeTypeColors = [
-      "#48845C", // Main Verdan green
-      "#5B9A6F", // Lighter green
-      "#6B8E7A", // Muted green
-      "#7AA68C", // Sage green
-      "#8BB39E", // Light sage
-      "#4A7C59", // Forest green
-      "#5C8A69", // Medium green
-      "#3E6B4A", // Dark forest
-      "#6BA382", // Mint green
-      "#859B8C", // Gray green
+    // Soft pastel palette complementing Verdan green
+    const treeTypeBackgrounds = [
+      "#BEE3C1",
+      "#D5E8D2",
+      "#CFE8D9",
+      "#A8D5BA",
+      "#E6F3EE",
+      "#B7DCC6",
+      "#CBDDD1",
+      "#C9E7D8",
+      "#DDEEE3",
+      "#A4CBB4",
     ];
     return {
       labels,
@@ -246,11 +262,9 @@ export default function SiteAnalytics() {
           label: "Tree Count",
           data,
           backgroundColor: labels.map(
-            (_, i) => `${treeTypeColors[i % treeTypeColors.length]}E6`
+            (_, i) => `${treeTypeBackgrounds[i % treeTypeBackgrounds.length]}CC`
           ),
-          borderColor: labels.map(
-            (_, i) => treeTypeColors[i % treeTypeColors.length]
-          ),
+          borderColor: VERDAN_GREEN,
           borderWidth: 1,
           borderRadius: 4,
           borderSkipped: false,
@@ -268,16 +282,10 @@ export default function SiteAnalytics() {
         {
           label: "Trees",
           data,
-          backgroundColor: [
-            VERDAN_GREEN, // Verdan green for verified
-            "#e5e7eb", // Light gray for unverified
-          ],
+          backgroundColor: ["#A7DFAE", "#E5E7EB"],
           borderColor: ["#ffffff", "#ffffff"],
           borderWidth: 3,
-          hoverBackgroundColor: [
-            "#5B9A6F", // Lighter green on hover
-            "#d1d5db", // Darker gray on hover
-          ],
+          hoverBackgroundColor: ["#8AD497", "#D1D5DB"],
         },
       ],
     };
@@ -286,12 +294,12 @@ export default function SiteAnalytics() {
   const statusBarData = useMemo(() => {
     const labels = statusCounts.map((e) => e[0]);
     const data = statusCounts.map((e) => e[1]);
-    // Status-specific colors for health indicators
+    // Refined, distinct pastel palette for consistency
     const statusColors: { [key: string]: string } = {
-      healthy: "#22c55e", // Green for healthy
-      sick: "#f59e0b", // Amber/yellow for sick
-      dead: "#ef4444", // Red for dead
-      "needs attention": "#f97316", // Orange for needs attention
+      healthy: "#B8E6C0", // soft mint green
+      sick: "#F8E3A1", // pastel amber
+      dead: "#F2B8B5", // gentle rose
+      "needs attention": "#F7CDAA", // warm peach
     };
 
     return {
@@ -301,7 +309,7 @@ export default function SiteAnalytics() {
           label: "Tree Count",
           data,
           backgroundColor: labels.map(
-            (label) => `${statusColors[label] || "#6b7280"}E6`
+            (label) => `${statusColors[label] || "#cbd5e1"}CC`
           ),
           borderColor: labels.map((label) => statusColors[label] || "#6b7280"),
           borderWidth: 1,
@@ -334,7 +342,7 @@ export default function SiteAnalytics() {
         backgroundColor: "#1f2937",
         titleColor: "#f9fafb",
         bodyColor: "#f9fafb",
-        borderColor: VERDAN_GREEN,
+        borderColor: `${VERDAN_GREEN}66`,
         borderWidth: 1,
         cornerRadius: 8,
       },
@@ -397,7 +405,7 @@ export default function SiteAnalytics() {
         backgroundColor: "#1f2937",
         titleColor: "#f9fafb",
         bodyColor: "#f9fafb",
-        borderColor: VERDAN_GREEN,
+        borderColor: `${VERDAN_GREEN}66`,
         borderWidth: 1,
         cornerRadius: 8,
       },
