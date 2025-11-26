@@ -4,14 +4,14 @@ import axios from "axios";
 const getBaseURL = () => {
   // uncomment when deploying backend
   // First check for environment variable
-  // if (import.meta.env.VITE_API_BASE_URL) {
-  //   return import.meta.env.VITE_API_BASE_URL;
-  // }
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
 
-  // // For production, use the deployed backend
-  // if (import.meta.env.PROD) {
-  //   return "https://verdan-1-iwlt.onrender.com/";
-  // }
+  // For production, use the deployed backend
+  if (import.meta.env.PROD) {
+    return "https://verdan-1-iwlt.onrender.com/";
+  }
 
   // For development, use localhost
   return "http://localhost:8000/";
