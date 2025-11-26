@@ -6,6 +6,7 @@ import { z } from "zod";
 import User, { type IUser } from "../models/user.model";
 import { Types } from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { sendResendEmail } from "../utils/resend.util";
 
 const signupSchema = z.object({
   name: z.string().min(3),
@@ -118,6 +119,57 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Server error" });
+  }
+};
+
+// Public endpoint to collect signup interest and email admins via Resend
+export const sendSignupRequest = async (req: Request, res: Response) => {
+  try {
+    const schema = z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      company: z.string().optional(),
+      message: z.string().min(5),
+    });
+
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid data" });
+    }
+
+    const { name, email, company, message } = parsed.data;
+
+    const html = `
+      <div style="font-family: Inter, Arial, sans-serif; background:#0b1220; color:#e6f1ff; padding:24px">
+        <h2 style="margin:0 0 16px; color:#7ee787">New Signup Request</h2>
+        <p style="margin:0 0 12px">A user requested admin access. Details below:</p>
+        <div style="background:#121a2a; border:1px solid #22304a; border-radius:12px; padding:16px">
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Company:</strong> ${company || "-"}</p>
+          <p style="white-space:pre-wrap"><strong>Message:</strong><br/>${message}</p>
+        </div>
+        <p style="margin-top:16px; font-size:12px; color:#94a3b8">Sent via VERDAN signup form</p>
+      </div>
+    `;
+
+    await sendResendEmail({
+      to: process.env.SIGNUP_NOTIFY_TO || "rajatsaraswat1729@gmail.com",
+      subject: "VERDAN – New Signup Request",
+      html,
+      text: `New signup request\nName: ${name}\nEmail: ${email}\nCompany: ${
+        company || "-"
+      }\nMessage: ${message}`,
+    });
+
+    return res.status(StatusCodes.OK).json({ message: "Request sent" });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Failed to send email" });
   }
 };
 

@@ -25,6 +25,15 @@ export default function Signin() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupMsg, setSignupMsg] = useState<string>("");
+  const [signupForm, setSignupForm] = useState({
+    name: "",
+    email: "",
+    company: "",
+    message: "",
+  });
 
   const navigate = useNavigate();
   const { setUser } = useAuth();
@@ -57,6 +66,23 @@ export default function Signin() {
       setErrorMsg(serverMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSignupSubmit = async () => {
+    setSignupLoading(true);
+    setSignupMsg("");
+    try {
+      // Send to backend Resend endpoint
+      await API.post("/auth/signup-request", signupForm);
+      setSignupMsg("Request sent! We'll reach out shortly.");
+      setSignupForm({ name: "", email: "", company: "", message: "" });
+    } catch (err: any) {
+      const serverMsg =
+        err?.response?.data?.message || err?.message || "Failed to send";
+      setSignupMsg(serverMsg);
+    } finally {
+      setSignupLoading(false);
     }
   };
 
@@ -125,10 +151,96 @@ export default function Signin() {
 
         <p className="text-sm mt-6 text-gray-400 text-center">
           Don’t have an account?{" "}
-          <a href="/" className="text-blue-400 hover:underline">
+          <button
+            type="button"
+            className="text-blue-400 hover:underline"
+            onClick={() => setShowSignupModal(true)}
+          >
             Sign up
-          </a>
+          </button>
         </p>
+
+        {showSignupModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setShowSignupModal(false)}
+            />
+            <div className="relative backdrop-blur-xl bg-white/5 p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/10">
+              <h3 className="text-xl sm:text-2xl font-bold text-center mb-4">
+                Request Admin Access
+              </h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!signupLoading) handleSignupSubmit();
+                }}
+                className="space-y-3"
+              >
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
+                  placeholder="Name"
+                  value={signupForm.name}
+                  onChange={(e) =>
+                    setSignupForm((s) => ({ ...s, name: e.target.value }))
+                  }
+                  required
+                />
+                <input
+                  type="email"
+                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
+                  placeholder="Email"
+                  value={signupForm.email}
+                  onChange={(e) =>
+                    setSignupForm((s) => ({ ...s, email: e.target.value }))
+                  }
+                  required
+                />
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
+                  placeholder="Company (optional)"
+                  value={signupForm.company}
+                  onChange={(e) =>
+                    setSignupForm((s) => ({ ...s, company: e.target.value }))
+                  }
+                />
+                <textarea
+                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400 transition"
+                  placeholder="Message"
+                  value={signupForm.message}
+                  onChange={(e) =>
+                    setSignupForm((s) => ({ ...s, message: e.target.value }))
+                  }
+                  rows={4}
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={signupLoading}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 transition font-semibold shadow-lg disabled:opacity-50"
+                >
+                  {signupLoading ? "Sending..." : "Send Request"}
+                </button>
+              </form>
+
+              {signupMsg && (
+                <div className="mt-4 text-sm text-gray-300 bg-white/5 p-2 rounded-xl">
+                  {signupMsg}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowSignupModal(false)}
+                className="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
