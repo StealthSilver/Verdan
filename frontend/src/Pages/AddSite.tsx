@@ -410,10 +410,6 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
 
             {(isEditMode && editSite?._id) || createdSiteId ? (
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-700 rounded-md text-sm">
-                  {createdSiteId &&
-                    "Site created successfully! You can now add team members."}
-                </div>
                 <button
                   type="button"
                   onClick={() => {
