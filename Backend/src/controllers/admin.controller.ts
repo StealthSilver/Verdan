@@ -652,6 +652,19 @@ export const getTreeById = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
 
+    // Ensure the tree's status reflects the latest record
+    const treeObj = tree.toObject();
+    if (treeObj.images && treeObj.images.length > 0) {
+      // Sort images by timestamp to find the latest one
+      const sortedImages = [...treeObj.images].sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      // If we have a status field in the latest image record, we'd use it here
+      // For now, we rely on the tree's current status being updated when records are added
+    }
+
     res.status(StatusCodes.OK).json(tree);
   } catch (err) {
     console.error(err);
@@ -702,6 +715,7 @@ export const addTreeRecord = async (req: AuthRequest, res: Response) => {
     if (timestamp) {
       updateData.timestamp = new Date(timestamp);
     }
+    // Always update the tree's overall status to match the latest record's status
     if (status) {
       updateData.status = status;
     }

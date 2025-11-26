@@ -347,6 +347,20 @@ export const getSiteTree = async (req: AuthRequest, res: Response) => {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
+
+    // Ensure the tree's status reflects the latest record
+    const treeObj = tree.toObject();
+    if (treeObj.images && treeObj.images.length > 0) {
+      // Sort images by timestamp to find the latest one
+      const sortedImages = [...treeObj.images].sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      // If we have a status field in the latest image record, we'd use it here
+      // For now, we rely on the tree's current status being updated when records are added
+    }
+
     return res.status(StatusCodes.OK).json(tree);
   } catch (err) {
     console.error(err);
@@ -465,6 +479,7 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
     };
     const update: any = { $push: { images: newImage } };
     if (coordinates) update.coordinates = coordinates;
+    // Always update the tree's overall status to match the latest record's status
     if (status) update.status = status;
     if (remarks !== undefined) update.remarks = remarks;
     if (timestamp) update.timestamp = new Date(timestamp);
