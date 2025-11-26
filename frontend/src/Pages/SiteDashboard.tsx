@@ -170,6 +170,12 @@ export default function SiteDashboard() {
     setShowPlantDrawer(true);
   };
 
+  const handleViewAnalytics = () => {
+    if (!siteId) return;
+    if (role === "user") return; // Only admins have analytics
+    navigate(`/admin/dashboard/${siteId}/analytics`);
+  };
+
   const performDeleteTree = async () => {
     if (!deleteConfirm.treeId || !token || !siteId) return;
     const id = deleteConfirm.treeId;
@@ -342,6 +348,15 @@ export default function SiteDashboard() {
             >
               Back
             </button>
+            {role !== "user" && (
+              <button
+                onClick={handleViewAnalytics}
+                className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+                style={{ backgroundColor: VERDAN_GREEN }}
+              >
+                View Analytics
+              </button>
+            )}
             <button
               onClick={handleAddPlants}
               className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"

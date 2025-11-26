@@ -11,6 +11,7 @@ import SiteDashboard from "./Pages/SiteDashboard";
 import AddPlants from "./Pages/AddPlants";
 import TreeDetail from "./Pages/TreeDetail";
 import UpdateTreeRecord from "./Pages/UpdateTreeRecord";
+import SiteAnalytics from "./Pages/SiteAnalytics";
 // UserSiteDashboard now replaced by role-aware SiteDashboard for parity
 import ConnectionTest from "./components/ConnectionTest";
 // import UserProfile from "./Pages/UserProfile"
@@ -45,6 +46,10 @@ const App = () => {
         <Route
           path="/admin/dashboard/:siteId"
           element={<SiteDashboard />}
+        ></Route>
+        <Route
+          path="/admin/dashboard/:siteId/analytics"
+          element={<SiteAnalytics />}
         ></Route>
         <Route
           path="/admin/dashboard/:siteId/plants"
