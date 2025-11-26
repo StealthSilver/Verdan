@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
@@ -12,6 +12,7 @@ interface TeamMemberForm {
   gender: "male" | "female" | "other";
   designation: string;
   organization: string;
+  siteIds: string[];
 }
 
 interface AddTeamMemberProps {
@@ -40,7 +41,35 @@ export default function AddTeamMember({
     gender: "other",
     designation: "",
     organization: "",
+    siteIds: [],
   });
+
+  const [availableSites, setAvailableSites] = useState<
+    Array<{ _id: string; name: string }>
+  >([]);
+
+  // Fetch sites the admin can assign
+  useEffect(() => {
+    const loadSites = async () => {
+      if (!token) return;
+      try {
+        const res = await API.get("/admin/sites", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const list = (res.data || []).map((s: any) => ({
+          _id: s._id,
+          name: s.name,
+        }));
+        setAvailableSites(list);
+      } catch (err: any) {
+        console.warn(
+          "Failed to load sites for assignment",
+          err?.response || err
+        );
+      }
+    };
+    loadSites();
+  }, [token]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -50,6 +79,13 @@ export default function AddTeamMember({
       ...form,
       [name]: value,
     });
+  };
+
+  const handleSiteSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const options = Array.from(e.target.selectedOptions).map(
+      (opt) => opt.value
+    );
+    setForm({ ...form, siteIds: options });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,8 +114,15 @@ export default function AddTeamMember({
       setLoading(false);
       return;
     }
-    if (!effectiveSiteId) {
-      setError("Site ID is missing");
+    // Require at least one site to assign
+    const finalSiteIds =
+      form.siteIds.length > 0
+        ? form.siteIds
+        : effectiveSiteId
+        ? [effectiveSiteId]
+        : [];
+    if (finalSiteIds.length === 0) {
+      setError("Please select at least one site to assign");
       setLoading(false);
       return;
     }
@@ -97,7 +140,9 @@ export default function AddTeamMember({
         const response = await API.post(
           `/admin/site/team/add`,
           {
-            siteId: effectiveSiteId,
+            // Keep single siteId for backward compatibility (first selected)
+            siteId: finalSiteIds[0],
+            siteIds: finalSiteIds,
             name: form.name,
             email: form.email,
             password: form.password,
@@ -132,6 +177,7 @@ export default function AddTeamMember({
         gender: "other",
         designation: "",
         organization: "",
+        siteIds: [],
       });
 
       // In modal mode: auto-close after short delay; in route mode: navigate back
@@ -335,6 +381,33 @@ export default function AddTeamMember({
                   <option value="other">Other</option>
                 </select>
               </div>
+            </div>
+
+            {/* Sites Assignment */}
+            <div>
+              <label
+                htmlFor="siteIds"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Assign Sites <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="siteIds"
+                name="siteIds"
+                multiple
+                value={form.siteIds}
+                onChange={handleSiteSelection}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {availableSites.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Hold Ctrl/Cmd to select multiple sites.
+              </p>
             </div>
 
             <div>

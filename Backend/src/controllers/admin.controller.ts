@@ -127,11 +127,19 @@ export const addTeamMember = async (req: Request, res: Response) => {
       password,
       role,
       siteId,
+      siteIds,
       gender,
       designation,
       organization,
     } = req.body;
-    if (!name || !email || !password || !role || !siteId || !designation)
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !role ||
+      (!siteId && !siteIds) ||
+      !designation
+    )
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing required fields" });
@@ -148,14 +156,30 @@ export const addTeamMember = async (req: Request, res: Response) => {
       name,
       email,
       role,
-      siteId: new Types.ObjectId(siteId),
+      siteId: siteId ? new Types.ObjectId(siteId) : undefined,
       password: hashedPassword,
       gender: gender || "other",
       designation,
       organization: organization || "",
     });
-
-    await Site.findByIdAndUpdate(siteId, { $push: { teamMembers: user._id } });
+    // Assign user to one or multiple sites' teamMembers
+    if (Array.isArray(siteIds) && siteIds.length > 0) {
+      const validIds = siteIds.filter((id: string) =>
+        Types.ObjectId.isValid(id)
+      );
+      if (validIds.length) {
+        await Site.updateMany(
+          {
+            _id: { $in: validIds.map((id: string) => new Types.ObjectId(id)) },
+          },
+          { $addToSet: { teamMembers: user._id } }
+        );
+      }
+    } else if (siteId) {
+      await Site.findByIdAndUpdate(siteId, {
+        $addToSet: { teamMembers: user._id },
+      });
+    }
 
     res.status(StatusCodes.CREATED).json({
       message: "Team member created successfully",

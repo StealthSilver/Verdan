@@ -196,7 +196,11 @@ export default function Profile() {
             </p>
           </div>
           <button
-            onClick={() => navigate("/admin/Dashboard")}
+            onClick={() =>
+              navigate(
+                role === "admin" ? "/admin/Dashboard" : "/user/dashboard"
+              )
+            }
             className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors active:scale-95"
           >
             ← Back to Dashboard

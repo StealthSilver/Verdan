@@ -174,7 +174,7 @@ export const getAssignedSites = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.UNAUTHORIZED)
         .json({ message: "Unauthorized" });
 
-    const query = role === "admin" ? {} : ({ assignedUsers: userId } as any);
+    const query = role === "admin" ? {} : ({ teamMembers: userId } as any);
     const sites = await Site.find(query).select("name location status").lean();
     return res.status(StatusCodes.OK).json(sites);
   } catch (err) {
@@ -201,7 +201,7 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
         .json({ message: "Invalid site ID" });
 
     if (role !== "admin") {
-      const site = await Site.findOne({ _id: siteId, assignedUsers: userId });
+      const site = await Site.findOne({ _id: siteId, teamMembers: userId });
       if (!site)
         return res.status(StatusCodes.FORBIDDEN).json({ message: "Forbidden" });
     }
@@ -238,7 +238,7 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
         .json({ message: "Invalid IDs" });
 
     if (role !== "admin") {
-      const site = await Site.findOne({ _id: siteId, assignedUsers: userId });
+      const site = await Site.findOne({ _id: siteId, teamMembers: userId });
       if (!site)
         return res.status(StatusCodes.FORBIDDEN).json({ message: "Forbidden" });
     }
@@ -282,7 +282,7 @@ export const deleteTree = async (req: AuthRequest, res: Response) => {
         .json({ message: "Invalid IDs" });
 
     if (role !== "admin") {
-      const site = await Site.findOne({ _id: siteId, assignedUsers: userId });
+      const site = await Site.findOne({ _id: siteId, teamMembers: userId });
       if (!site)
         return res.status(StatusCodes.FORBIDDEN).json({ message: "Forbidden" });
     }

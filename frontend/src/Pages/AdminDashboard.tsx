@@ -331,7 +331,7 @@ export default function AdminDashboard() {
                         </button>
                         <button
                           className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                          onClick={() =>
+                          onClick={() => {
                             setEditingSite({
                               _id: site._id,
                               name: site.name,
@@ -339,8 +339,9 @@ export default function AdminDashboard() {
                               coordinates: site.coordinates,
                               status: site.status,
                               type: site.type || "",
-                            }) || setShowSiteDrawer(true)
-                          }
+                            });
+                            setShowSiteDrawer(true);
+                          }}
                         >
                           Edit
                         </button>
