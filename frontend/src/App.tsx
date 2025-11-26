@@ -10,6 +10,7 @@ import SiteDashboard from "./Pages/SiteDashboard";
 import AddPlants from "./Pages/AddPlants";
 import TreeDetail from "./Pages/TreeDetail";
 import UpdateTreeRecord from "./Pages/UpdateTreeRecord";
+import UserSiteDashboard from "./Pages/UserSiteDashboard";
 import ConnectionTest from "./components/ConnectionTest";
 // import UserProfile from "./Pages/UserProfile"
 const App = () => {
@@ -19,6 +20,10 @@ const App = () => {
         <Route path="/" element={<Signin />}></Route>
         <Route path="/test-connection" element={<ConnectionTest />}></Route>
         <Route path="/admin/Dashboard" element={<UserDashboard />}></Route>
+        <Route
+          path="/user/site/:siteId"
+          element={<UserSiteDashboard />}
+        ></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="/admin/Dashboard/add-site" element={<AddSites />}></Route>
         <Route

@@ -4,8 +4,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
-import AddSite from "./AddSite";
-import type { Site as SiteType } from "./AddSite";
+// Site editing is not available for user dashboard
 
 const VERDAN_GREEN = "#48845C";
 
@@ -37,15 +36,7 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState({
-    show: false,
-    siteId: null as string | null,
-    siteName: "",
-  });
-  const [deleting, setDeleting] = useState(false);
-  const [showSiteDrawer, setShowSiteDrawer] = useState(false);
-  const [editingSite, setEditingSite] = useState<SiteType | null>(null);
-  const [refreshCounter, setRefreshCounter] = useState(0);
+  // local UI state minimal for user view
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -83,14 +74,14 @@ export default function UserDashboard() {
     run();
   }, [token]);
 
-  // Fetch sites
+  // Fetch assigned sites
   useEffect(() => {
     const run = async () => {
       if (!token) return;
       setLoading(true);
       setError("");
       try {
-        const res = await API.get<Site[]>("/admin/sites", {
+        const res = await API.get<Site[]>("/user/sites/assigned", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSites(res.data);
@@ -101,7 +92,7 @@ export default function UserDashboard() {
       }
     };
     run();
-  }, [token, location.pathname, refreshCounter]);
+  }, [token, location.pathname]);
 
   if (loading)
     return (
@@ -127,43 +118,7 @@ export default function UserDashboard() {
     navigate("/");
   };
 
-  const handleAdd = () => {
-    setEditingSite(null);
-    setShowSiteDrawer(true);
-  };
-
-  const handleUpdate = (site: Site) => {
-    setEditingSite({
-      _id: site._id,
-      name: site.name,
-      address: site.address,
-      coordinates: site.coordinates,
-      status: site.status,
-      type: site.type || "",
-    });
-    setShowSiteDrawer(true);
-  };
-
-  const handleDelete = async () => {
-    if (!deleteConfirm.siteId || !token) return;
-    const id = deleteConfirm.siteId;
-    const backup = sites.find((s) => s._id === id);
-
-    setSites((prev) => prev.filter((s) => s._id !== id));
-    setDeleteConfirm({ show: false, siteId: null, siteName: "" });
-    setDeleting(true);
-
-    try {
-      await API.delete(`/admin/sites/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } catch (err: any) {
-      if (backup) setSites((prev) => [...prev, backup]);
-      alert(err?.response?.data?.message || "Failed to delete site");
-    } finally {
-      setDeleting(false);
-    }
-  };
+  // no add/edit/delete at user level; actions are plant-scoped
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -226,7 +181,7 @@ export default function UserDashboard() {
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* HEADER WITH ADD BUTTON */}
+        {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -236,13 +191,6 @@ export default function UserDashboard() {
               Manage and monitor your assigned sites
             </p>
           </div>
-          <button
-            onClick={handleAdd}
-            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
-            style={{ backgroundColor: VERDAN_GREEN }}
-          >
-            + Add New Site
-          </button>
         </div>
 
         {/* SITES TABLE - Desktop */}
@@ -314,29 +262,15 @@ export default function UserDashboard() {
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.opacity = "1")
                           }
-                          onClick={() =>
-                            navigate(`/admin/dashboard/${site._id}`)
-                          }
+                          onClick={() => navigate(`/user/site/${site._id}`)}
                         >
                           View
                         </button>
                         <button
                           className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                          onClick={() => handleUpdate(site)}
+                          onClick={() => navigate(`/user/site/${site._id}`)}
                         >
-                          Edit
-                        </button>
-                        <button
-                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                          onClick={() =>
-                            setDeleteConfirm({
-                              show: true,
-                              siteId: site._id,
-                              siteName: site.name,
-                            })
-                          }
-                        >
-                          Delete
+                          Manage Plants
                         </button>
                       </div>
                     </td>
@@ -380,27 +314,15 @@ export default function UserDashboard() {
                 <button
                   className="flex-1 px-3 py-2 text-xs font-medium rounded-md text-white transition-opacity"
                   style={{ backgroundColor: VERDAN_GREEN }}
-                  onClick={() => navigate(`/admin/dashboard/${site._id}`)}
+                  onClick={() => navigate(`/user/site/${site._id}`)}
                 >
                   View
                 </button>
                 <button
                   className="flex-1 px-3 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                  onClick={() => handleUpdate(site)}
+                  onClick={() => navigate(`/user/site/${site._id}`)}
                 >
-                  Edit
-                </button>
-                <button
-                  className="flex-1 px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                  onClick={() =>
-                    setDeleteConfirm({
-                      show: true,
-                      siteId: site._id,
-                      siteName: site.name,
-                    })
-                  }
-                >
-                  Delete
+                  Manage Plants
                 </button>
               </div>
             </div>
@@ -411,82 +333,9 @@ export default function UserDashboard() {
         {sites.length === 0 && (
           <div className="bg-white rounded-lg border border-gray-200 py-12 text-center">
             <p className="text-gray-500 mb-4">No sites assigned yet</p>
-            <button
-              onClick={handleAdd}
-              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
-              style={{ backgroundColor: VERDAN_GREEN }}
-            >
-              Add Your First Site
-            </button>
           </div>
         )}
       </div>
-
-      {/* DRAWER */}
-      <div
-        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          showSiteDrawer ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div
-          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-          onClick={() => setShowSiteDrawer(false)}
-        />
-        <div
-          className={`relative h-full w-full max-w-2xl bg-white transition-transform duration-300 ${
-            showSiteDrawer ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <AddSite
-            site={editingSite || undefined}
-            onClose={() => {
-              setShowSiteDrawer(false);
-              setEditingSite(null);
-            }}
-            onSiteSaved={() => setRefreshCounter((c) => c + 1)}
-          />
-        </div>
-      </div>
-
-      {/* DELETE CONFIRMATION MODAL */}
-      {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Delete Site
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete{" "}
-                <span className="font-semibold">{deleteConfirm.siteName}</span>?
-                This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                  onClick={() =>
-                    setDeleteConfirm({
-                      show: false,
-                      siteId: null,
-                      siteName: "",
-                    })
-                  }
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                >
-                  {deleting ? "Deleting..." : "Delete Site"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
