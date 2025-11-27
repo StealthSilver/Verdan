@@ -348,6 +348,7 @@ export default function SiteAnalytics() {
         border: { display: false },
       },
       y: {
+        min: 0,
         ticks: { color: "#6B7280", font: { size: 11 }, padding: 12 },
         grid: { color: "rgba(229, 231, 235, 0.5)", lineWidth: 1 },
         border: { display: false },
