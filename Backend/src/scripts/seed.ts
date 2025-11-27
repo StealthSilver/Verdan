@@ -8,6 +8,9 @@ import Tree from "../models/tree.model.js";
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@verdan.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_NAME = process.env.ADMIN_NAME || "Admin User";
 
 if (!MONGO_URI) {
   console.error("MONGO_URI is not defined in .env file");
@@ -28,10 +31,10 @@ async function seedDatabase() {
     console.log("All collections cleared");
 
     // Create admin user
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
     const admin = await User.create({
-      name: "Admin User",
-      email: "admin@verdan.com",
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
       password: hashedPassword,
       role: "admin",
       designation: "System Administrator",
@@ -39,8 +42,8 @@ async function seedDatabase() {
     });
 
     console.log("✅ Admin user created:");
-    console.log("   Email: admin@verdan.com");
-    console.log("   Password: admin123");
+    console.log(`   Email: ${ADMIN_EMAIL}`);
+    console.log(`   Password: ${ADMIN_PASSWORD}`);
     console.log("   ID:", admin._id);
 
     console.log("\n✅ Database seeded successfully!");
@@ -60,4 +63,3 @@ async function seedDatabase() {
 }
 
 seedDatabase();
-

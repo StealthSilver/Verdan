@@ -6,6 +6,13 @@ import User from "../models/user.model.js";
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/verdan";
+const ADMIN_EMAIL =
+  process.env.ADMIN_EMAIL ||
+  process.env.MASTER_ADMIN_EMAIL ||
+  "admin@verdan.com";
+const ADMIN_PASSWORD =
+  process.env.ADMIN_PASSWORD || process.env.MASTER_ADMIN_PASSWORD || "admin123";
+const ADMIN_NAME = process.env.ADMIN_NAME || "Master Admin";
 
 async function createAdmin() {
   try {
@@ -13,10 +20,10 @@ async function createAdmin() {
     await mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB");
 
-    // Admin user details
-    const adminEmail = "admin@verdan.com";
-    const adminPassword = "admin123";
-    const adminName = "Admin User";
+    // Admin user details (prefer env vars)
+    const adminEmail = ADMIN_EMAIL;
+    const adminPassword = ADMIN_PASSWORD;
+    const adminName = ADMIN_NAME;
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: adminEmail });
@@ -59,4 +66,3 @@ async function createAdmin() {
 }
 
 createAdmin();
-
