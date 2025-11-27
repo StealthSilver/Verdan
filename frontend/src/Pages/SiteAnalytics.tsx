@@ -589,10 +589,10 @@ export default function SiteAnalytics() {
               Site Analytics
             </h1>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 site?.status === "active"
-                  ? "bg-verdan-light text-verdan-dark"
-                  : "bg-muted text-muted-foreground"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-gray-100 text-gray-800"
               }`}
             >
               {site?.status || "Unknown"}
