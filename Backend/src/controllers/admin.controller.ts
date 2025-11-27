@@ -281,21 +281,53 @@ export const deleteSite = async (req: Request, res: Response) => {
 
     console.log("Site found, proceeding with deletion:", site.name);
 
-    // Remove siteId from users who have this site assigned
-    // Try both ObjectId and string formats to handle any data inconsistencies
+    // Find all users associated with this site (both via siteId and teamMembers)
+    // We need to delete all non-admin users associated with this site
     try {
       const siteObjectId = new Types.ObjectId(siteId);
-      const userUpdateResult = await User.updateMany(
+
+      // Find users who have this site assigned via siteId field OR are in teamMembers array
+      const associatedUsers = await User.find({
+        $and: [
+          { role: { $ne: "admin" } }, // Exclude admin users
+          {
+            $or: [
+              { siteId: siteObjectId },
+              { siteId: siteId },
+              { _id: { $in: site.teamMembers } },
+            ],
+          },
+        ],
+      });
+
+      console.log(
+        `Found ${associatedUsers.length} non-admin users associated with site`
+      );
+
+      // Delete all non-admin users associated with this site
+      if (associatedUsers.length > 0) {
+        const userIds = associatedUsers.map((user) => user._id);
+        const userDeleteResult = await User.deleteMany({
+          _id: { $in: userIds },
+        });
+        console.log(`Deleted ${userDeleteResult.deletedCount} non-admin users`);
+
+        // Log deleted users for audit purposes
+        const deletedUserEmails = associatedUsers.map((user) => user.email);
+        console.log("Deleted users:", deletedUserEmails);
+      }
+
+      // Also remove any remaining siteId references (for safety, though users will be deleted)
+      await User.updateMany(
         {
           $or: [{ siteId: siteObjectId }, { siteId: siteId }],
         },
         { $unset: { siteId: "" } }
       );
-      console.log(`Updated ${userUpdateResult.modifiedCount} users`);
     } catch (userErr: any) {
-      console.error("Error updating users:", userErr);
-      console.error("User update error details:", userErr?.message);
-      // Continue with deletion even if user update fails
+      console.error("Error processing users:", userErr);
+      console.error("User processing error details:", userErr?.message);
+      // Continue with deletion even if user processing fails
     }
 
     // Delete all trees associated with this site
@@ -316,7 +348,11 @@ export const deleteSite = async (req: Request, res: Response) => {
     await Site.findByIdAndDelete(siteId);
     console.log("Site deleted successfully");
 
-    res.status(StatusCodes.OK).json({ message: "Site deleted successfully" });
+    res.status(StatusCodes.OK).json({
+      message: "Site deleted successfully",
+      details:
+        "All associated non-admin users, trees, and site data have been removed",
+    });
   } catch (err: any) {
     console.error("Delete site error:", err);
     console.error("Error details:", {

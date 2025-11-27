@@ -108,9 +108,11 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "User not found" });
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        message:
+          "User account not found. Your account may have been removed due to site deletion or administrative action. Please contact your administrator.",
+        code: "USER_NOT_FOUND",
+      });
     }
 
     return res.status(StatusCodes.OK).json(user);

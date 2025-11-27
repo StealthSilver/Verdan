@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
@@ -36,9 +36,19 @@ export default function Signin() {
     company: "",
     message: "",
   });
+  const [deletionMessage, setDeletionMessage] = useState<string>("");
 
   const navigate = useNavigate();
   const { setUser } = useAuth();
+
+  // Check for deletion message on component mount
+  useEffect(() => {
+    const message = localStorage.getItem("deletionMessage");
+    if (message) {
+      setDeletionMessage(message);
+      localStorage.removeItem("deletionMessage");
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -128,6 +138,32 @@ export default function Signin() {
 
         {/* Main Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+          {/* Account Deletion Notice */}
+          {deletionMessage && (
+            <div className="bg-orange-50 border-b border-orange-200 p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-orange-400 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-orange-800 mb-1">
+                    Account Notice
+                  </h3>
+                  <p className="text-sm text-orange-700">{deletionMessage}</p>
+                </div>
+                <button
+                  onClick={() => setDeletionMessage("")}
+                  className="flex-shrink-0 text-orange-400 hover:text-orange-600 transition-colors"
+                  aria-label="Dismiss notification"
+                >
+                  <span className="text-lg">×</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex border-b border-gray-200">
             <button

@@ -41,9 +41,11 @@ export async function authMiddleware(
 
     const user = (await User.findById(payload.sub)) as IUser | null;
     if (!user) {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ message: "User not found" });
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        message:
+          "User account not found. Your account may have been removed due to site deletion or administrative action. Please contact your administrator.",
+        code: "USER_NOT_FOUND",
+      });
     }
 
     const userId = (user._id as Types.ObjectId).toString();
