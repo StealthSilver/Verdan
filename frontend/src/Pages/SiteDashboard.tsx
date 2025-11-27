@@ -502,17 +502,18 @@ export default function SiteDashboard() {
             <p className="text-sm text-gray-600 mt-1">{site.address}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action Buttons: stack on small screens to prevent horizontal overflow */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <button
               onClick={handleBack}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Back
             </button>
             <button
               onClick={exportDashboardXlsx}
               disabled={loading || !site || trees.length === 0}
-              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap disabled:opacity-60"
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               Export Excel
@@ -520,7 +521,7 @@ export default function SiteDashboard() {
             {role !== "user" && (
               <button
                 onClick={handleViewAnalytics}
-                className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+                className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
                 style={{ backgroundColor: VERDAN_GREEN }}
               >
                 View Analytics
@@ -528,7 +529,7 @@ export default function SiteDashboard() {
             )}
             <button
               onClick={handleAddPlants}
-              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               + Add Plants
