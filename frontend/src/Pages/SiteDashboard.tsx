@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import * as XLSX from "xlsx";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
@@ -74,6 +75,110 @@ export default function SiteDashboard() {
   });
   const [deleting, setDeleting] = useState(false);
   const [verifying, setVerifying] = useState<string | null>(null);
+
+  const exportDashboardXlsx = () => {
+    if (!site) {
+      alert("Site not loaded yet.");
+      return;
+    }
+    if (!trees || trees.length === 0) {
+      alert("No trees to export for this site.");
+      return;
+    }
+
+    // Preface (metadata)
+    const metaRows = [
+      ["Site ID", site._id],
+      ["Site Name", site.name],
+      ["Address", site.address || ""],
+      ["Status", site.status],
+      ["Latitude", site.coordinates?.lat ?? ""],
+      ["Longitude", site.coordinates?.lng ?? ""],
+      ["Exported By", user?.name || ""],
+      ["Exported Email", user?.email || ""],
+      ["Exported At", new Date().toISOString()],
+    ];
+
+    // Trees (excluding images)
+    const headers = [
+      "Serial No.",
+      "Tree Name",
+      "Tree ID",
+      "Date",
+      "Time",
+      "Coordinates",
+      "Verified",
+      "Health Status",
+      "Remarks",
+      "Tree Type",
+      "Planted By Name",
+      "Planted By Email",
+      "Planted By ID",
+    ];
+
+    // Trees sheet (excluding images per request)
+    const treeRows = trees.map((tree, idx) => {
+      const timeStr = new Date(
+        tree.timestamp || tree.datePlanted
+      ).toLocaleTimeString();
+      const dateStr = new Date(tree.datePlanted).toLocaleDateString();
+      const coords = `${tree.coordinates?.lat?.toFixed(6) ?? ""}, ${
+        tree.coordinates?.lng?.toFixed(6) ?? ""
+      }`;
+      return [
+        idx + 1,
+        tree.treeName,
+        tree._id,
+        dateStr,
+        timeStr,
+        coords,
+        tree.verified ? "Verified" : "Pending",
+        tree.status || "",
+        tree.remarks || "",
+        tree.treeType || "",
+        tree.plantedBy?.name || "",
+        tree.plantedBy?.email || "",
+        tree.plantedBy?._id || "",
+      ];
+    });
+    // Build single worksheet: meta, blank, headers, treeRows
+    const sheetData = [...metaRows, [], headers, ...treeRows];
+    const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+
+    // Widths: first two columns for meta, rest for trees table
+    sheet["!cols"] = [
+      { wch: 8 }, // Serial No.
+      { wch: 24 }, // Tree Name
+      { wch: 20 }, // Tree ID
+      { wch: 14 }, // Date
+      { wch: 12 }, // Time
+      { wch: 22 }, // Coordinates
+      { wch: 12 }, // Verified
+      { wch: 16 }, // Health Status
+      { wch: 24 }, // Remarks
+      { wch: 16 }, // Tree Type
+      { wch: 20 }, // Planted By Name
+      { wch: 26 }, // Planted By Email
+      { wch: 18 }, // Planted By ID
+    ];
+    // Put autofilter on the header row (metaRows.length + 2)
+    const headerRowIndex = metaRows.length + 2; // 1-indexed in Excel
+    const range = XLSX.utils.decode_range(sheet["!ref"]!);
+    range.s.r = headerRowIndex - 1;
+    range.e.r = headerRowIndex - 1;
+    sheet["!autofilter"] = { ref: XLSX.utils.encode_range(range) };
+
+    // Build workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, sheet, "Site Export");
+
+    // Download
+    const fileName = `verdan_site_${site._id}_trees_${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "-")}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -403,6 +508,14 @@ export default function SiteDashboard() {
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Back
+            </button>
+            <button
+              onClick={exportDashboardXlsx}
+              disabled={loading || !site || trees.length === 0}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap disabled:opacity-60"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              Export Excel
             </button>
             {role !== "user" && (
               <button
