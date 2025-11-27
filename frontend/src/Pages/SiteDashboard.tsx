@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
+import { FiArrowLeft, FiDownload, FiBarChart2, FiPlus } from "react-icons/fi";
 import API from "../api";
 import verdanLogo from "../assets/verdan_light.svg";
 import AddPlants from "./AddPlants";
@@ -502,37 +503,41 @@ export default function SiteDashboard() {
             <p className="text-sm text-gray-600 mt-1">{site.address}</p>
           </div>
 
-          {/* Action Buttons: stack on small screens to prevent horizontal overflow */}
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          {/* Action Buttons: compact grid on small screens, regular layout on larger */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 w-full sm:w-auto">
             <button
               onClick={handleBack}
-              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
-              Back
+              <FiArrowLeft className="text-base sm:text-lg" />
+              <span className="hidden xs:inline sm:inline">Back</span>
             </button>
             <button
               onClick={exportDashboardXlsx}
               disabled={loading || !site || trees.length === 0}
-              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
-              Export Excel
+              <FiDownload className="text-base sm:text-lg" />
+              <span className="hidden xs:inline sm:inline">Export</span>
             </button>
             {role !== "user" && (
               <button
                 onClick={handleViewAnalytics}
-                className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+                className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
                 style={{ backgroundColor: VERDAN_GREEN }}
               >
-                View Analytics
+                <FiBarChart2 className="text-base sm:text-lg" />
+                <span className="hidden xs:inline sm:inline">Analytics</span>
               </button>
             )}
             <button
               onClick={handleAddPlants}
-              className="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
-              + Add Plants
+              <FiPlus className="text-base sm:text-lg" />
+              <span className="hidden xs:inline sm:inline">Add Plants</span>
             </button>
           </div>
         </div>
