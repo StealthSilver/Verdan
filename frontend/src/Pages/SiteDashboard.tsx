@@ -510,7 +510,7 @@ export default function SiteDashboard() {
               className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
               <FiArrowLeft className="text-base sm:text-lg" />
-              <span className="hidden xs:inline sm:inline">Back</span>
+              <span>Back</span>
             </button>
             <button
               onClick={exportDashboardXlsx}
@@ -519,7 +519,7 @@ export default function SiteDashboard() {
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               <FiDownload className="text-base sm:text-lg" />
-              <span className="hidden xs:inline sm:inline">Export</span>
+              <span>Export as Excel</span>
             </button>
             {role !== "user" && (
               <button
@@ -528,7 +528,7 @@ export default function SiteDashboard() {
                 style={{ backgroundColor: VERDAN_GREEN }}
               >
                 <FiBarChart2 className="text-base sm:text-lg" />
-                <span className="hidden xs:inline sm:inline">Analytics</span>
+                <span>Analytics</span>
               </button>
             )}
             <button
@@ -537,7 +537,7 @@ export default function SiteDashboard() {
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               <FiPlus className="text-base sm:text-lg" />
-              <span className="hidden xs:inline sm:inline">Add Plants</span>
+              <span>Add Plants</span>
             </button>
           </div>
         </div>
