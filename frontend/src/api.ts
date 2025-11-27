@@ -22,7 +22,7 @@ const baseURL = getBaseURL();
 const API = axios.create({
   baseURL: baseURL,
   withCredentials: true, // Enable credentials for CORS
-  timeout: 10000, // 10 second timeout
+  timeout: 20000, // 20 second timeout to reduce spurious timeouts
   headers: {
     "Content-Type": "application/json",
   },
@@ -65,8 +65,21 @@ API.interceptors.response.use(
   (error) => {
     console.error("❌ API Error:", error);
 
-    if (error.code === "ERR_NETWORK") {
-      console.error("❌ Network Error - possibly CORS or server down");
+    // Simple retry for transient network/timeout errors
+    const config = error.config as any;
+    const isTransient =
+      error.code === "ERR_NETWORK" || error.code === "ECONNABORTED";
+    if (isTransient) {
+      console.error("❌ Network/Timeout Error - possibly CORS or server down");
+      config.__retryCount = config.__retryCount || 0;
+      const maxRetries = 2;
+      if (config.__retryCount < maxRetries) {
+        config.__retryCount += 1;
+        const delay = 500 * Math.pow(2, config.__retryCount - 1); // 500ms, 1000ms
+        return new Promise((resolve) => setTimeout(resolve, delay)).then(() =>
+          API.request(config)
+        );
+      }
     }
 
     if (error.response?.status === 401) {
