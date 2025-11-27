@@ -64,6 +64,23 @@ export default function AddPlants({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditMode = !!treeId;
 
+  // Helpers to generate local date/time strings compatible with inputs
+  const getLocalDateString = (d: Date = new Date()): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getLocalDateTimeMinuteString = (d: Date = new Date()): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const [form, setForm] = useState<TreeForm>({
     treeName: "",
     treeType: "",
@@ -71,8 +88,8 @@ export default function AddPlants({
       lat: 0,
       lng: 0,
     },
-    datePlanted: new Date().toISOString().split("T")[0],
-    timestamp: new Date().toISOString().slice(0, 16),
+    datePlanted: getLocalDateString(),
+    timestamp: getLocalDateTimeMinuteString(),
     status: "healthy",
     remarks: "",
     image: null,
@@ -201,8 +218,8 @@ export default function AddPlants({
     if (!isEditMode) {
       const updateDateTime = () => {
         const now = new Date();
-        const currentDate = now.toISOString().split("T")[0];
-        const currentTimestamp = now.toISOString().slice(0, 16);
+        const currentDate = getLocalDateString(now);
+        const currentTimestamp = getLocalDateTimeMinuteString(now);
 
         setForm((prev) => ({
           ...prev,
@@ -276,11 +293,11 @@ export default function AddPlants({
           }
           if (tree) {
             const datePlanted = tree.datePlanted
-              ? new Date(tree.datePlanted).toISOString().split("T")[0]
-              : new Date().toISOString().split("T")[0];
+              ? getLocalDateString(new Date(tree.datePlanted))
+              : getLocalDateString();
             const timestamp = tree.timestamp
-              ? new Date(tree.timestamp).toISOString().slice(0, 16)
-              : new Date().toISOString().slice(0, 16);
+              ? getLocalDateTimeMinuteString(new Date(tree.timestamp))
+              : getLocalDateTimeMinuteString();
             setForm({
               treeName: tree.treeName || "",
               treeType: tree.treeType || "",

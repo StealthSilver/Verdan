@@ -59,12 +59,22 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Helpers to generate local datetime strings compatible with inputs
+  const getLocalDateTimeMinuteString = (d: Date = new Date()): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const [form, setForm] = useState<TreeForm>({
     coordinates: {
       lat: 0,
       lng: 0,
     },
-    timestamp: new Date().toISOString().slice(0, 16),
+    timestamp: getLocalDateTimeMinuteString(),
     status: "healthy",
     remarks: "",
     image: null,
@@ -211,7 +221,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
-      const currentTimestamp = now.toISOString().slice(0, 16);
+      const currentTimestamp = getLocalDateTimeMinuteString(now);
 
       setForm((prev) => ({
         ...prev,
@@ -920,7 +930,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                 value={form.timestamp}
                 onChange={handleChange}
                 required
-                max={new Date().toISOString().slice(0, 16)}
+                max={getLocalDateTimeMinuteString(new Date())}
                 className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   timestampValid
                     ? "border-green-500"
