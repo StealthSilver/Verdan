@@ -49,6 +49,8 @@ export default function AddPlants({
   const [site, setSite] = useState<Site | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState("");
+  const [manualCoords, setManualCoords] = useState(false);
+  const [secureContextWarning, setSecureContextWarning] = useState("");
   const [coordinatesValid, setCoordinatesValid] = useState(false);
   const [timestampValid, setTimestampValid] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -108,10 +110,22 @@ export default function AddPlants({
 
   // Get current location from device
   const getCurrentLocation = () => {
+    setSecureContextWarning("");
+    const isSecure =
+      window.isSecureContext ||
+      location.protocol === "https:" ||
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1";
+    if (!isSecure) {
+      setSecureContextWarning(
+        "Geolocation requires HTTPS or localhost. Please use https:// or run locally."
+      );
+    }
     if (!navigator.geolocation) {
       setLocationError(
         "Geolocation not supported. Please use a compatible browser/device."
       );
+      setManualCoords(true);
       return;
     }
     setLocationLoading(true);
@@ -130,8 +144,10 @@ export default function AddPlants({
             coordinates: { lat: latitude, lng: longitude },
           }));
           setLocationError("");
+          setManualCoords(false);
         } else {
           setLocationError("Invalid coordinates received. Please retry.");
+          setManualCoords(true);
         }
         setLocationLoading(false);
       },
@@ -152,6 +168,28 @@ export default function AddPlants({
         setLocationError(msg);
         setLocationLoading(false);
         setCoordinatesValid(false);
+        setManualCoords(true);
+        // Try IP-based approximate fallback (best-effort)
+        try {
+          fetch("https://ipapi.co/json/")
+            .then((r) =>
+              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed"))
+            )
+            .then((data) => {
+              const lat = Number(data.latitude);
+              const lng = Number(data.longitude);
+              if (validateCoordinates(lat, lng)) {
+                setForm((prev) => ({
+                  ...prev,
+                  coordinates: { lat, lng },
+                }));
+                setLocationError(
+                  "Used approximate location from IP lookup. Please verify or edit manually."
+                );
+              }
+            })
+            .catch(() => {});
+        } catch {}
       },
       options
     );
@@ -294,9 +332,22 @@ export default function AddPlants({
   ) => {
     const { name, value } = e.target;
 
-    // Prevent manual changes to coordinates - they must come from geolocation
+    // Coordinates: allow manual edit when manual mode is enabled
     if (name === "lat" || name === "lng") {
-      return; // Ignore changes to coordinates
+      if (!manualCoords) return; // locked unless manual mode
+      const num = Number(value);
+      const next = isNaN(num) ? 0 : num;
+      const nextLat = name === "lat" ? next : form.coordinates.lat;
+      const nextLng = name === "lng" ? next : form.coordinates.lng;
+      setForm({
+        ...form,
+        coordinates: {
+          lat: nextLat,
+          lng: nextLng,
+        },
+      });
+      validateCoordinates(nextLat, nextLng);
+      return;
     }
 
     // Prevent manual changes to timestamp - it's auto-filled
@@ -876,6 +927,11 @@ export default function AddPlants({
               {error}
             </div>
           )}
+          {secureContextWarning && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md text-sm">
+              {secureContextWarning}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -971,7 +1027,7 @@ export default function AddPlants({
                   >
                     Latitude <span className="text-red-500">*</span>
                     <span className="text-xs text-gray-500 ml-1">
-                      (Auto-filled from device)
+                      {manualCoords ? "(Manual)" : "(Auto-filled from device)"}
                     </span>
                   </label>
                   <input
@@ -979,11 +1035,15 @@ export default function AddPlants({
                     id="lat"
                     name="lat"
                     value={form.coordinates.lat || ""}
-                    readOnly
+                    readOnly={!manualCoords}
                     required
                     step="any"
-                    onChange={undefined}
-                    className={`w-full px-4 py-2 border rounded-md bg-gray-100 cursor-not-allowed ${
+                    onChange={manualCoords ? handleChange : undefined}
+                    className={`w-full px-4 py-2 border rounded-md ${
+                      manualCoords
+                        ? "bg-white"
+                        : "bg-gray-100 cursor-not-allowed"
+                    } ${
                       coordinatesValid && form.coordinates.lat !== 0
                         ? "border-green-500"
                         : form.coordinates.lat === 0
@@ -1000,7 +1060,7 @@ export default function AddPlants({
                   >
                     Longitude <span className="text-red-500">*</span>
                     <span className="text-xs text-gray-500 ml-1">
-                      (Auto-filled from device)
+                      {manualCoords ? "(Manual)" : "(Auto-filled from device)"}
                     </span>
                   </label>
                   <input
@@ -1008,11 +1068,15 @@ export default function AddPlants({
                     id="lng"
                     name="lng"
                     value={form.coordinates.lng || ""}
-                    readOnly
+                    readOnly={!manualCoords}
                     required
                     step="any"
-                    onChange={undefined}
-                    className={`w-full px-4 py-2 border rounded-md bg-gray-100 cursor-not-allowed ${
+                    onChange={manualCoords ? handleChange : undefined}
+                    className={`w-full px-4 py-2 border rounded-md ${
+                      manualCoords
+                        ? "bg-white"
+                        : "bg-gray-100 cursor-not-allowed"
+                    } ${
                       coordinatesValid && form.coordinates.lng !== 0
                         ? "border-green-500"
                         : form.coordinates.lng === 0
@@ -1021,6 +1085,16 @@ export default function AddPlants({
                     }`}
                     placeholder="Waiting for location..."
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={manualCoords}
+                      onChange={(e) => setManualCoords(e.target.checked)}
+                    />
+                    Use manual coordinates
+                  </label>
                 </div>
               </div>
             </div>
@@ -1238,13 +1312,13 @@ export default function AddPlants({
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
                     ? "Retry Camera"
-                    : "📷 Open Camera"}
+                    : "Open Camera"}
                 </button>
                 <label
                   className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
                   style={{ backgroundColor: "#4B5563" }}
                 >
-                  📁 Upload Image
+                  Upload Image
                   <input
                     ref={fileInputRef}
                     type="file"

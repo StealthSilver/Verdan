@@ -45,6 +45,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const [tree, setTree] = useState<Tree | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState("");
+  const [manualCoords, setManualCoords] = useState(false);
+  const [secureContextWarning, setSecureContextWarning] = useState("");
   const [coordinatesValid, setCoordinatesValid] = useState(false);
   const [timestampValid, setTimestampValid] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -100,10 +102,22 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
   // Get current location from device
   const getCurrentLocation = () => {
+    setSecureContextWarning("");
+    const isSecure =
+      window.isSecureContext ||
+      location.protocol === "https:" ||
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1";
+    if (!isSecure) {
+      setSecureContextWarning(
+        "Geolocation requires HTTPS or localhost. Please use https:// or run locally."
+      );
+    }
     if (!navigator.geolocation) {
       setLocationError(
         "Geolocation is not supported by your browser. Please enter coordinates manually."
       );
+      setManualCoords(true);
       return;
     }
 
@@ -129,8 +143,10 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
             },
           }));
           setLocationError("");
+          setManualCoords(false);
         } else {
           setLocationError("Invalid coordinates received. Please try again.");
+          setManualCoords(true);
         }
         setLocationLoading(false);
       },
@@ -163,6 +179,28 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         setLocationError(`${errorMessage} ${instructions}`);
         setLocationLoading(false);
         setCoordinatesValid(false);
+        setManualCoords(true);
+        // Try IP-based approximate fallback
+        try {
+          fetch("https://ipapi.co/json/")
+            .then((r) =>
+              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed"))
+            )
+            .then((data) => {
+              const lat = Number(data.latitude);
+              const lng = Number(data.longitude);
+              if (validateCoordinates(lat, lng)) {
+                setForm((prev) => ({
+                  ...prev,
+                  coordinates: { lat, lng },
+                }));
+                setLocationError(
+                  "Used approximate location from IP lookup. Please verify or edit manually."
+                );
+              }
+            })
+            .catch(() => {});
+        } catch {}
       },
       options
     );
@@ -232,6 +270,19 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     const { name, value } = e.target;
 
     if (name === "lat" || name === "lng") {
+      if (!manualCoords) return;
+      const num = Number(value);
+      const next = isNaN(num) ? 0 : num;
+      const nextLat = name === "lat" ? next : form.coordinates.lat;
+      const nextLng = name === "lng" ? next : form.coordinates.lng;
+      setForm({
+        ...form,
+        coordinates: {
+          lat: nextLat,
+          lng: nextLng,
+        },
+      });
+      validateCoordinates(nextLat, nextLng);
       return;
     }
 
@@ -737,6 +788,11 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               {error}
             </div>
           )}
+          {secureContextWarning && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md text-sm">
+              {secureContextWarning}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Tree Name and Type (Read-only) */}
@@ -785,16 +841,24 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Latitude <span className="text-red-500">*</span>
+                    Latitude <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs text-gray-500 ml-1">
+                      {manualCoords ? "(Manual)" : "(Auto-filled from device)"}
+                    </span>
                   </label>
                   <input
                     type="number"
                     name="lat"
                     value={form.coordinates.lat || ""}
-                    readOnly
+                    readOnly={!manualCoords}
                     required
                     step="any"
-                    className={`w-full px-4 py-2 border rounded-md bg-gray-100 cursor-not-allowed ${
+                    onChange={manualCoords ? handleChange : undefined}
+                    className={`w-full px-4 py-2 border rounded-md ${
+                      manualCoords
+                        ? "bg-white"
+                        : "bg-gray-100 cursor-not-allowed"
+                    } ${
                       coordinatesValid && form.coordinates.lat !== 0
                         ? "border-green-500"
                         : "border-gray-300"
@@ -804,22 +868,40 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Longitude <span className="text-red-500">*</span>
+                    Longitude <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs text-gray-500 ml-1">
+                      {manualCoords ? "(Manual)" : "(Auto-filled from device)"}
+                    </span>
                   </label>
                   <input
                     type="number"
                     name="lng"
                     value={form.coordinates.lng || ""}
-                    readOnly
+                    readOnly={!manualCoords}
                     required
                     step="any"
-                    className={`w-full px-4 py-2 border rounded-md bg-gray-100 cursor-not-allowed ${
+                    onChange={manualCoords ? handleChange : undefined}
+                    className={`w-full px-4 py-2 border rounded-md ${
+                      manualCoords
+                        ? "bg-white"
+                        : "bg-gray-100 cursor-not-allowed"
+                    } ${
                       coordinatesValid && form.coordinates.lng !== 0
                         ? "border-green-500"
                         : "border-gray-300"
                     }`}
                     placeholder="Waiting for location..."
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={manualCoords}
+                      onChange={(e) => setManualCoords(e.target.checked)}
+                    />
+                    Use manual coordinates
+                  </label>
                 </div>
               </div>
             </div>
@@ -982,13 +1064,13 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
                     ? "Retry Camera"
-                    : "📷 Open Camera"}
+                    : "Open Camera"}
                 </button>
                 <label
                   className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
                   style={{ backgroundColor: "#4B5563" }}
                 >
-                  📁 Upload Image
+                  Upload Image
                   <input
                     ref={fileInputRef}
                     type="file"
