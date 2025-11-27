@@ -1,7 +1,7 @@
 # 🌳 Verdan - Greener Tomorrow
 
 <div align="center">
-  <img src="./frontend/src/assets/verdan_dark.svg" alt="Verdan Logo" width="150" height="150">
+  <img src="./landing/public/verdan_dark.svg" alt="Verdan Logo" width="150" height="150">
   
   **Nurture nature, one tree at a time**
   
