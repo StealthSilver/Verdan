@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Camera, Upload, RefreshCw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
@@ -769,15 +770,17 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               <button
                 onClick={getCurrentLocation}
                 disabled={locationLoading}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                 style={{ backgroundColor: "#48845C" }}
               >
+                <RefreshCw className="w-4 h-4" />
                 {locationLoading ? "Locating..." : "Refresh Location"}
               </button>
               <button
                 onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
               >
+                <Trash2 className="w-4 h-4" />
                 {embedded ? "Close" : "Back"}
               </button>
             </div>
@@ -986,7 +989,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                     className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition shadow"
                     title="Remove image"
                   >
-                    ×
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -1026,24 +1029,27 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                       <button
                         type="button"
                         onClick={closeCamera}
-                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition inline-flex items-center justify-center gap-2"
                       >
+                        <Trash2 className="w-4 h-4" />
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={capturePhoto}
                         disabled={!cameraReady}
-                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition inline-flex items-center justify-center gap-2"
                       >
+                        <Camera className="w-4 h-4" />
                         {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
                       {!cameraInitializing && !cameraReady && (
                         <button
                           type="button"
                           onClick={retryCamera}
-                          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition inline-flex items-center justify-center gap-2"
                         >
+                          <RefreshCw className="w-4 h-4" />
                           Retry
                         </button>
                       )}
@@ -1057,9 +1063,10 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                   type="button"
                   onClick={openCamera}
                   disabled={cameraInitializing}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: "#1D4ED8" }}
                 >
+                  <Camera className="w-4 h-4" />
                   {cameraInitializing
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
@@ -1067,9 +1074,10 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                     : "Open Camera"}
                 </button>
                 <label
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: "#4B5563" }}
                 >
+                  <Upload className="w-4 h-4" />
                   Upload Image
                   <input
                     ref={fileInputRef}
@@ -1086,16 +1094,18 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center justify-center gap-2"
               >
+                <Trash2 className="w-4 h-4" />
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: "#48845C" }}
               >
+                <Upload className="w-4 h-4" />
                 {loading ? "Saving..." : "Save Record"}
               </button>
             </div>

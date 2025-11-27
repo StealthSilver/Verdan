@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Camera, Upload, RefreshCw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
@@ -1230,7 +1231,7 @@ export default function AddPlants({
                     className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700 transition shadow"
                     title="Remove image"
                   >
-                    ×
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -1271,26 +1272,29 @@ export default function AddPlants({
                       <button
                         type="button"
                         onClick={closeCamera}
-                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center justify-center gap-2"
                       >
+                        <Trash2 className="w-4 h-4" />
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={capturePhoto}
                         disabled={!cameraReady}
-                        className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 inline-flex items-center justify-center gap-2"
                         style={{ backgroundColor: "#48845C" }}
                       >
+                        <Camera className="w-4 h-4" />
                         {cameraReady ? "Capture Photo" : "Waiting..."}
                       </button>
                       {!cameraInitializing && !cameraReady && (
                         <button
                           type="button"
                           onClick={retryCamera}
-                          className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90"
+                          className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 inline-flex items-center justify-center gap-2"
                           style={{ backgroundColor: "#1D4ED8" }}
                         >
+                          <RefreshCw className="w-4 h-4" />
                           Retry
                         </button>
                       )}
@@ -1305,9 +1309,10 @@ export default function AddPlants({
                   type="button"
                   onClick={openCamera}
                   disabled={cameraInitializing}
-                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: "#1D4ED8" }}
                 >
+                  <Camera className="w-4 h-4" />
                   {cameraInitializing
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
@@ -1315,9 +1320,10 @@ export default function AddPlants({
                     : "Open Camera"}
                 </button>
                 <label
-                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer"
+                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: "#4B5563" }}
                 >
+                  <Upload className="w-4 h-4" />
                   Upload Image
                   <input
                     ref={fileInputRef}
