@@ -1,5 +1,5 @@
 export const SITE = {
-  name: "Verdan - Greener tomorrow",
+  name: "Verdan - Greener Tomorrow",
   description:
     "Verdan helps teams plant, care, and monitor trees across every site — complete with photos, timestamps, and growth insights. Nurture nature, one tree at a time.",
   url: "https://verdan.com",
