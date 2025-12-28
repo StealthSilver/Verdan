@@ -1,5 +1,4 @@
 "use client";
-import { Heart } from "lucide-react";
 import Image from "next/image";
 
 const VERDAN_GREEN = "#48845C";

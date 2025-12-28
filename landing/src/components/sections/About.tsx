@@ -52,8 +52,14 @@ const About = () => {
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-green-50 rounded-full blur-3xl opacity-40"></div>
-        <div className="absolute bottom-20 left-0 w-96 h-96 bg-green-50 rounded-full blur-3xl opacity-30"></div>
+        <div
+          className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-40"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
+        ></div>
+        <div
+          className="absolute bottom-20 left-0 w-96 h-96 rounded-full blur-3xl opacity-30"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
+        ></div>
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -90,8 +96,8 @@ const About = () => {
             </h3>
             <p className="text-base sm:text-lg font-sans opacity-80 mb-4 sm:mb-6 leading-relaxed">
               Traditional tree-planting efforts often lack transparency and
-              accountability. Without proper tracking, it's difficult to measure
-              the real impact of reforestation projects.
+              accountability. Without proper tracking, it&apos;s difficult to
+              measure the real impact of reforestation projects.
             </p>
             <p className="text-base sm:text-lg font-sans opacity-80 mb-8 sm:mb-12 leading-relaxed">
               Verdan solves this by providing a comprehensive platform where
@@ -112,11 +118,23 @@ const About = () => {
           {benefits.map((benefit, idx) => (
             <motion.div
               key={idx}
-              className="p-6 sm:p-8 rounded-xl bg-white/50 backdrop-blur border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg"
+              className="p-6 sm:p-8 rounded-xl bg-white/50 backdrop-blur border transition-all duration-300 hover:shadow-lg"
+              style={{
+                borderColor: "rgb(200, 200, 200)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgb(74, 137, 92)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgb(200, 200, 200)";
+              }}
               variants={itemVariants}
             >
               <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle
+                  className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5"
+                  style={{ color: "rgb(74, 137, 92)" }}
+                />
                 <h4 className="font-heading font-semibold text-base sm:text-lg">
                   {benefit.title}
                 </h4>

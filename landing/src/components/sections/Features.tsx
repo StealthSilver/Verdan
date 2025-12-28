@@ -70,8 +70,14 @@ const Features = () => {
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-0 w-80 h-80 bg-green-50 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-100 rounded-full blur-3xl opacity-20"></div>
+        <div
+          className="absolute top-20 left-0 w-80 h-80 rounded-full blur-3xl opacity-30"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
+        ></div>
+        <div
+          className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.3)" }}
+        ></div>
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,20 +114,36 @@ const Features = () => {
             return (
               <motion.div
                 key={idx}
-                className="group relative p-6 sm:p-8 rounded-2xl transition-all duration-300 cursor-pointer border border-gray-200 bg-white/40 backdrop-blur hover:border-green-400 hover:shadow-xl hover:bg-white/60"
+                className="group relative p-6 sm:p-8 rounded-2xl transition-all duration-300 cursor-pointer border bg-white/40 backdrop-blur hover:shadow-xl hover:bg-white/60"
+                style={{
+                  borderColor: "rgb(200, 200, 200)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgb(74, 137, 92)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgb(200, 200, 200)";
+                }}
                 variants={itemVariants}
               >
                 {/* Icon Container with animation */}
                 <motion.div
-                  className="mb-4 sm:mb-6 inline-block p-3 sm:p-4 rounded-lg bg-green-50/50 border border-green-200/30 group-hover:bg-green-100/50 transition-colors duration-300"
+                  className="mb-4 sm:mb-6 inline-block p-3 sm:p-4 rounded-lg border transition-colors duration-300"
+                  style={{
+                    backgroundColor: "rgba(74, 137, 92, 0.15)",
+                    borderColor: "rgba(74, 137, 92, 0.3)",
+                  }}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
-                  <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 group-hover:text-green-700 transition-colors duration-300" />
+                  <Icon
+                    className="w-6 h-6 sm:w-8 sm:h-8 transition-colors duration-300"
+                    style={{ color: "rgb(74, 137, 92)" }}
+                  />
                 </motion.div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-heading font-semibold mb-3 sm:mb-4 group-hover:text-green-700 transition-colors duration-300">
+                <h3 className="text-lg sm:text-xl font-heading font-semibold mb-3 sm:mb-4 transition-colors duration-300">
                   {feature.title}
                 </h3>
 
@@ -132,7 +154,11 @@ const Features = () => {
 
                 {/* Animated border on hover */}
                 <motion.div
-                  className="absolute inset-0 rounded-2xl border border-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    borderColor: "rgb(74, 137, 92)",
+                    borderWidth: "1px",
+                  }}
                   initial={{ pathLength: 0 }}
                   whileHover={{ pathLength: 1 }}
                   transition={{ duration: 0.5 }}

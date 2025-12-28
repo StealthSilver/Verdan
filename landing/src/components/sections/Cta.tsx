@@ -12,8 +12,14 @@ const Cta = () => {
     >
       {/* Animated background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-100 rounded-full blur-3xl opacity-40 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-green-50 rounded-full blur-3xl opacity-30"></div>
+        <div
+          className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-40 animate-pulse"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.3)" }}
+        ></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl opacity-30"
+          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
+        ></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent opacity-50"></div>
         </div>
@@ -30,14 +36,24 @@ const Cta = () => {
         >
           {/* Badge */}
           <motion.div
-            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-green-50 border border-green-200 mb-6 sm:mb-8"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full mb-6 sm:mb-8 border"
+            style={{
+              backgroundColor: "rgba(74, 137, 92, 0.1)",
+              borderColor: "rgba(74, 137, 92, 0.3)",
+            }}
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-            <span className="text-xs sm:text-sm font-semibold text-green-700">
+            <Sparkles
+              className="w-4 h-4 sm:w-5 sm:h-5"
+              style={{ color: "rgb(74, 137, 92)" }}
+            />
+            <span
+              className="text-xs sm:text-sm font-semibold"
+              style={{ color: "rgb(74, 137, 92)" }}
+            >
               Ready to make an impact?
             </span>
           </motion.div>
@@ -113,23 +129,32 @@ const Cta = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
               <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-heading font-bold text-green-600 mb-2">
-                  5000+
+                <div
+                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
+                  style={{ color: "rgb(74, 137, 92)" }}
+                >
+                  1000+
                 </div>
                 <p className="text-xs sm:text-sm opacity-70 font-sans">
                   Trees planted and tracked
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-heading font-bold text-green-600 mb-2">
-                  100+
+                <div
+                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
+                  style={{ color: "rgb(74, 137, 92)" }}
+                >
+                  10+
                 </div>
                 <p className="text-xs sm:text-sm opacity-70 font-sans">
                   Organizations on Verdan
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-heading font-bold text-green-600 mb-2">
+                <div
+                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
+                  style={{ color: "rgb(74, 137, 92)" }}
+                >
                   99.9%
                 </div>
                 <p className="text-xs sm:text-sm opacity-70 font-sans">

@@ -45,7 +45,7 @@ class LeafScene {
       maxSpeed: 12,
       duration: 300,
       start: 0,
-      speed: (t: number, y: number) => 0,
+      speed: () => 0,
     } as WindConfig,
   };
 
@@ -171,10 +171,9 @@ class LeafScene {
     this.world.style.webkitPerspective = "400px";
     this.world.style.perspective = "400px";
 
-    const self = this;
     window.addEventListener("resize", () => {
-      self.width = self.viewport.offsetWidth;
-      self.height = self.viewport.offsetHeight;
+      this.width = this.viewport.offsetWidth;
+      this.height = this.viewport.offsetHeight;
     });
   };
 
