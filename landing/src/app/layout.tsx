@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ThemeHeadIcons from "@/components/ui/ThemeHeadIcon";
 import ClientWrapper from "@/components/ui/ClientWrapper";
+import FallingLeaves from "@/components/FallingLeaves";
 import { Raleway, Inter } from "next/font/google";
 
 const raleway = Raleway({
@@ -67,6 +68,7 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system">
+          <FallingLeaves />
           <ClientWrapper>{children}</ClientWrapper>
         </ThemeProvider>
       </body>
