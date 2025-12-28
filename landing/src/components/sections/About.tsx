@@ -65,8 +65,8 @@ const About = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mb-4 sm:mb-6">
-            About Verdan
+          <h2 className="text-sm sm:text-base md:text-lg font-heading font-light tracking-widest leading-tight mb-4 sm:mb-6 opacity-50 uppercase">
+            About
           </h2>
           <p className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-3xl mx-auto">
             We believe every tree matters. Verdan empowers organizations and
@@ -75,16 +75,17 @@ const About = () => {
           </p>
         </motion.div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center mb-16 sm:mb-20 md:mb-24">
-          {/* Left: Text Content */}
+        {/* Main Content */}
+        <div className="mb-16 sm:mb-20 md:mb-24">
+          {/* Text Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="text-center"
           >
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-semibold mb-6 sm:mb-8">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-medium mb-6 sm:mb-8">
               Why Verdan?
             </h3>
             <p className="text-base sm:text-lg font-sans opacity-80 mb-4 sm:mb-6 leading-relaxed">
@@ -97,53 +98,6 @@ const About = () => {
               every tree is documented, monitored, and celebrated. From planting
               to growth milestones, your forest grows with full visibility.
             </p>
-
-            {/* Benefits List */}
-            <motion.div
-              className="space-y-4 sm:space-y-5"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {benefits.slice(0, 2).map((benefit, idx) => (
-                <motion.div
-                  key={idx}
-                  className="flex items-start gap-3 sm:gap-4"
-                  variants={itemVariants}
-                >
-                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-heading font-semibold text-base sm:text-lg mb-1">
-                      {benefit.title}
-                    </h4>
-                    <p className="text-sm sm:text-base opacity-70">
-                      {benefit.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-
-          {/* Right: Image/Illustration */}
-          <motion.div
-            className="relative h-96 sm:h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-green-100 to-green-50 shadow-lg"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white/40 backdrop-blur flex items-center justify-center mx-auto mb-4">
-                  <span className="text-5xl sm:text-6xl">🌱</span>
-                </div>
-                <p className="text-sm sm:text-base font-sans opacity-80 font-semibold">
-                  Growing a healthier planet
-                </p>
-              </div>
-            </div>
           </motion.div>
         </div>
 
@@ -155,7 +109,7 @@ const About = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {benefits.slice(2).map((benefit, idx) => (
+          {benefits.map((benefit, idx) => (
             <motion.div
               key={idx}
               className="p-6 sm:p-8 rounded-xl bg-white/50 backdrop-blur border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg"
