@@ -36,7 +36,7 @@ export default function Navbar() {
         </Link>
 
         <div
-          className="hidden md:flex items-center px-2 font-[var(--font-secondary)] relative gap-6"
+          className="hidden md:flex items-center px-2 font-sans relative gap-6"
           onMouseLeave={() => setHovered(null)}
         >
           {navItems.map((item) => (
@@ -72,7 +72,7 @@ export default function Navbar() {
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-black  hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center"
+            className="bg-white border border-black  hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center font-sans font-semibold"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -91,7 +91,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg border-t border-[var(--foreground)]/20 font-[var(--font-secondary)]">
+        <div className="md:hidden bg-[var(--background)]/95 backdrop-blur-md shadow-lg border-t border-[var(--foreground)]/20 font-sans">
           <div className="flex flex-col items-center space-y-5 py-10">
             {navItems.map((item) => (
               <Link
@@ -106,7 +106,7 @@ export default function Navbar() {
 
             <a
               href="#cta"
-              className="rounded-full border px-6 py-1.5 transition-colors bg-[var(--color-primary)] text-[var(--background)] border-[var(--color-primary)] hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)] font-[var(--font-secondary)]"
+              className="rounded-full border px-6 py-1.5 transition-colors bg-[var(--color-primary)] text-[var(--background)] border-[var(--color-primary)] hover:bg-[var(--background)] hover:text-[var(--color-font)] hover:border-[var(--foreground)] font-sans font-semibold"
               onClick={() => setIsOpen(false)}
             >
               Connect
