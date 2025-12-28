@@ -4,18 +4,12 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ThemeHeadIcons from "@/components/ui/ThemeHeadIcon";
 import ClientWrapper from "@/components/ui/ClientWrapper";
-import { IBM_Plex_Sans, Manrope } from "next/font/google";
+import { Raleway } from "next/font/google";
 
-const ibmPlexSans = IBM_Plex_Sans({
+const raleway = Raleway({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-ibm-plex-sans",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-manrope",
+  variable: "--font-raleway",
 });
 
 export const metadata: Metadata = {
@@ -57,11 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${ibmPlexSans.variable} ${manrope.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${raleway.variable}`}>
       <head>
         <ThemeHeadIcons />
       </head>
