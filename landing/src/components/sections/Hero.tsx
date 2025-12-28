@@ -8,7 +8,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="relative w-full min-h-screen flex flex-col items-center justify-start pt-28 overflow-hidden text-[var(--color-font)] bg-[var(--background)] transition-colors duration-500"
+      className="relative w-full min-h-screen flex flex-col items-center justify-start pt-20 sm:pt-24 md:pt-28 overflow-hidden text-[var(--color-font)] bg-[var(--background)] transition-colors duration-500"
     >
       {/* Background image with top + side white fades */}
       <div className="absolute inset-0 z-0">
@@ -19,6 +19,8 @@ const Hero = () => {
           priority
           className="object-cover w-full h-full blur-[1px] scale-110"
         />
+        {/* Animated hexagonal overlay */}
+
         {/* White fade overlay: top ~20% solid white, then gradual reveal */}
         <div
           aria-hidden
@@ -46,31 +48,31 @@ const Hero = () => {
       </div>
 
       {/* Content Layer */}
-      <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-heading font-semibold leading-tight">
+      <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center px-4 sm:px-6 text-center">
+        <h1 className="text-2.5xl sm:text-3.5xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight">
           Fastest and most efficient
         </h1>
-        <h2 className="text-4xl md:text-6xl font-heading font-semibold leading-tight mt-2">
+        <h2 className="text-2.5xl sm:text-3.5xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mt-1 sm:mt-3">
           way to plant trees
         </h2>
 
-        <p className="md:text-xl text-base font-sans mt-8 opacity-90">
+        <p className="text-base sm:text-lg md:text-xl font-sans mt-6 sm:mt-8 opacity-90 max-w-2xl">
           With Verdan, you can record, photograph, and follow the
         </p>
-        <p className="md:text-xl text-base font-sans mt-1 opacity-90">
+        <p className="text-base sm:text-lg md:text-xl font-sans mt-1 opacity-90 max-w-2xl">
           life of every tree — turning data into a forest of impact.
         </p>
 
         {/* Buttons */}
-        <div className="flex flex-col md:flex-row items-center justify-center pt-12 gap-4 md:gap-12">
+        <div className="flex flex-col sm:flex-row items-center justify-center pt-8 sm:pt-12 gap-3 sm:gap-4 md:gap-12 w-full sm:w-auto px-2">
           <Link
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold"
+            className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-sm sm:text-base transition-all duration-200"
           >
             Get Started Free
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </div>

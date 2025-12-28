@@ -31,8 +31,8 @@ const Footer = () => {
       id="footer"
       style={{ backgroundColor: "#ffffff", color: "#000000" }}
     >
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-8 sm:mb-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-4">
             <a
@@ -43,25 +43,28 @@ const Footer = () => {
               <Image
                 src="/verdan_light.svg"
                 alt="Verdan Logo"
-                width={200}
+                width={150}
                 height={40}
                 priority
+                className="w-24 h-auto sm:w-32 md:w-40"
               />
             </a>
-            <p className="max-w-xs opacity-70">
+            <p className="max-w-xs text-sm sm:text-base opacity-70">
               Your smart companion for nurturing healthier, happier plants.
             </p>
           </div>
 
           {/* Product Links */}
           <div>
-            <h3 className="font-heading font-medium mb-4">Product</h3>
+            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
+              Product
+            </h3>
             <ul className="space-y-2">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="transition-colors"
+                    className="transition-colors text-sm sm:text-base"
                     style={{ color: "#000000", opacity: 0.7 }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.color = VERDAN_GREEN)
@@ -79,13 +82,15 @@ const Footer = () => {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-heading font-medium mb-4">Company</h3>
+            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
+              Company
+            </h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="transition-colors"
+                    className="transition-colors text-sm sm:text-base"
                     style={{ color: "#000000", opacity: 0.7 }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.color = VERDAN_GREEN)
@@ -103,13 +108,15 @@ const Footer = () => {
 
           {/* Legal Links */}
           <div>
-            <h3 className="font-heading font-medium mb-4">Legal</h3>
+            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
+              Legal
+            </h3>
             <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="transition-colors"
+                    className="transition-colors text-sm sm:text-base"
                     style={{ color: "#000000", opacity: 0.7 }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.color = VERDAN_GREEN)
@@ -127,16 +134,16 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm flex items-center gap-1 opacity-80">
+        <div className="pt-6 sm:pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <p className="text-xs sm:text-sm flex items-center gap-1 opacity-80 whitespace-nowrap">
             © {currentYear} Verdan.
           </p>
-          <div className="flex gap-4">
+          <div className="flex gap-4 sm:gap-6 flex-wrap justify-center sm:justify-end">
             {["Twitter", "Instagram", "GitHub"].map((item) => (
               <a
                 key={item}
                 href="#"
-                className="transition-colors"
+                className="transition-colors text-xs sm:text-sm"
                 style={{ color: "#000000", opacity: 0.7 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = VERDAN_GREEN)
