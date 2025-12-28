@@ -49,10 +49,10 @@ const Hero = () => {
 
       {/* Content Layer */}
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center px-4 sm:px-6 text-center">
-        <h1 className="text-2.5xl sm:text-3.5xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-semibold leading-tight">
           Fastest and most efficient
         </h1>
-        <h2 className="text-2.5xl sm:text-3.5xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mt-1 sm:mt-3">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-semibold leading-tight mt-1 sm:mt-3">
           way to plant trees
         </h2>
 
@@ -69,10 +69,10 @@ const Hero = () => {
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-sm sm:text-base transition-all duration-200"
+            className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-3 sm:px-5 py-2 sm:py-2.5 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-xs sm:text-sm transition-all duration-200"
           >
             Get Started Free
-            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </div>
