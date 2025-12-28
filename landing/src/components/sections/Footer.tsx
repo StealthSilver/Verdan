@@ -139,10 +139,18 @@ const Footer = () => {
             © {currentYear} Verdan.
           </p>
           <div className="flex gap-4 sm:gap-6 flex-wrap justify-center sm:justify-end">
-            {["Twitter", "Instagram", "GitHub"].map((item) => (
+            {[
+              { name: "Twitter", href: "https://x.com/silver_srs" },
+              {
+                name: "GitHub",
+                href: "https://github.com/StealthSilver/Verdan",
+              },
+            ].map((item) => (
               <a
-                key={item}
-                href="#"
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="transition-colors text-xs sm:text-sm"
                 style={{ color: "#000000", opacity: 0.7 }}
                 onMouseEnter={(e) =>
@@ -150,7 +158,7 @@ const Footer = () => {
                 }
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#000000")}
               >
-                {item}
+                {item.name}
               </a>
             ))}
           </div>

@@ -83,23 +83,26 @@ const Features = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mb-4 sm:mb-6">
-            Powerful Features
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-3xl mx-auto">
-        {/* Section Header */}
-        <motion.div
-          className="text-center mb-12 sm:mb-16 md:mb-20"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
           <h2 className="text-sm sm:text-base md:text-lg font-heading font-light tracking-widest leading-tight mb-4 sm:mb-6 opacity-50 uppercase">
             Features
           </h2>
-          <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mb-4 sm:mb-6">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-medium mb-6 sm:mb-8">
             Powerful Features
+          </h3>
+          <p className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-3xl mx-auto">
+            Everything you need to manage, monitor, and grow your forest with
+            complete transparency
+          </p>
+        </motion.div>
+
+        {/* Features Grid */}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
@@ -107,11 +110,9 @@ const Features = () => {
                 key={idx}
                 className="group relative p-6 sm:p-8 rounded-2xl transition-all duration-300 cursor-pointer border border-gray-200 bg-white/40 backdrop-blur hover:border-green-400 hover:shadow-xl hover:bg-white/60"
                 variants={itemVariants}
-                whileHover={{ y: -12 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 {/* Icon Container with animation */}
-                <motion.div 
+                <motion.div
                   className="mb-4 sm:mb-6 inline-block p-3 sm:p-4 rounded-lg bg-green-50/50 border border-green-200/30 group-hover:bg-green-100/50 transition-colors duration-300"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -130,66 +131,23 @@ const Features = () => {
                 </p>
 
                 {/* Animated border on hover */}
-                <motion.div 
+                <motion.div
                   className="absolute inset-0 rounded-2xl border border-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                   initial={{ pathLength: 0 }}
-        {/* Additional Info Section */}
-        <motion.div
-          className="mt-16 sm:mt-20 md:mt-24 p-8 sm:p-12 rounded-2xl bg-white/50 backdrop-blur border border-gray-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="max-w-3xl">
-            <h3 className="text-2xl sm:text-3xl font-heading font-medium mb-4 sm:mb-6">
-              Why Choose Our Features?
-            </h3>otion.div>
-            );
-          })}   <div className="absolute inset-0 rounded-2xl border border-green-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  whileHover={{ pathLength: 1 }}
+                  transition={{ duration: 0.5 }}
+                ></motion.div>
+
+                {/* Subtle shine effect on hover */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20"
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+                  style={{ pointerEvents: "none" }}
+                ></motion.div>
               </motion.div>
             );
           })}
-        </motion.div>
-
-        {/* Additional Info Section */}
-        <motion.div
-          className="mt-16 sm:mt-20 md:mt-24 p-8 sm:p-12 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="max-w-3xl">
-            <h3 className="text-2xl sm:text-3xl font-heading font-semibold mb-4 sm:mb-6">
-              Why Choose Our Features?
-            </h3>
-            <p className="text-base sm:text-lg font-sans opacity-80 mb-4 sm:mb-6 leading-relaxed">
-              Our feature set is specifically designed for organizations serious
-              about tree planting impact. We combine ease of use with powerful
-              capabilities to ensure your data works as hard as you do.
-            </p>
-            <ul className="space-y-2 sm:space-y-3">
-              <li className="flex items-center gap-2 sm:gap-3">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-600 rounded-full"></span>
-                <span className="text-sm sm:text-base opacity-75">
-                  Built by environmental professionals
-                </span>
-              </li>
-              <li className="flex items-center gap-2 sm:gap-3">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-600 rounded-full"></span>
-                <span className="text-sm sm:text-base opacity-75">
-                  Trusted by thousands of tree-planting organizations
-                </span>
-              </li>
-              <li className="flex items-center gap-2 sm:gap-3">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-600 rounded-full"></span>
-                <span className="text-sm sm:text-base opacity-75">
-                  Regular updates and new features based on user feedback
-                </span>
-              </li>
-            </ul>
-          </div>
         </motion.div>
       </div>
     </section>

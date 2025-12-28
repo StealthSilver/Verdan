@@ -52,7 +52,7 @@ const Hero = () => {
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-semibold leading-tight">
           Fastest and most efficient
         </h1>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-semibold leading-tight mt-1 sm:mt-3">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-semibold leading-tight mt-1 sm:mt-3">
           way to plant trees
         </h2>
 
