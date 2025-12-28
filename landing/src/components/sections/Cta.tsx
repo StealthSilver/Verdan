@@ -13,10 +13,6 @@ const Cta = () => {
       {/* Animated background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-40 animate-pulse"
-          style={{ backgroundColor: "rgba(74, 137, 92, 0.3)" }}
-        ></div>
-        <div
           className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl opacity-30"
           style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
         ></div>
