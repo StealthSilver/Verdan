@@ -72,7 +72,7 @@ export default function Navbar() {
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center"
+            className="bg-white border border-black  hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

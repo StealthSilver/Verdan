@@ -4,12 +4,18 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ThemeHeadIcons from "@/components/ui/ThemeHeadIcon";
 import ClientWrapper from "@/components/ui/ClientWrapper";
-import { Raleway } from "next/font/google";
+import { Raleway, Inter } from "next/font/google";
 
 const raleway = Raleway({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-raleway",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -51,7 +57,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${raleway.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${raleway.variable} ${inter.variable}`}
+    >
       <head>
         <ThemeHeadIcons />
       </head>

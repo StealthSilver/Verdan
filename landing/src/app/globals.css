@@ -30,8 +30,8 @@
   --hover-light: oklch(92.9% 0.013 255.508); */
 
   /* Font families */
-  --font-primary: var(--font-raleway, "Raleway", sans-serif);
-  --font-secondary: var(--font-raleway, "Raleway", sans-serif);
+  --font-family-sans: var(--font-inter, "Inter", sans-serif);
+  --font-family-heading: var(--font-raleway, "Raleway", sans-serif);
 }
 
 /* Smooth scrolling across the entire document */

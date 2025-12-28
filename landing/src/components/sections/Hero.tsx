@@ -47,17 +47,17 @@ const Hero = () => {
 
       {/* Content Layer */}
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-[var(--font-primary)] leading-tight">
+        <h1 className="text-4xl md:text-6xl font-heading font-semibold leading-tight">
           Fastest and most efficient
         </h1>
-        <h2 className="text-4xl md:text-6xl font-[var(--font-primary)] leading-tight mt-2">
+        <h2 className="text-4xl md:text-6xl font-heading font-semibold leading-tight mt-2">
           way to plant trees
         </h2>
 
-        <p className="md:text-xl text-base font-[var(--font-secondary)] mt-8 opacity-90">
+        <p className="md:text-xl text-base font-sans mt-8 opacity-90">
           With Verdan, you can record, photograph, and follow the
         </p>
-        <p className="md:text-xl text-base font-[var(--font-secondary)] mt-1 opacity-90">
+        <p className="md:text-xl text-base font-sans mt-1 opacity-90">
           life of every tree — turning data into a forest of impact.
         </p>
 
@@ -67,7 +67,7 @@ const Hero = () => {
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40"
+            className="bg-white border border-black text-primary-foreground hover:bg-black hover:text-white rounded-full px-4 py-2 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold"
           >
             Get Started Free
             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
