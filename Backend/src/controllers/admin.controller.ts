@@ -526,10 +526,14 @@ export const getTreesBySite = async (req: Request, res: Response) => {
     });
 
     const trees = await Tree.find({ siteId: new Types.ObjectId(siteId) })
+      .select(
+        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy"
+      )
       .populate("plantedBy", "name email")
       .sort({ datePlanted: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     res.status(StatusCodes.OK).json({
       trees,

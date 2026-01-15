@@ -229,15 +229,16 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
     // Get total count for pagination
     const totalCount = await Tree.countDocuments({ siteId });
 
-    // Include images and treeType so frontend can render thumbnails and show type in fallback detail view
+    // Exclude images from list view for better performance - fetch only when needed in detail view
     const trees = await Tree.find({ siteId })
       .select(
-        "treeName treeType coordinates datePlanted timestamp status images remarks verified plantedBy"
+        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy"
       )
       .populate("plantedBy", "name email")
       .sort({ datePlanted: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     return res.status(StatusCodes.OK).json({
       count: trees.length,

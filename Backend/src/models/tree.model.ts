@@ -47,4 +47,9 @@ const TreeSchema = new Schema<ITree>(
   { timestamps: true }
 );
 
+// Database indexes for optimized queries
+TreeSchema.index({ siteId: 1, datePlanted: -1 }); // Composite index for site-based sorted queries
+TreeSchema.index({ verified: 1 }); // Index for filtering by verification status
+TreeSchema.index({ plantedBy: 1 }); // Index for user-based queries
+
 export default mongoose.model<ITree>("Tree", TreeSchema);
