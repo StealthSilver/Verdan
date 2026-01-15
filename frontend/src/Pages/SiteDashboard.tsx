@@ -301,7 +301,6 @@ export default function SiteDashboard() {
     location.state?.refresh,
     refreshCounter,
     role,
-    verifying,
     currentPage,
   ]);
 
@@ -652,7 +651,6 @@ export default function SiteDashboard() {
                             )[0].url
                           }
                           alt={tree.treeName}
-                          loading="lazy"
                           className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
@@ -770,7 +768,6 @@ export default function SiteDashboard() {
                       )[0].url
                     }
                     alt={tree.treeName}
-                    loading="lazy"
                     className="w-20 h-20 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
