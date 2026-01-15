@@ -52,6 +52,13 @@ interface User {
   role: string;
 }
 
+interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  limit: number;
+}
+
 export default function SiteDashboard() {
   const { siteId: rawSiteId } = useParams<{ siteId: string }>();
   const siteId = rawSiteId ? decodeURIComponent(rawSiteId).trim() : undefined;
@@ -76,6 +83,13 @@ export default function SiteDashboard() {
   });
   const [deleting, setDeleting] = useState(false);
   const [verifying, setVerifying] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    limit: 10,
+  });
 
   const exportDashboardXlsx = () => {
     if (!site) {
@@ -228,10 +242,17 @@ export default function SiteDashboard() {
           // Attempt to get trees first (will include count + trees)
           const treesRes = await API.get(`/user/sites/${siteId}/trees`, {
             headers: { Authorization: `Bearer ${token}` },
+            params: { page: currentPage, limit: 10 },
           });
           // Support either { count, trees } or array response
           const treesArray = treesRes.data?.trees || treesRes.data;
           setTrees(Array.isArray(treesArray) ? treesArray : []);
+
+          // Set pagination data if available
+          if (treesRes.data?.pagination) {
+            setPagination(treesRes.data.pagination);
+          }
+
           // Construct minimal site object if not previously set
           if (!site) {
             setSite({
@@ -249,8 +270,14 @@ export default function SiteDashboard() {
           setSite(siteRes.data);
           const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
             headers: { Authorization: `Bearer ${token}` },
+            params: { page: currentPage, limit: 10 },
           });
-          const fetchedTrees = treesRes.data || [];
+          const fetchedTrees = treesRes.data?.trees || treesRes.data || [];
+
+          // Set pagination data if available
+          if (treesRes.data?.pagination) {
+            setPagination(treesRes.data.pagination);
+          }
 
           // Only update trees if we're not in the middle of a verification process
           // This prevents overriding optimistic updates
@@ -268,7 +295,15 @@ export default function SiteDashboard() {
       }
     };
     fetchData();
-  }, [token, siteId, location.state?.refresh, refreshCounter, role, verifying]);
+  }, [
+    token,
+    siteId,
+    location.state?.refresh,
+    refreshCounter,
+    role,
+    verifying,
+    currentPage,
+  ]);
 
   const handleLogout = () => {
     logout();
@@ -308,16 +343,36 @@ export default function SiteDashboard() {
         });
         const treesRes = await API.get(`/user/sites/${siteId}/trees`, {
           headers: { Authorization: `Bearer ${token}` },
+          params: { page: currentPage, limit: 10 },
         });
         setTrees(treesRes.data.trees || treesRes.data?.trees || treesRes.data);
+        if (treesRes.data?.pagination) {
+          setPagination(treesRes.data.pagination);
+          // If current page is now empty and not first page, go to previous page
+          if (treesRes.data.trees?.length === 0 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
+        }
       } else {
         await API.delete(`/admin/trees/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
           headers: { Authorization: `Bearer ${token}` },
+          params: { page: currentPage, limit: 10 },
         });
-        setTrees(treesRes.data);
+        setTrees(treesRes.data?.trees || treesRes.data || []);
+        if (treesRes.data?.pagination) {
+          setPagination(treesRes.data.pagination);
+          // If current page is now empty and not first page, go to previous page
+          if (
+            (treesRes.data?.trees?.length === 0 ||
+              treesRes.data.length === 0) &&
+            currentPage > 1
+          ) {
+            setCurrentPage(currentPage - 1);
+          }
+        }
       }
     } catch (err: any) {
       // Rollback on error
@@ -826,6 +881,99 @@ export default function SiteDashboard() {
             </button>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {trees.length > 0 && pagination.totalPages > 1 && (
+          <div className="bg-white rounded-lg border border-gray-200 px-6 py-4 mt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-700">
+                Showing{" "}
+                <span className="font-medium">
+                  {(pagination.currentPage - 1) * pagination.limit + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(
+                    pagination.currentPage * pagination.limit,
+                    pagination.totalCount
+                  )}
+                </span>{" "}
+                of <span className="font-medium">{pagination.totalCount}</span>{" "}
+                trees
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  First
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {[...Array(Math.min(5, pagination.totalPages))].map(
+                    (_, idx) => {
+                      let pageNum;
+                      if (pagination.totalPages <= 5) {
+                        pageNum = idx + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = idx + 1;
+                      } else if (currentPage >= pagination.totalPages - 2) {
+                        pageNum = pagination.totalPages - 4 + idx;
+                      } else {
+                        pageNum = currentPage - 2 + idx;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                            currentPage === pageNum
+                              ? "text-white"
+                              : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                          }`}
+                          style={
+                            currentPage === pageNum
+                              ? { backgroundColor: VERDAN_GREEN }
+                              : {}
+                          }
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(pagination.totalPages, prev + 1)
+                    )
+                  }
+                  disabled={currentPage === pagination.totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => setCurrentPage(pagination.totalPages)}
+                  disabled={currentPage === pagination.totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Last
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* DRAWER */}
@@ -851,7 +999,10 @@ export default function SiteDashboard() {
                 setShowPlantDrawer(false);
                 setEditingTreeId(null);
               }}
-              onTreeSaved={() => setRefreshCounter((c) => c + 1)}
+              onTreeSaved={() => {
+                setCurrentPage(1); // Reset to first page when adding/editing a tree
+                setRefreshCounter((c) => c + 1);
+              }}
             />
           )}
         </div>

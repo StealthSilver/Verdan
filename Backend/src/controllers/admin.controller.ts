@@ -503,6 +503,12 @@ export const getSiteById = async (req: Request, res: Response) => {
 export const getTreesBySite = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;
+
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
     if (!siteId)
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -514,11 +520,26 @@ export const getTreesBySite = async (req: Request, res: Response) => {
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Invalid siteId format" });
 
+    // Get total count for pagination
+    const totalCount = await Tree.countDocuments({
+      siteId: new Types.ObjectId(siteId),
+    });
+
     const trees = await Tree.find({ siteId: new Types.ObjectId(siteId) })
       .populate("plantedBy", "name email")
-      .sort({ datePlanted: -1 });
+      .sort({ datePlanted: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(StatusCodes.OK).json(trees);
+    res.status(StatusCodes.OK).json({
+      trees,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalCount,
+        limit,
+      },
+    });
   } catch (err) {
     console.error(err);
     res

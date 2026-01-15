@@ -205,6 +205,12 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
     const role = req.user?.role;
     const { siteId } = req.params;
+
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
     if (!userId)
       return res
         .status(StatusCodes.UNAUTHORIZED)
@@ -219,11 +225,30 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
       if (!site)
         return res.status(StatusCodes.FORBIDDEN).json({ message: "Forbidden" });
     }
+
+    // Get total count for pagination
+    const totalCount = await Tree.countDocuments({ siteId });
+
     // Include images and treeType so frontend can render thumbnails and show type in fallback detail view
-    const trees = await Tree.find({ siteId }).select(
-      "treeName treeType coordinates datePlanted timestamp status images remarks verified"
-    );
-    return res.status(StatusCodes.OK).json({ count: trees.length, trees });
+    const trees = await Tree.find({ siteId })
+      .select(
+        "treeName treeType coordinates datePlanted timestamp status images remarks verified plantedBy"
+      )
+      .populate("plantedBy", "name email")
+      .sort({ datePlanted: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(StatusCodes.OK).json({
+      count: trees.length,
+      trees,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalCount,
+        limit,
+      },
+    });
   } catch (err) {
     console.error(err);
     res
