@@ -101,7 +101,7 @@ API.interceptors.response.use(
         );
 
         // Force redirect to login
-        window.location.href = "/signin";
+        window.location.href = "/";
       } else {
         localStorage.removeItem("token");
         // Optionally redirect to login for other 401 errors

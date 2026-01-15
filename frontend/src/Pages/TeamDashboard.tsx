@@ -126,7 +126,7 @@ export default function TeamDashboard() {
         <div className="text-center">
           <p className="text-red-500 text-lg mb-4">{error}</p>
           <button
-            onClick={() => navigate("/signin")}
+            onClick={() => navigate("/")}
             className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
             style={{ backgroundColor: VERDAN_GREEN }}
           >

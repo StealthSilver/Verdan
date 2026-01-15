@@ -144,7 +144,7 @@ export default function SiteAnalytics() {
         const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setTrees(treesRes.data || []);
+        setTrees(treesRes.data?.trees || []);
         if (!initialLoadDone.current) initialLoadDone.current = true;
       } catch (err: any) {
         console.error(err);
