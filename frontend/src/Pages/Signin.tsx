@@ -37,16 +37,24 @@ export default function Signin() {
     message: "",
   });
   const [deletionMessage, setDeletionMessage] = useState<string>("");
+  const [sessionExpiredMsg, setSessionExpiredMsg] = useState<string>("");
 
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
-  // Check for deletion message on component mount
+  // Check for deletion message and session expiration on component mount
   useEffect(() => {
-    const message = localStorage.getItem("deletionMessage");
-    if (message) {
-      setDeletionMessage(message);
+    const deletionMsg = localStorage.getItem("deletionMessage");
+    const sessionMsg = localStorage.getItem("sessionExpired");
+
+    if (deletionMsg) {
+      setDeletionMessage(deletionMsg);
       localStorage.removeItem("deletionMessage");
+    }
+
+    if (sessionMsg) {
+      setSessionExpiredMsg(sessionMsg);
+      localStorage.removeItem("sessionExpired");
     }
   }, []);
 
@@ -138,6 +146,32 @@ export default function Signin() {
 
         {/* Main Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+          {/* Session Expired Notice */}
+          {sessionExpiredMsg && (
+            <div className="bg-blue-50 border-b border-blue-200 p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-blue-400 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">i</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-blue-800 mb-1">
+                    Session Expired
+                  </h3>
+                  <p className="text-sm text-blue-700">{sessionExpiredMsg}</p>
+                </div>
+                <button
+                  onClick={() => setSessionExpiredMsg("")}
+                  className="flex-shrink-0 text-blue-400 hover:text-blue-600 transition-colors"
+                  aria-label="Dismiss notification"
+                >
+                  <span className="text-lg">×</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Account Deletion Notice */}
           {deletionMessage && (
             <div className="bg-orange-50 border-b border-orange-200 p-4">

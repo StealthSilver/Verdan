@@ -34,7 +34,7 @@ API.interceptors.request.use(
     const token = localStorage.getItem("token");
 
     console.log(
-      `🌐 Making ${config.method?.toUpperCase()} request to: ${config.url}`
+      `🌐 Making ${config.method?.toUpperCase()} request to: ${config.url}`,
     );
     console.log(`🔑 Token present: ${!!token}`);
 
@@ -50,7 +50,7 @@ API.interceptors.request.use(
   (error) => {
     console.error("❌ Request interceptor error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for better error handling
@@ -58,7 +58,7 @@ API.interceptors.response.use(
   (response) => {
     console.log(
       `✅ Response received from ${response.config.url}:`,
-      response.status
+      response.status,
     );
     return response;
   },
@@ -77,7 +77,7 @@ API.interceptors.response.use(
         config.__retryCount += 1;
         const delay = 500 * Math.pow(2, config.__retryCount - 1); // 500ms, 1000ms
         return new Promise((resolve) => setTimeout(resolve, delay)).then(() =>
-          API.request(config)
+          API.request(config),
         );
       }
     }
@@ -85,32 +85,35 @@ API.interceptors.response.use(
     if (error.response?.status === 401) {
       console.warn("🔐 Unauthorized - clearing token");
 
+      // Clear authentication data
+      localStorage.removeItem("token");
+      localStorage.removeItem("name");
+      localStorage.removeItem("role");
+
       // Check if this is a user deletion scenario
       if (error.response?.data?.code === "USER_NOT_FOUND") {
         console.warn(
-          "👤 User account deleted - showing notification and clearing session"
+          "👤 User account deleted - showing notification and clearing session",
         );
-        localStorage.removeItem("token");
-        localStorage.removeItem("name");
-        localStorage.removeItem("role");
-
         // Store a message for the login page to display
         localStorage.setItem(
           "deletionMessage",
-          "Your account has been removed due to site deletion or administrative action. Please contact your administrator for assistance."
+          "Your account has been removed due to site deletion or administrative action. Please contact your administrator for assistance.",
         );
-
-        // Force redirect to login
-        window.location.href = "/";
       } else {
-        localStorage.removeItem("token");
-        // Optionally redirect to login for other 401 errors
-        // window.location.href = '/signin';
+        // For token expiration or invalid token
+        localStorage.setItem(
+          "sessionExpired",
+          "Your session has expired. Please sign in again.",
+        );
       }
+
+      // Force redirect to login for all 401 errors
+      window.location.href = "/";
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default API;

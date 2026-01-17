@@ -209,7 +209,7 @@ export default function PublicTreeView() {
                     onClick={() => setShowAuthPrompt(false)}
                     className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
                   >
-                    Stay in Read-Only
+                    Stay in Read-Only-Mode
                   </button>
                 </>
               ) : (
