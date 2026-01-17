@@ -11,8 +11,8 @@ interface QRCodeDisplayProps {
 export default function QRCodeDisplay({
   treeId,
   treeName,
-  siteId,
-  role = "user",
+  siteId: _siteId,
+  role: _role = "user",
 }: QRCodeDisplayProps) {
   const [showModal, setShowModal] = useState(false);
 
