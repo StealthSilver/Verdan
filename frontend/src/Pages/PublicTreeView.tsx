@@ -195,21 +195,21 @@ export default function PublicTreeView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {token && role ? (
                 <>
                   <button
                     onClick={handleGoToAuthView}
-                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors"
+                    className="px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-sm font-medium text-white rounded-lg transition-colors"
                     style={{ backgroundColor: VERDAN_GREEN }}
                   >
                     Go to Full View
                   </button>
                   <button
                     onClick={() => setShowAuthPrompt(false)}
-                    className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
+                    className="px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
                   >
-                    Stay in Read-Only-Mode
+                    Read-Only
                   </button>
                 </>
               ) : (
