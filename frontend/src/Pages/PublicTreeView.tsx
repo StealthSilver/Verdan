@@ -46,6 +46,8 @@ export default function PublicTreeView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [siteId, setSiteId] = useState<string>("");
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -54,55 +56,24 @@ export default function PublicTreeView() {
       try {
         setLoading(true);
 
-        // If user is authenticated, redirect to authenticated view
-        if (token && role) {
-          // Try to get tree with authentication first to get siteId
-          try {
-            let res;
-            if (role === "admin") {
-              res = await API.get<any>(`/admin/trees/${treeId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-            } else {
-              // For users, we need to fetch from public first to get siteId
-              const publicRes = await API.get<any>(`/public/trees/${treeId}`);
-              const siteId =
-                typeof publicRes.data.tree.siteId === "object"
-                  ? publicRes.data.tree.siteId._id
-                  : publicRes.data.tree.siteId;
-
-              // Redirect to authenticated route
-              navigate(`/user/site/${siteId}/${treeId}`);
-              return;
-            }
-
-            if (res && res.data) {
-              const siteId =
-                typeof res.data.siteId === "object"
-                  ? res.data.siteId._id
-                  : res.data.siteId;
-
-              // Redirect to authenticated route
-              if (role === "admin") {
-                navigate(`/admin/dashboard/${siteId}/${treeId}`);
-              } else {
-                navigate(`/user/site/${siteId}/${treeId}`);
-              }
-              return;
-            }
-          } catch (authErr) {
-            console.log(
-              "Auth fetch failed, falling back to public view",
-              authErr,
-            );
-          }
-        }
-
         // Fetch from public endpoint (no authentication required)
         const res = await API.get<any>(`/public/trees/${treeId}`);
 
         if (res && res.data && res.data.tree) {
           setTree(res.data.tree);
+
+          // Extract siteId for authenticated navigation
+          const extractedSiteId =
+            typeof res.data.tree.siteId === "object"
+              ? res.data.tree.siteId._id
+              : res.data.tree.siteId;
+          setSiteId(extractedSiteId);
+
+          // Show auth prompt if user is logged in
+          if (token && role) {
+            setShowAuthPrompt(true);
+          }
+
           // Set selectedImageIndex to the latest image
           if (res.data.tree.images && res.data.tree.images.length > 0) {
             const sorted = [...res.data.tree.images].sort(
@@ -123,10 +94,20 @@ export default function PublicTreeView() {
       }
     };
     fetchTree();
-  }, [treeId, token, role, navigate]);
+  }, [treeId, token, role]);
 
   const handleSignIn = () => {
     navigate("/");
+  };
+
+  const handleGoToAuthView = () => {
+    if (siteId && role) {
+      if (role === "admin") {
+        navigate(`/admin/dashboard/${siteId}/${treeId}`);
+      } else {
+        navigate(`/user/site/${siteId}/${treeId}`);
+      }
+    }
   };
 
   if (loading) {
@@ -214,41 +195,110 @@ export default function PublicTreeView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
-            <button
-              onClick={handleSignIn}
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-              style={{ backgroundColor: VERDAN_GREEN }}
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-3">
+              {token && role ? (
+                <>
+                  <button
+                    onClick={handleGoToAuthView}
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                    style={{ backgroundColor: VERDAN_GREEN }}
+                  >
+                    Go to Full View
+                  </button>
+                  <button
+                    onClick={() => setShowAuthPrompt(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
+                  >
+                    Stay in Read-Only
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleSignIn}
+                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                  style={{ backgroundColor: VERDAN_GREEN }}
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Public View Banner */}
-      <div className="bg-blue-50 border-b border-blue-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-2 text-sm text-blue-800">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span>
-              You're viewing in <strong>read-only mode</strong>. Sign in for
-              full access.
-            </span>
+      {/* Auth Prompt Banner - Only show if authenticated */}
+      {showAuthPrompt && token && role && (
+        <div className="bg-green-50 border-b border-green-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-green-800">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>
+                  You're signed in as <strong>{role}</strong>. Switch to full
+                  view to access all features and make updates.
+                </span>
+              </div>
+              <button
+                onClick={() => setShowAuthPrompt(false)}
+                className="text-green-600 hover:text-green-800"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Public View Banner - Only show if not authenticated */}
+      {(!token || !role) && (
+        <div className="bg-blue-50 border-b border-blue-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-2 text-sm text-blue-800">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>
+                You're viewing in <strong>read-only mode</strong>. Sign in for
+                full access.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
