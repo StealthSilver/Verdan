@@ -10,5 +10,11 @@
     "env": {
       "VITE_API_BASE_URL": "https://verdan-1-iwlt.onrender.com/"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
