@@ -218,21 +218,23 @@ export default function QRCodeDisplay({
       {/* QR Code Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 backdrop-blur-sm bg-white/30 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 backdrop-blur-sm bg-white/30 z-50 flex items-center justify-center p-3 sm:p-4"
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+            className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full shadow-xl max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Tree QR Code</h2>
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                Tree QR Code
+              </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 sm:w-6 sm:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -248,33 +250,33 @@ export default function QRCodeDisplay({
             </div>
 
             <div className="text-center">
-              <div className="bg-white p-4 rounded-lg inline-block shadow-sm border border-gray-200 mb-4">
+              <div className="bg-white p-3 sm:p-4 rounded-lg inline-block shadow-sm border border-gray-200 mb-3 sm:mb-4 max-w-full">
                 <QRCodeSVG
                   id="qr-code-svg"
                   value={treeDetailUrl}
-                  size={256}
+                  size={Math.min(256, window.innerWidth - 120)}
                   level="H"
                   includeMargin={true}
-                  style={{ display: "block" }}
+                  style={{ display: "block", maxWidth: "100%", height: "auto" }}
                 />
               </div>
 
-              <div className="mb-4">
+              <div className="mb-3 sm:mb-4">
                 <p className="text-sm font-semibold text-gray-900 mb-1">
                   {treeName}
                 </p>
                 <p className="text-xs text-gray-500 mb-2">
                   Scan this QR code to view tree details
                 </p>
-                <p className="text-xs text-gray-400 font-mono break-all">
+                <p className="text-xs text-gray-400 font-mono break-all px-2">
                   {treeDetailUrl}
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleDownload}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2"
                   style={{ backgroundColor: "#48845C" }}
                 >
                   <svg
@@ -290,11 +292,11 @@ export default function QRCodeDisplay({
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                  Download
+                  <span>Download</span>
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2"
                   style={{ backgroundColor: "#48845C" }}
                 >
                   <svg
@@ -310,11 +312,11 @@ export default function QRCodeDisplay({
                       d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                     />
                   </svg>
-                  Print
+                  <span>Print</span>
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Close
                 </button>
