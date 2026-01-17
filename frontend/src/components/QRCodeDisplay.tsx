@@ -16,12 +16,9 @@ export default function QRCodeDisplay({
 }: QRCodeDisplayProps) {
   const [showModal, setShowModal] = useState(false);
 
-  // Generate the URL for the tree detail page using deployed URL
+  // Generate the URL for the public tree view page (works for both authenticated and non-authenticated users)
   const baseUrl = "https://verdan-beige.vercel.app";
-  const treeDetailUrl =
-    role === "admin"
-      ? `${baseUrl}/admin/dashboard/${siteId}/${treeId}`
-      : `${baseUrl}/user/site/${siteId}/${treeId}`;
+  const treeDetailUrl = `${baseUrl}/tree/${treeId}`;
 
   const handleDownload = () => {
     // Get the SVG element

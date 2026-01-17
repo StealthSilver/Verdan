@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import AuthRoute from "./routes/auth.route";
 import userRoute from "./routes/user.route";
 import adminRoute from "./routes/admin.route";
+import publicRoute from "./routes/public.route";
 // Direct model import for fallback delete route
 import Tree from "./models/tree.model";
 dotenv.config();
@@ -50,11 +51,11 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    "GET,POST,PUT,DELETE,OPTIONS,PATCH",
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,X-HTTP-Method-Override"
+    "Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,X-HTTP-Method-Override",
   );
 
   // Log all origins for monitoring
@@ -66,7 +67,7 @@ app.use((req, res, next) => {
     "| Method:",
     req.method,
     "| Path:",
-    req.path
+    req.path,
   );
 
   if (req.method === "OPTIONS") {
@@ -76,7 +77,7 @@ app.use((req, res, next) => {
       "path=",
       req.path,
       "origin=",
-      originHeader
+      originHeader,
     );
     return res.status(204).end();
   }
@@ -103,11 +104,11 @@ app.use(
     console.log(`Origin: ${req.headers.origin || "No origin"}`);
     console.log(`User-Agent: ${req.headers["user-agent"]}`);
     console.log(
-      `Authorization: ${req.headers.authorization ? "Present" : "Missing"}`
+      `Authorization: ${req.headers.authorization ? "Present" : "Missing"}`,
     );
     console.log(`Content-Type: ${req.headers["content-type"]}`);
     next();
-  }
+  },
 );
 
 // Root endpoint for testing
@@ -142,6 +143,7 @@ app.get("/health", (req: express.Request, res: express.Response) => {
 app.use("/auth", AuthRoute);
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
+app.use("/public", publicRoute);
 
 // Fallback direct route for deleting a tree record (in case deployed build of admin.route.ts is stale)
 app.delete(
@@ -165,7 +167,7 @@ app.delete(
         return res.status(404).json({ message: "Tree not found" });
       }
       const target = (tree.images as any[]).find(
-        (img) => String(img._id) === recordId
+        (img) => String(img._id) === recordId,
       );
       if (!target) {
         return res
@@ -174,7 +176,7 @@ app.delete(
       }
       const updateResult = await Tree.updateOne(
         { _id: treeId },
-        { $pull: { images: { _id: new Types.ObjectId(recordId) } } }
+        { $pull: { images: { _id: new Types.ObjectId(recordId) } } },
       );
       console.log("[FallbackDeleteRoute] updateOne result", updateResult);
       if (updateResult.modifiedCount === 0) {
@@ -193,7 +195,7 @@ app.delete(
       console.error("[FallbackDeleteRoute] Error", err);
       return res.status(500).json({ message: "Server error" });
     }
-  }
+  },
 );
 
 // 404 handler for unmatched routes

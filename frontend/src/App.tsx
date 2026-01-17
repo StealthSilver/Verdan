@@ -12,6 +12,7 @@ import AddPlants from "./Pages/AddPlants";
 import TreeDetail from "./Pages/TreeDetail";
 import UpdateTreeRecord from "./Pages/UpdateTreeRecord";
 import SiteAnalytics from "./Pages/SiteAnalytics";
+import PublicTreeView from "./Pages/PublicTreeView";
 // UserSiteDashboard now replaced by role-aware SiteDashboard for parity
 import ConnectionTest from "./components/ConnectionTest";
 // import UserProfile from "./Pages/UserProfile"
@@ -21,6 +22,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Signin />}></Route>
         <Route path="/test-connection" element={<ConnectionTest />}></Route>
+        <Route path="/tree/:treeId" element={<PublicTreeView />}></Route>
         <Route path="/admin/Dashboard" element={<AdminDashboard />}></Route>
         <Route path="/user/dashboard" element={<UserDashboard />}></Route>
         <Route path="/user/site/:siteId" element={<SiteDashboard />}></Route>
