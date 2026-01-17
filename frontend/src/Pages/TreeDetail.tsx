@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import API from "../api";
 import UpdateTreeRecord from "./UpdateTreeRecord";
 import verdanLogo from "../assets/verdan_light.svg";
+import QRCodeDisplay from "../components/QRCodeDisplay";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -67,7 +68,7 @@ export default function TreeDetail() {
             try {
               res = await API.get<Tree>(
                 `/user/sites/${siteId}/trees/${treeId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` } },
               );
             } catch (e) {
               // Fallback to list then filter
@@ -230,7 +231,7 @@ export default function TreeDetail() {
               </h1>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                  tree.status
+                  tree.status,
                 )}`}
               >
                 {tree.status.charAt(0).toUpperCase() + tree.status.slice(1)}
@@ -261,13 +262,21 @@ export default function TreeDetail() {
               </span>
             </div>
           </div>
-          <button
-            onClick={handleAddRecord}
-            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap self-start sm:self-auto"
-            style={{ backgroundColor: VERDAN_GREEN }}
-          >
-            + Add New Record
-          </button>
+          <div className="flex items-center gap-3">
+            <QRCodeDisplay
+              treeId={tree._id}
+              treeName={tree.treeName}
+              siteId={siteIdValue}
+              role={role ?? undefined}
+            />
+            <button
+              onClick={handleAddRecord}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              + Add New Record
+            </button>
+          </div>
         </div>
 
         {/* Tree Info Card */}
@@ -335,7 +344,7 @@ export default function TreeDetail() {
               <p className="text-sm font-medium text-gray-900">
                 {sortedImages.length > 0
                   ? new Date(
-                      sortedImages[sortedImages.length - 1].timestamp
+                      sortedImages[sortedImages.length - 1].timestamp,
                     ).toLocaleDateString()
                   : "No records"}
               </p>
@@ -446,7 +455,7 @@ export default function TreeDetail() {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -455,7 +464,7 @@ export default function TreeDetail() {
                             {
                               hour: "2-digit",
                               minute: "2-digit",
-                            }
+                            },
                           )}
                         </p>
                         {index === 0 && (
@@ -568,7 +577,7 @@ export default function TreeDetail() {
                       <div>
                         <p className="font-medium">
                           {new Date(
-                            sortedImages[selectedImageIndex]?.timestamp
+                            sortedImages[selectedImageIndex]?.timestamp,
                           ).toLocaleDateString("en-US", {
                             weekday: "long",
                             year: "numeric",
@@ -578,7 +587,7 @@ export default function TreeDetail() {
                         </p>
                         <p className="text-sm text-white/80">
                           {new Date(
-                            sortedImages[selectedImageIndex]?.timestamp
+                            sortedImages[selectedImageIndex]?.timestamp,
                           ).toLocaleTimeString()}
                         </p>
                       </div>
@@ -740,7 +749,7 @@ export default function TreeDetail() {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
-                    }
+                    },
                   )}
                 </span>
                 ? This action cannot be undone.
@@ -775,10 +784,10 @@ export default function TreeDetail() {
                             ...prev,
                             images: prev.images.filter(
                               (img: any) =>
-                                String((img as any)._id) !== String(recordId)
+                                String((img as any)._id) !== String(recordId),
                             ),
                           }
-                        : prev
+                        : prev,
                     );
                     try {
                       const isUser = role === "user" && siteId;
@@ -792,7 +801,7 @@ export default function TreeDetail() {
                       setSelectedImageIndex((idx) =>
                         idx >= sortedImages.length - 1
                           ? Math.max(0, sortedImages.length - 2)
-                          : idx
+                          : idx,
                       );
                       setDeleteConfirm({
                         show: false,
@@ -804,11 +813,11 @@ export default function TreeDetail() {
                       console.error(err);
                       alert(
                         err?.response?.data?.message ||
-                          "Failed to delete record"
+                          "Failed to delete record",
                       );
                       // Rollback on error
                       setTree((prev) =>
-                        prev ? { ...prev, images: backup } : prev
+                        prev ? { ...prev, images: backup } : prev,
                       );
                       setDeleteConfirm({
                         show: false,
