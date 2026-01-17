@@ -42,7 +42,7 @@ export default function AddTeamMember({
     role: "user",
     gender: "other",
     designation: "",
-    organization: "",
+    organization: "Serentica",
     siteIds: [],
   });
 
@@ -71,7 +71,7 @@ export default function AddTeamMember({
       } catch (err: any) {
         console.warn(
           "Failed to load sites for assignment",
-          err?.response || err
+          err?.response || err,
         );
       }
     };
@@ -91,7 +91,7 @@ export default function AddTeamMember({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setForm({
@@ -101,7 +101,7 @@ export default function AddTeamMember({
   };
 
   const handleSiteSelection = (
-    selected: MultiValue<{ value: string; label: string }>
+    selected: MultiValue<{ value: string; label: string }>,
   ) => {
     const ids = (selected || []).map((opt) => opt.value);
     setForm({ ...form, siteIds: ids });
@@ -138,8 +138,8 @@ export default function AddTeamMember({
       form.siteIds.length > 0
         ? form.siteIds
         : effectiveSiteId
-        ? [effectiveSiteId]
-        : [];
+          ? [effectiveSiteId]
+          : [];
     if (finalSiteIds.length === 0) {
       setError("Please select at least one site to assign");
       setLoading(false);
@@ -170,14 +170,14 @@ export default function AddTeamMember({
             designation: form.designation,
             organization: form.organization,
           },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         createdMember = response.data;
       } catch (apiErr: any) {
         // If the API endpoint is not ready, fall back to optimistic success
         console.warn(
           "Team member API create failed or not implemented",
-          apiErr?.response || apiErr
+          apiErr?.response || apiErr,
         );
       }
 
@@ -195,7 +195,7 @@ export default function AddTeamMember({
         role: "user",
         gender: "other",
         designation: "",
-        organization: "",
+        organization: "Serentica",
         siteIds: [],
       });
 
@@ -214,7 +214,7 @@ export default function AddTeamMember({
       setSuccess(false);
       setError(
         err?.response?.data?.message ||
-          "Failed to add team member. Please try again."
+          "Failed to add team member. Please try again.",
       );
       setLoading(false);
     }
@@ -452,14 +452,14 @@ export default function AddTeamMember({
                 isMulti
                 options={siteOptions}
                 value={siteOptions.filter((o) =>
-                  form.siteIds.includes(o.value)
+                  form.siteIds.includes(o.value),
                 )}
                 onChange={(selected) =>
                   handleSiteSelection(
                     selected as unknown as MultiValue<{
                       value: string;
                       label: string;
-                    }>
+                    }>,
                   )
                 }
                 classNamePrefix="rs"
