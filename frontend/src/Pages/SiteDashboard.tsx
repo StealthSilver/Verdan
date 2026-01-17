@@ -134,7 +134,7 @@ export default function SiteDashboard() {
     // Trees sheet (excluding images per request)
     const treeRows = trees.map((tree, idx) => {
       const timeStr = new Date(
-        tree.timestamp || tree.datePlanted
+        tree.timestamp || tree.datePlanted,
       ).toLocaleTimeString();
       const dateStr = new Date(tree.datePlanted).toLocaleDateString();
       const coords = `${tree.coordinates?.lat?.toFixed(6) ?? ""}, ${
@@ -400,7 +400,7 @@ export default function SiteDashboard() {
     // Update local state optimistically first
     setTrees((prev) => {
       const updated = prev.map((tree) =>
-        tree._id === treeId ? { ...tree, verified: true } : tree
+        tree._id === treeId ? { ...tree, verified: true } : tree,
       );
       console.log("Optimistically updated trees state before API call");
       return updated;
@@ -412,7 +412,7 @@ export default function SiteDashboard() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       console.log("Verification API response:", response.data);
 
@@ -425,8 +425,8 @@ export default function SiteDashboard() {
       // Rollback optimistic update on error
       setTrees((prev) =>
         prev.map((tree) =>
-          tree._id === treeId ? { ...tree, verified: false } : tree
-        )
+          tree._id === treeId ? { ...tree, verified: false } : tree,
+        ),
       );
       alert(err?.response?.data?.message || "Failed to verify tree");
     } finally {
@@ -458,11 +458,11 @@ export default function SiteDashboard() {
         <div className="text-center">
           <p className="text-red-500 text-lg mb-4">{error}</p>
           <button
-            onClick={handleBack}
+            onClick={() => navigate("/")}
             className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
             style={{ backgroundColor: VERDAN_GREEN }}
           >
-            Back to Dashboard
+            Back to Login
           </button>
         </div>
       </div>
@@ -647,7 +647,7 @@ export default function SiteDashboard() {
                             [...tree.images].sort(
                               (a, b) =>
                                 new Date(b.timestamp).getTime() -
-                                new Date(a.timestamp).getTime()
+                                new Date(a.timestamp).getTime(),
                             )[0].url
                           }
                           alt={tree.treeName}
@@ -678,7 +678,7 @@ export default function SiteDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {new Date(
-                        tree.timestamp || tree.datePlanted
+                        tree.timestamp || tree.datePlanted,
                       ).toLocaleTimeString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-mono">
@@ -764,7 +764,7 @@ export default function SiteDashboard() {
                       [...tree.images].sort(
                         (a, b) =>
                           new Date(b.timestamp).getTime() -
-                          new Date(a.timestamp).getTime()
+                          new Date(a.timestamp).getTime(),
                       )[0].url
                     }
                     alt={tree.treeName}
@@ -800,7 +800,7 @@ export default function SiteDashboard() {
                   <span className="text-gray-500">Time:</span>
                   <span className="text-gray-900">
                     {new Date(
-                      tree.timestamp || tree.datePlanted
+                      tree.timestamp || tree.datePlanted,
                     ).toLocaleTimeString()}
                   </span>
                 </div>
@@ -894,7 +894,7 @@ export default function SiteDashboard() {
                 <span className="font-medium">
                   {Math.min(
                     pagination.currentPage * pagination.limit,
-                    pagination.totalCount
+                    pagination.totalCount,
                   )}
                 </span>{" "}
                 of <span className="font-medium">{pagination.totalCount}</span>{" "}
@@ -948,13 +948,13 @@ export default function SiteDashboard() {
                           {pageNum}
                         </button>
                       );
-                    }
+                    },
                   )}
                 </div>
                 <button
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(pagination.totalPages, prev + 1)
+                      Math.min(pagination.totalPages, prev + 1),
                     )
                   }
                   disabled={currentPage === pagination.totalPages}
