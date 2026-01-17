@@ -84,6 +84,108 @@ export default function QRCodeDisplay({
     img.src = url;
   };
 
+  const handlePrint = () => {
+    // Create a new window for printing
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    // Get the SVG element
+    const svg = document.getElementById("qr-code-svg");
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+
+    // Create print-friendly HTML
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Code - ${treeName}</title>
+          <style>
+            @media print {
+              @page {
+                size: auto;
+                margin: 20mm;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+            }
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              padding: 20px;
+            }
+            .container {
+              text-align: center;
+              max-width: 400px;
+            }
+            .qr-wrapper {
+              background: white;
+              padding: 30px;
+              border: 2px solid #e5e7eb;
+              border-radius: 12px;
+              margin-bottom: 20px;
+              display: inline-block;
+            }
+            h1 {
+              font-size: 24px;
+              font-weight: bold;
+              color: #111827;
+              margin: 0 0 8px 0;
+            }
+            .subtitle {
+              font-size: 14px;
+              color: #6b7280;
+              margin: 0 0 8px 0;
+            }
+            .url {
+              font-size: 11px;
+              color: #9ca3af;
+              font-family: monospace;
+              word-break: break-all;
+              margin: 0;
+            }
+            .logo {
+              margin-top: 30px;
+              font-size: 18px;
+              font-weight: bold;
+              color: #48845C;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="qr-wrapper">
+              ${svgData}
+            </div>
+            <h1>${treeName}</h1>
+            <p class="subtitle">Scan this QR code to view tree details</p>
+            <p class="url">${treeDetailUrl}</p>
+            <div class="logo">Verdan</div>
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 250);
+            };
+            window.onafterprint = function() {
+              window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   return (
     <>
       {/* QR Code Button */}
@@ -172,14 +274,47 @@ export default function QRCodeDisplay({
               <div className="flex gap-2">
                 <button
                   onClick={handleDownload}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2"
                   style={{ backgroundColor: "#48845C" }}
                 >
-                  Download QR Code
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Download
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "#48845C" }}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  Print
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Close
                 </button>
