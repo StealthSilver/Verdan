@@ -10,6 +10,7 @@
     "seed": "npm run build && node dist/scripts/seed.js",
     "create-admin": "npm run build && node dist/scripts/createAdmin.js",
     "create-admins": "npm run build && node dist/scripts/createMultipleAdmins.js",
+    "list-sites": "npm run build && node dist/scripts/listSites.js",
     "backfill-image-ids": "npm run build && node dist/scripts/backfillImageIds.js"
   },
   "keywords": [],
