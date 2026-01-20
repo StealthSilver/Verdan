@@ -71,7 +71,7 @@ const Hero = () => {
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-3 sm:px-5 py-2 sm:py-2.5 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-xs sm:text-sm transition-all duration-200"
           >
-            Get Started Free
+            Get Started
             <ArrowRight className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

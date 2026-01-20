@@ -77,7 +77,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             className="bg-white border border-black hover:bg-black hover:text-white rounded-full px-3 sm:px-4 py-1.5 sm:py-2 shadow-glow group flex items-center justify-center font-sans font-semibold text-sm lg:text-base whitespace-nowrap"
           >
-            Get Started Free
+            Get Started
             <ArrowRight className="ml-1.5 h-4 w-4 lg:h-5 lg:w-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
