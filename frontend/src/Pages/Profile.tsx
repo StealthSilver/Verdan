@@ -8,11 +8,14 @@ import verdanLogo from "../assets/verdan_light.svg";
 const VERDAN_GREEN = "#48845C";
 
 interface UserMe {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: string;
   siteId?: string; // for non-admin users
+  designation?: string;
+  gender?: string;
+  organization?: string;
 }
 
 interface AdminSite {
@@ -20,7 +23,7 @@ interface AdminSite {
   name: string;
   address: string;
   status: string;
-  coordinates?: { lat: number; lng: number };
+  coordinates?: { lat: string; lng: string };
 }
 
 interface UserSiteDashboard {
@@ -35,11 +38,17 @@ export default function Profile() {
   const [user, setUser] = useState<UserMe | null>(null);
   const [adminSites, setAdminSites] = useState<AdminSite[]>([]);
   const [userSite, setUserSite] = useState<UserSiteDashboard | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingSites, setLoadingSites] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Debug: Log auth state
+  useEffect(() => {
+    console.log("Profile - Auth state:", { token: !!token, role });
+  }, [token, role]);
 
   // Outside click for dropdown
   useEffect(() => {
@@ -58,17 +67,27 @@ export default function Profile() {
   // Fetch basic user info
   useEffect(() => {
     const run = async () => {
-      if (!token) return;
+      if (!token) {
+        setLoadingUser(false);
+        return;
+      }
       try {
-        setLoading(true);
+        setLoadingUser(true);
+        console.log("Fetching user profile data...");
         const res = await API.get<UserMe>("/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("User profile data received:", res.data);
         setUser(res.data);
+        setError("");
       } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch user data");
+        console.error("Failed to fetch user data:", err);
+        const errorMsg =
+          err?.response?.data?.message || "Failed to fetch user data";
+        console.error("Error message:", errorMsg);
+        setError(errorMsg);
       } finally {
-        setLoading(false);
+        setLoadingUser(false);
       }
     };
     run();
@@ -77,26 +96,31 @@ export default function Profile() {
   // Fetch sites depending on role
   useEffect(() => {
     const fetchSites = async () => {
-      if (!token) return;
-      if (!role) return;
+      if (!token || !role) {
+        setLoadingSites(false);
+        return;
+      }
       try {
-        setLoading(true);
+        setLoadingSites(true);
+        console.log(`Fetching sites for role: ${role}`);
         if (role === "admin") {
           const res = await API.get<AdminSite[]>("/admin/sites", {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log("Admin sites received:", res.data);
           setAdminSites(res.data);
         } else if (role === "user") {
           const res = await API.get<UserSiteDashboard>("/user/dashboard", {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log("User site received:", res.data);
           setUserSite(res.data);
         }
       } catch (err: any) {
+        console.error("Failed to fetch site data:", err);
         // Non-fatal; profile still shows basic info
-        setError(err?.response?.data?.message || "Failed to fetch site data");
       } finally {
-        setLoading(false);
+        setLoadingSites(false);
       }
     };
     fetchSites();
@@ -194,7 +218,7 @@ export default function Profile() {
         </div>
 
         {/* Loading State */}
-        {loading && !user && (
+        {loadingUser && !user && (
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
@@ -231,7 +255,7 @@ export default function Profile() {
                     {user.role}
                   </span>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    ID: {user.id.slice(0, 8)}...
+                    ID: {user._id.slice(0, 8)}...
                   </span>
                 </div>
               </div>
@@ -247,12 +271,12 @@ export default function Profile() {
             </h3>
             {role === "admin" && (
               <div className="space-y-4">
-                {loading && adminSites.length === 0 && (
+                {loadingSites && adminSites.length === 0 && (
                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
                     Loading sites...
                   </div>
                 )}
-                {!loading && adminSites.length === 0 && (
+                {!loadingSites && adminSites.length === 0 && (
                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
                     No sites assigned yet.
                   </div>
@@ -278,12 +302,14 @@ export default function Profile() {
                       >
                         {s.status}
                       </span>
-                      {s.coordinates && (
-                        <span className="text-xs text-gray-500 font-mono">
-                          ({s.coordinates.lat.toFixed(2)},{" "}
-                          {s.coordinates.lng.toFixed(2)})
-                        </span>
-                      )}
+                      {s.coordinates &&
+                        s.coordinates.lat &&
+                        s.coordinates.lng && (
+                          <span className="text-xs text-gray-500 font-mono">
+                            ({parseFloat(s.coordinates.lat).toFixed(2)},{" "}
+                            {parseFloat(s.coordinates.lng).toFixed(2)})
+                          </span>
+                        )}
                     </div>
                   </div>
                 ))}
@@ -292,12 +318,12 @@ export default function Profile() {
 
             {role === "user" && (
               <div>
-                {loading && !userSite && (
+                {loadingSites && !userSite && (
                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
                     Loading site...
                   </div>
                 )}
-                {!loading && !userSite && (
+                {!loadingSites && !userSite && (
                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
                     No site assigned.
                   </div>
