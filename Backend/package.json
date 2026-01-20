@@ -9,6 +9,7 @@
     "vercel-build": "npm run build",
     "seed": "npm run build && node dist/scripts/seed.js",
     "create-admin": "npm run build && node dist/scripts/createAdmin.js",
+    "create-admins": "npm run build && node dist/scripts/createMultipleAdmins.js",
     "backfill-image-ids": "npm run build && node dist/scripts/backfillImageIds.js"
   },
   "keywords": [],
