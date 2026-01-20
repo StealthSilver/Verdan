@@ -10,9 +10,6 @@ import type { Site as SiteType } from "./AddSite";
 const VERDAN_GREEN = "#48845C";
 
 // Chart color for analytics button
-const CHART_COLORS = {
-  blue: "#3B82F6",
-};
 
 interface User {
   id: string;

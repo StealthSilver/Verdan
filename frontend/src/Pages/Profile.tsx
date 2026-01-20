@@ -107,39 +107,11 @@ export default function Profile() {
     navigate("/");
   };
 
-  if (loading && !user)
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full border-4 border-muted"></div>
-            <div
-              className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent animate-spin"
-              style={{ borderTopColor: VERDAN_GREEN }}
-            />
-          </div>
-          <p className="text-muted-foreground font-medium">
-            Loading profile...
-          </p>
-        </div>
-      </div>
-    );
-
-  if (error && !user)
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 text-lg mb-4">{error}</p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: VERDAN_GREEN }}
-          >
-            Back to Login
-          </button>
-        </div>
-      </div>
-    );
+  // If no token, redirect to login
+  if (!token) {
+    navigate("/");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -212,7 +184,7 @@ export default function Profile() {
           <button
             onClick={() =>
               navigate(
-                role === "admin" ? "/admin/Dashboard" : "/user/dashboard"
+                role === "admin" ? "/admin/Dashboard" : "/user/dashboard",
               )
             }
             className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors active:scale-95"
@@ -221,100 +193,140 @@ export default function Profile() {
           </button>
         </div>
 
+        {/* Loading State */}
+        {loading && !user && (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full border-4 border-gray-200"></div>
+                <div
+                  className="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-transparent animate-spin"
+                  style={{ borderTopColor: VERDAN_GREEN }}
+                />
+              </div>
+              <p className="text-gray-600">Loading profile...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !user && (
+          <div className="bg-red-50 rounded-lg border border-red-200 p-6">
+            <p className="text-red-600 text-center">{error}</p>
+          </div>
+        )}
+
         {/* User Info Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <div className="flex items-start gap-4">
-            <FaUserCircle className="text-5xl text-gray-300" />
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {user?.name}
-              </h2>
-              <p className="text-gray-600 mt-1 text-sm">{user?.email}</p>
-              <div className="mt-3">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
-                  {user?.role}
-                </span>
+        {user && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-start gap-4">
+              <FaUserCircle className="text-5xl text-gray-300" />
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {user.name}
+                </h2>
+                <p className="text-gray-600 mt-1 text-sm">{user.email}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
+                    {user.role}
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    ID: {user.id.slice(0, 8)}...
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Sites Section */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Assigned {role === "admin" ? "Sites" : "Site"}
-          </h3>
-          {role === "admin" && (
-            <div className="space-y-4">
-              {adminSites.length === 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
-                  No sites assigned yet.
-                </div>
-              )}
-              {adminSites.map((s) => (
-                <div
-                  key={s._id}
-                  className="bg-white rounded-lg border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{s.name}</p>
-                    <p className="text-sm text-gray-600 mt-1 truncate max-w-md">
-                      {s.address}
-                    </p>
+        {user && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Assigned {role === "admin" ? "Sites" : "Site"}
+            </h3>
+            {role === "admin" && (
+              <div className="space-y-4">
+                {loading && adminSites.length === 0 && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+                    Loading sites...
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        s.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {s.status}
-                    </span>
-                    {s.coordinates && (
-                      <span className="text-xs text-gray-500 font-mono">
-                        ({s.coordinates.lat.toFixed(2)},{" "}
-                        {s.coordinates.lng.toFixed(2)})
+                )}
+                {!loading && adminSites.length === 0 && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+                    No sites assigned yet.
+                  </div>
+                )}
+                {adminSites.map((s) => (
+                  <div
+                    key={s._id}
+                    className="bg-white rounded-lg border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900">{s.name}</p>
+                      <p className="text-sm text-gray-600 mt-1 truncate max-w-md">
+                        {s.address}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          s.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {s.status}
                       </span>
-                    )}
+                      {s.coordinates && (
+                        <span className="text-xs text-gray-500 font-mono">
+                          ({s.coordinates.lat.toFixed(2)},{" "}
+                          {s.coordinates.lng.toFixed(2)})
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
 
-          {role === "user" && (
-            <div>
-              {!userSite && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
-                  No site assigned.
-                </div>
-              )}
-              {userSite && (
-                <div className="bg-white rounded-lg border border-gray-200 p-5">
-                  <p className="font-medium text-gray-900">
-                    {userSite.siteName}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {userSite.location || "Location unavailable"}
-                  </p>
-                  <div className="mt-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        userSite.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {userSite.status}
-                    </span>
+            {role === "user" && (
+              <div>
+                {loading && !userSite && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+                    Loading site...
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                )}
+                {!loading && !userSite && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+                    No site assigned.
+                  </div>
+                )}
+                {userSite && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-5">
+                    <p className="font-medium text-gray-900">
+                      {userSite.siteName}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {userSite.location || "Location unavailable"}
+                    </p>
+                    <div className="mt-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          userSite.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {userSite.status}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
