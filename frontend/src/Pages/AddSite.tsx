@@ -8,8 +8,8 @@ interface SiteForm {
   name: string;
   address: string;
   coordinates: {
-    lat: number;
-    lng: number;
+    lat: string;
+    lng: string;
   };
   status: "active" | "inactive";
   type: string;
@@ -20,8 +20,8 @@ export interface Site {
   name: string;
   address: string;
   coordinates: {
-    lat: number;
-    lng: number;
+    lat: string;
+    lng: string;
   };
   status: "active" | "inactive";
   type: string;
@@ -50,8 +50,8 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
     name: editSite?.name || "",
     address: editSite?.address || "",
     coordinates: {
-      lat: editSite?.coordinates?.lat || 0,
-      lng: editSite?.coordinates?.lng || 0,
+      lat: editSite?.coordinates?.lat || "",
+      lng: editSite?.coordinates?.lng || "",
     },
     status: editSite?.status || "active",
     type: editSite?.type || "",
@@ -74,7 +74,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
   }, [editSite]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     if (name === "lat" || name === "lng") {
@@ -82,7 +82,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
         ...form,
         coordinates: {
           ...form.coordinates,
-          [name]: parseFloat(value) || 0,
+          [name]: value,
         },
       });
     } else {
@@ -143,7 +143,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
           },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         // Inform parent & close if in modal mode
         if (response.data && onSiteSaved) onSiteSaved(response.data);
@@ -168,7 +168,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
           },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         if (response.data?._id) {
           setCreatedSiteId(response.data._id);
@@ -184,7 +184,7 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
         err?.response?.data?.message ||
           (isEditMode
             ? "Failed to update site. Please try again."
-            : "Failed to add site. Please try again.")
+            : "Failed to add site. Please try again."),
       );
     } finally {
       setLoading(false);
@@ -403,8 +403,8 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
                     ? "Updating..."
                     : "Saving..."
                   : isEditMode
-                  ? "Update Site"
-                  : "Save Site"}
+                    ? "Update Site"
+                    : "Save Site"}
               </button>
             </div>
 

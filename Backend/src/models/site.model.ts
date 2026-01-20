@@ -5,8 +5,8 @@ export interface ISite extends Document {
   address: string;
   image?: string;
   coordinates: {
-    lat: number;
-    lng: number;
+    lat: string;
+    lng: string;
   };
   status: "active" | "inactive";
   type?: string;
@@ -19,14 +19,14 @@ const SiteSchema = new Schema<ISite>(
     address: { type: String, required: true },
     image: String,
     coordinates: {
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true },
+      lat: { type: String, required: true },
+      lng: { type: String, required: true },
     },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     type: String,
     teamMembers: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model<ISite>("Site", SiteSchema);
