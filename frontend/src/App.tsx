@@ -12,6 +12,7 @@ import AddPlants from "./Pages/AddPlants";
 import TreeDetail from "./Pages/TreeDetail";
 import UpdateTreeRecord from "./Pages/UpdateTreeRecord";
 import SiteAnalytics from "./Pages/SiteAnalytics";
+import AllSitesAnalytics from "./Pages/AllSitesAnalytics";
 import PublicTreeView from "./Pages/PublicTreeView";
 import QRRedirect from "./Pages/QRRedirect";
 // UserSiteDashboard now replaced by role-aware SiteDashboard for parity
@@ -32,6 +33,10 @@ const App = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/Dashboard" element={<AdminDashboard />}></Route>
+        <Route
+          path="/admin/sites/analytics"
+          element={<AllSitesAnalytics />}
+        ></Route>
         <Route path="/admin/Dashboard/add-site" element={<AddSites />}></Route>
         <Route
           path="/admin/Dashboard/:siteId/team"

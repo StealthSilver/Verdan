@@ -9,6 +9,11 @@ import type { Site as SiteType } from "./AddSite";
 
 const VERDAN_GREEN = "#48845C";
 
+// Chart color for analytics button
+const CHART_COLORS = {
+  blue: "#3B82F6",
+};
+
 interface User {
   id: string;
   name: string;
@@ -152,7 +157,10 @@ export default function AdminDashboard() {
       _id: site._id,
       name: site.name,
       address: site.address,
-      coordinates: site.coordinates,
+      coordinates: {
+        lat: String(site.coordinates.lat),
+        lng: String(site.coordinates.lng),
+      },
       status: site.status,
       type: site.type || "",
     });
@@ -251,13 +259,35 @@ export default function AdminDashboard() {
               Admin can manage all sites
             </p>
           </div>
-          <button
-            onClick={handleAdd}
-            className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
-            style={{ backgroundColor: VERDAN_GREEN }}
-          >
-            + Add New Site
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/admin/sites/analytics")}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center gap-2"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+              Show Analytics
+            </button>
+            <button
+              onClick={handleAdd}
+              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              + Add New Site
+            </button>
+          </div>
         </div>
 
         {/* SITES TABLE - Desktop */}
@@ -350,7 +380,10 @@ export default function AdminDashboard() {
                               _id: site._id,
                               name: site.name,
                               address: site.address,
-                              coordinates: site.coordinates,
+                              coordinates: {
+                                lat: String(site.coordinates.lat),
+                                lng: String(site.coordinates.lng),
+                              },
                               status: site.status,
                               type: site.type || "",
                             });
@@ -458,6 +491,30 @@ export default function AdminDashboard() {
               Add Your First Site
             </button>
           </div>
+        )}
+
+        {/* Floating Analytics Button for Mobile */}
+        {sites.length > 0 && (
+          <button
+            onClick={() => navigate("/admin/sites/analytics")}
+            className="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white z-30 transition-all active:scale-95"
+            style={{ backgroundColor: VERDAN_GREEN }}
+            aria-label="Show Analytics"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          </button>
         )}
       </div>
 
