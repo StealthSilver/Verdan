@@ -132,16 +132,11 @@ export default function Signin() {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <h1
-            className="text-4xl font-bold mb-2"
-            style={{ color: VERDAN_GREEN }}
-          >
-            HARIT
+        <div className="flex items-center justify-center mb-8 gap-3">
+          <img src="/icon.svg" alt="Harit Logo" className="w-12 h-12" />
+          <h1 className="text-4xl font-bold" style={{ color: VERDAN_GREEN }}>
+            हरित
           </h1>
-          <p className="text-gray-600 text-sm">
-            Sustainable Solutions Platform
-          </p>
         </div>
 
         {/* Main Card */}

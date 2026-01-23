@@ -36,17 +36,23 @@ const Footer = () => {
           <div className="lg:col-span-2 space-y-4">
             <a
               href="#"
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-3 group"
               aria-label="Harit Logo"
             >
               <Image
-                src="/harit_light.svg"
+                src="/icon.svg"
                 alt="Harit Logo"
-                width={150}
+                width={40}
                 height={40}
                 priority
-                className="w-24 h-auto sm:w-32 md:w-40"
+                className="w-10 h-10"
               />
+              <span
+                className="text-3xl font-bold"
+                style={{ color: VERDAN_GREEN }}
+              >
+                हरित
+              </span>
             </a>
             <p className="max-w-xs text-sm sm:text-base opacity-70">
               Your smart companion for nurturing healthier, happier plants.
@@ -135,7 +141,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-6 sm:pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
           <p className="text-xs sm:text-sm flex items-center gap-1 opacity-80 whitespace-nowrap">
-            © {currentYear} Harit.
+            © {currentYear} हरित.
           </p>
           <div className="flex gap-4 sm:gap-6 flex-wrap justify-center sm:justify-end">
             {[
