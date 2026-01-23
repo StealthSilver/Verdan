@@ -145,12 +145,12 @@ export default function AddPlants({
       location.hostname === "127.0.0.1";
     if (!isSecure) {
       setSecureContextWarning(
-        "Geolocation requires HTTPS or localhost. Please use https:// or run locally."
+        "Geolocation requires HTTPS or localhost. Please use https:// or run locally.",
       );
     }
     if (!navigator.geolocation) {
       setLocationError(
-        "Geolocation not supported. Please use a compatible browser/device."
+        "Geolocation not supported. Please use a compatible browser/device.",
       );
       setManualCoords(true);
       return;
@@ -200,7 +200,7 @@ export default function AddPlants({
         try {
           fetch("https://ipapi.co/json/")
             .then((r) =>
-              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed"))
+              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed")),
             )
             .then((data) => {
               const lat = Number(data.latitude);
@@ -211,14 +211,14 @@ export default function AddPlants({
                   coordinates: { lat, lng },
                 }));
                 setLocationError(
-                  "Used approximate location from IP lookup. Please verify or edit manually."
+                  "Used approximate location from IP lookup. Please verify or edit manually.",
                 );
               }
             })
             .catch(() => {});
         } catch {}
       },
-      options
+      options,
     );
   };
 
@@ -279,14 +279,14 @@ export default function AddPlants({
             try {
               const singleTreeRes = await API.get<any>(
                 `/user/sites/${siteId}/trees/${treeId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` } },
               );
               tree = singleTreeRes.data;
             } catch (e) {
               // Fallback list
               const listRes = await API.get<any>(
                 `/user/sites/${siteId}/trees`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` } },
               );
               const arr = listRes.data.trees || listRes.data;
               tree = Array.isArray(arr)
@@ -296,7 +296,7 @@ export default function AddPlants({
           } else {
             const treesRes = await API.get<any[]>(
               `/admin/sites/${siteId}/trees`,
-              { headers: { Authorization: `Bearer ${token}` } }
+              { headers: { Authorization: `Bearer ${token}` } },
             );
             tree = treesRes.data.find((t: any) => t._id === treeId);
           }
@@ -356,7 +356,7 @@ export default function AddPlants({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -429,7 +429,7 @@ export default function AddPlants({
     // Strict coordinate validation
     if (!validateCoordinates(form.coordinates.lat, form.coordinates.lng)) {
       setError(
-        "Valid coordinates are required. Please use the 'Get Current Location' button or enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)."
+        "Valid coordinates are required. Please use the 'Get Current Location' button or enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180).",
       );
       setLoading(false);
       return;
@@ -438,7 +438,7 @@ export default function AddPlants({
     // Strict timestamp validation
     if (!validateTimestamp(form.timestamp)) {
       setError(
-        "Valid timestamp is required. Timestamp must be a valid date and time (not in the future)."
+        "Valid timestamp is required. Timestamp must be a valid date and time (not in the future).",
       );
       setLoading(false);
       return;
@@ -481,7 +481,7 @@ export default function AddPlants({
             plantedBy: form.plantedBy || username || undefined,
             images,
           },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
         const createUrl = isUser
@@ -505,7 +505,7 @@ export default function AddPlants({
               plantedBy: form.plantedBy || username || undefined,
               images,
             },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
         } catch (primaryErr: any) {
           // Fallback: older user endpoint (pre site-scoped CRUD) if new route not deployed yet
@@ -526,7 +526,7 @@ export default function AddPlants({
                   status: form.status,
                   remarks: form.remarks || undefined,
                 },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` } },
               );
             } catch (fallbackErr: any) {
               throw fallbackErr; // propagate fallback error to outer catch
@@ -559,12 +559,12 @@ export default function AddPlants({
           /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
       if (isTooLarge) {
         setError(
-          "Image size limit exceeded (~600KB). Please use a smaller image."
+          "Image size limit exceeded (~600KB). Please use a smaller image.",
         );
       } else {
         setError(
           msg ||
-            `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`
+            `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`,
         );
       }
     } finally {
@@ -622,7 +622,8 @@ export default function AddPlants({
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const backCam = devices.find(
-        (d) => d.kind === "videoinput" && /back|rear|environment/i.test(d.label)
+        (d) =>
+          d.kind === "videoinput" && /back|rear|environment/i.test(d.label),
       );
       if (backCam) {
         constraintsList.unshift({
@@ -653,7 +654,7 @@ export default function AddPlants({
   };
   const compressToLimit = async (
     dataUrl: string,
-    targetBytes: number = MAX_IMAGE_BYTES
+    targetBytes: number = MAX_IMAGE_BYTES,
   ): Promise<string> => {
     if (!dataUrl) return dataUrl;
     if (dataUrlBytes(dataUrl) <= targetBytes) return dataUrl;
@@ -735,7 +736,7 @@ export default function AddPlants({
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image size limit exceeded (~600KB). Capture closer or lower resolution."
+          "Image size limit exceeded (~600KB). Capture closer or lower resolution.",
         );
         return;
       }
@@ -757,7 +758,7 @@ export default function AddPlants({
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Image size limit exceeded (~600KB). Please choose a smaller image."
+            "Image size limit exceeded (~600KB). Please choose a smaller image.",
           );
           setImagePreview(null);
           setForm((prev) => ({ ...prev, image: null }));
@@ -819,11 +820,11 @@ export default function AddPlants({
               readyErr?.name === "SecurityError"
             ) {
               setError(
-                "Camera permission denied. Grant access and click Retry."
+                "Camera permission denied. Grant access and click Retry.",
               );
             } else {
               setError(
-                "Camera took too long to start. Check permissions or click Retry."
+                "Camera took too long to start. Check permissions or click Retry.",
               );
             }
             setCameraReady(false);
@@ -837,12 +838,12 @@ export default function AddPlants({
             err?.name === "SecurityError"
           ) {
             setError(
-              "Camera permission denied. Allow access then click Retry."
+              "Camera permission denied. Allow access then click Retry.",
             );
           } else {
             setError(
               (err?.message || "Failed to access camera") +
-                ". Check permissions or use Upload Image."
+                ". Check permissions or use Upload Image.",
             );
           }
           setCameraReady(false);
@@ -1077,8 +1078,8 @@ export default function AddPlants({
                       coordinatesValid && form.coordinates.lat !== 0
                         ? "border-green-500"
                         : form.coordinates.lat === 0
-                        ? "border-gray-300"
-                        : "border-red-500"
+                          ? "border-gray-300"
+                          : "border-red-500"
                     }`}
                     placeholder="Waiting for location..."
                   />
@@ -1110,8 +1111,8 @@ export default function AddPlants({
                       coordinatesValid && form.coordinates.lng !== 0
                         ? "border-green-500"
                         : form.coordinates.lng === 0
-                        ? "border-gray-300"
-                        : "border-red-500"
+                          ? "border-gray-300"
+                          : "border-red-500"
                     }`}
                     placeholder="Waiting for location..."
                   />
@@ -1183,8 +1184,8 @@ export default function AddPlants({
                     timestampValid
                       ? "border-green-500"
                       : form.timestamp
-                      ? "border-red-500"
-                      : "border-gray-300"
+                        ? "border-red-500"
+                        : "border-gray-300"
                   }`}
                 />
                 {!timestampValid && form.timestamp && (
@@ -1366,8 +1367,8 @@ export default function AddPlants({
                   {cameraInitializing
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
-                    ? "Retry Camera"
-                    : "Open Camera"}
+                      ? "Retry Camera"
+                      : "Open Camera"}
                 </button>
                 <label
                   className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"

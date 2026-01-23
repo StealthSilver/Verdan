@@ -46,7 +46,7 @@ const TreeSchema = new Schema<ITree>(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Database indexes for optimized queries

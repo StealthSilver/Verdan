@@ -76,7 +76,7 @@ export const updateSite = async (req: Request, res: Response) => {
         status,
         type,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!site)
@@ -103,7 +103,7 @@ export const getTeamForSite = async (req: Request, res: Response) => {
 
     const site = await Site.findById(siteId).populate(
       "teamMembers",
-      "-password"
+      "-password",
     );
     if (!site)
       return res
@@ -165,14 +165,14 @@ export const addTeamMember = async (req: Request, res: Response) => {
     // Assign user to one or multiple sites' teamMembers
     if (Array.isArray(siteIds) && siteIds.length > 0) {
       const validIds = siteIds.filter((id: string) =>
-        Types.ObjectId.isValid(id)
+        Types.ObjectId.isValid(id),
       );
       if (validIds.length) {
         await Site.updateMany(
           {
             _id: { $in: validIds.map((id: string) => new Types.ObjectId(id)) },
           },
-          { $addToSet: { teamMembers: user._id } }
+          { $addToSet: { teamMembers: user._id } },
         );
       }
     } else if (siteId) {
@@ -238,7 +238,7 @@ export const removeTeamMember = async (req: Request, res: Response) => {
     // Pull member from site's teamMembers array
     await Site.updateOne(
       { _id: siteId },
-      { $pull: { teamMembers: new Types.ObjectId(memberId) } }
+      { $pull: { teamMembers: new Types.ObjectId(memberId) } },
     );
 
     // Delete user record entirely (clears from user collection)
@@ -301,7 +301,7 @@ export const deleteSite = async (req: Request, res: Response) => {
       });
 
       console.log(
-        `Found ${associatedUsers.length} non-admin users associated with site`
+        `Found ${associatedUsers.length} non-admin users associated with site`,
       );
 
       // Delete all non-admin users associated with this site
@@ -322,7 +322,7 @@ export const deleteSite = async (req: Request, res: Response) => {
         {
           $or: [{ siteId: siteObjectId }, { siteId: siteId }],
         },
-        { $unset: { siteId: "" } }
+        { $unset: { siteId: "" } },
       );
     } catch (userErr: any) {
       console.error("Error processing users:", userErr);
@@ -381,7 +381,7 @@ export const verifyTree = async (req: Request, res: Response) => {
     const tree = await Tree.findByIdAndUpdate(
       treeId,
       { verified: true },
-      { new: true }
+      { new: true },
     );
 
     if (!tree) {
@@ -392,7 +392,7 @@ export const verifyTree = async (req: Request, res: Response) => {
     }
 
     console.log(
-      `Tree ${treeId} verified successfully. Verified status: ${tree.verified}`
+      `Tree ${treeId} verified successfully. Verified status: ${tree.verified}`,
     );
     res.status(StatusCodes.OK).json(tree);
   } catch (err) {
@@ -423,7 +423,7 @@ export const getSiteById = async (req: Request, res: Response) => {
     const allSiteIds = allSites.map((s: any) => s._id.toString());
     console.log(
       "All sites in database:",
-      allSites.map((s: any) => ({ id: s._id.toString(), name: s.name }))
+      allSites.map((s: any) => ({ id: s._id.toString(), name: s.name })),
     );
     console.log("Looking for siteId:", siteId);
     console.log("Available siteIds:", allSiteIds);
@@ -434,7 +434,7 @@ export const getSiteById = async (req: Request, res: Response) => {
     // If no exact match, try case-insensitive match
     if (!matchingSiteId) {
       matchingSiteId = allSiteIds.find(
-        (id) => id.toLowerCase() === siteId.toLowerCase()
+        (id) => id.toLowerCase() === siteId.toLowerCase(),
       );
       if (matchingSiteId) {
         console.log("Found case-insensitive match:", matchingSiteId);
@@ -462,7 +462,7 @@ export const getSiteById = async (req: Request, res: Response) => {
         const siteObjectId = new Types.ObjectId(siteId);
         site = await Site.findOne({ _id: siteObjectId }).populate(
           "teamMembers",
-          "-password"
+          "-password",
         );
       } catch (objIdErr) {
         console.error("Error creating ObjectId:", objIdErr);
@@ -527,7 +527,7 @@ export const getTreesBySite = async (req: Request, res: Response) => {
 
     const trees = await Tree.find({ siteId: new Types.ObjectId(siteId) })
       .select(
-        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy images"
+        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy images",
       )
       .populate("plantedBy", "name email")
       .sort({ datePlanted: -1 })
@@ -597,6 +597,7 @@ export const addTree = async (req: AuthRequest, res: Response) => {
       timestamp,
       status,
       remarks,
+      plantedBy,
       images,
     } = req.body;
     const userId = req.user?.id;
@@ -616,6 +617,7 @@ export const addTree = async (req: AuthRequest, res: Response) => {
     const tree = await Tree.create({
       siteId: new Types.ObjectId(siteId),
       plantedBy: new Types.ObjectId(userId),
+      plantedByName: plantedBy,
       treeName,
       treeType,
       coordinates,
@@ -651,6 +653,7 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
       timestamp,
       status,
       remarks,
+      plantedBy,
       images,
     } = req.body;
 
@@ -667,6 +670,7 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
     if (timestamp) updateData.timestamp = new Date(timestamp);
     if (status) updateData.status = status;
     if (remarks !== undefined) updateData.remarks = remarks;
+    if (plantedBy !== undefined) updateData.plantedByName = plantedBy;
     if (images !== undefined) {
       // If images array is provided, update it
       updateData.images = images.map((img: any) => ({
@@ -719,7 +723,7 @@ export const getTreeById = async (req: AuthRequest, res: Response) => {
       // Sort images by timestamp to find the latest one
       const sortedImages = [...treeObj.images].sort(
         (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
       // If we have a status field in the latest image record, we'd use it here
@@ -836,7 +840,7 @@ export const deleteTreeRecord = async (req: AuthRequest, res: Response) => {
     }
 
     const target = (tree.images as any[]).find(
-      (img) => String(img._id) === recordId
+      (img) => String(img._id) === recordId,
     );
     if (!target) {
       console.log("[deleteTreeRecord] Record not found in tree", {
@@ -851,7 +855,7 @@ export const deleteTreeRecord = async (req: AuthRequest, res: Response) => {
     // Perform pull using the subdocument _id
     const updateResult = await Tree.updateOne(
       { _id: treeId },
-      { $pull: { images: { _id: new Types.ObjectId(recordId) } } }
+      { $pull: { images: { _id: new Types.ObjectId(recordId) } } },
     );
 
     console.log("[deleteTreeRecord] Pull result", updateResult);

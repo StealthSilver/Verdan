@@ -16,7 +16,7 @@ export const getUserDashboard = async (req: AuthRequest, res: Response) => {
 
     const user = await User.findById(userId).populate(
       "siteId",
-      "name location status"
+      "name location status",
     );
     if (!user || !user.siteId)
       return res
@@ -76,7 +76,7 @@ export const getSiteDashboard = async (req: AuthRequest, res: Response) => {
         .json({ message: "User has no site assigned" });
 
     const trees = await Tree.find({ siteId: user.siteId }).select(
-      "treeName coordinates datePlanted status verified"
+      "treeName coordinates datePlanted status verified",
     );
 
     res.status(StatusCodes.OK).json({ count: trees.length, trees });
@@ -125,7 +125,8 @@ export const addTree = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "User has no site assigned" });
 
-    const { treeName, coordinates, image, images, status, remarks } = req.body;
+    const { treeName, coordinates, image, images, status, remarks, plantedBy } =
+      req.body;
 
     if (!treeName || !coordinates || (!image && !images))
       return res
@@ -152,6 +153,7 @@ export const addTree = async (req: AuthRequest, res: Response) => {
       treeName,
       coordinates: normalizedCoordinates,
       plantedBy: new Types.ObjectId(userId),
+      plantedByName: plantedBy,
       siteId: new Types.ObjectId(user.siteId as any),
       datePlanted: new Date(),
       timestamp: new Date(),
@@ -231,7 +233,7 @@ export const getSiteTrees = async (req: AuthRequest, res: Response) => {
 
     const trees = await Tree.find({ siteId })
       .select(
-        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy images"
+        "treeName treeType coordinates datePlanted timestamp status remarks verified plantedBy images",
       )
       .populate("plantedBy", "name email")
       .sort({ datePlanted: -1 })
@@ -286,7 +288,7 @@ export const updateTree = async (req: AuthRequest, res: Response) => {
     const tree = await Tree.findOneAndUpdate(
       { _id: treeId, siteId },
       req.body,
-      { new: true }
+      { new: true },
     );
     if (!tree)
       return res
@@ -379,7 +381,7 @@ export const getSiteTree = async (req: AuthRequest, res: Response) => {
       // Sort images by timestamp to find the latest one
       const sortedImages = [...treeObj.images].sort(
         (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
       // If we have a status field in the latest image record, we'd use it here
@@ -409,6 +411,7 @@ export const createTreeInSite = async (req: AuthRequest, res: Response) => {
       timestamp,
       status,
       remarks,
+      plantedBy,
       images,
       image, // allow single image convenience
     } = req.body;
@@ -442,6 +445,7 @@ export const createTreeInSite = async (req: AuthRequest, res: Response) => {
     const tree = await Tree.create({
       siteId: new Types.ObjectId(siteId),
       plantedBy: new Types.ObjectId(userId),
+      plantedByName: plantedBy,
       treeName,
       treeType,
       coordinates,
@@ -526,7 +530,7 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
 // Delete a tree record (image) within accessible site
 export const deleteTreeRecordInSite = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ) => {
   try {
     const userId = req.user?.id;
@@ -558,7 +562,7 @@ export const deleteTreeRecordInSite = async (
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
     const exists = (tree.images as any[]).some(
-      (img) => String(img._id) === recordId
+      (img) => String(img._id) === recordId,
     );
     if (!exists)
       return res
@@ -566,7 +570,7 @@ export const deleteTreeRecordInSite = async (
         .json({ message: "Record not found" });
     await Tree.updateOne(
       { _id: treeId },
-      { $pull: { images: { _id: new Types.ObjectId(recordId) } } }
+      { $pull: { images: { _id: new Types.ObjectId(recordId) } } },
     );
     const updated = await Tree.findById(treeId)
       .populate("plantedBy", "name email")
