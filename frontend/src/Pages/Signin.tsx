@@ -137,7 +137,7 @@ export default function Signin() {
             className="text-4xl font-bold mb-2"
             style={{ color: VERDAN_GREEN }}
           >
-            VERDAN
+            HARIT
           </h1>
           <p className="text-gray-600 text-sm">
             Sustainable Solutions Platform
@@ -474,7 +474,7 @@ export default function Signin() {
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          © {new Date().getFullYear()} VERDAN. All rights reserved.
+          © {new Date().getFullYear()} HARIT. All rights reserved.
         </p>
       </div>
     </div>

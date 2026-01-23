@@ -37,11 +37,11 @@ const Footer = () => {
             <a
               href="#"
               className="flex items-center gap-2 group"
-              aria-label="Verdan Logo"
+              aria-label="Harit Logo"
             >
               <Image
-                src="/verdan_light.svg"
-                alt="Verdan Logo"
+                src="/harit_light.svg"
+                alt="Harit Logo"
                 width={150}
                 height={40}
                 priority
@@ -135,7 +135,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-6 sm:pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
           <p className="text-xs sm:text-sm flex items-center gap-1 opacity-80 whitespace-nowrap">
-            © {currentYear} Verdan.
+            © {currentYear} Harit.
           </p>
           <div className="flex gap-4 sm:gap-6 flex-wrap justify-center sm:justify-end">
             {[

@@ -73,7 +73,7 @@ const Cta = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Join thousands of organizations using Verdan to track, measure, and
+            Join thousands of organizations using Harit to track, measure, and
             celebrate their tree-planting impact. Get started free today.
           </motion.p>
 
@@ -143,7 +143,7 @@ const Cta = () => {
                   10+
                 </div>
                 <p className="text-xs sm:text-sm opacity-70 font-sans">
-                  Organizations on Verdan
+                  Organizations on Harit
                 </p>
               </div>
               <div className="text-center">

@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ITree extends Document {
   siteId: mongoose.Types.ObjectId;
   plantedBy: mongoose.Types.ObjectId;
+  plantedByName?: string;
   treeName: string;
   treeType?: string;
   coordinates: {
@@ -24,6 +25,7 @@ const TreeSchema = new Schema<ITree>(
   {
     siteId: { type: Schema.Types.ObjectId, ref: "Site", required: true },
     plantedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    plantedByName: { type: String },
     treeName: { type: String, required: true },
     treeType: { type: String, default: "" },
     coordinates: {

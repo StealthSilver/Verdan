@@ -29,8 +29,8 @@ export default function Navbar() {
           className="flex items-center cursor-pointer flex-shrink-0"
         >
           <motion.img
-            src="/verdan_light.svg"
-            alt="Verdan Logo"
+            src="/Harit-light.svg"
+            alt="Harit Logo"
             className="w-20 h-auto sm:w-24 md:w-28 lg:w-32 xl:w-36"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

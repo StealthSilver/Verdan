@@ -14,7 +14,7 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <Image
           src="/hero_img.png"
-          alt="Verdan platform growing a thriving forest"
+          alt="Harit platform growing a thriving forest"
           fill
           priority
           className="object-cover w-full h-full blur-[1px] scale-110"
@@ -57,7 +57,7 @@ const Hero = () => {
         </h2>
 
         <p className="text-base sm:text-lg md:text-xl font-sans mt-6 sm:mt-8 opacity-90 max-w-2xl">
-          With Verdan, you can record, photograph, and follow the
+          With Harit, you can record, photograph, and follow the
         </p>
         <p className="text-base sm:text-lg md:text-xl font-sans mt-1 opacity-90 max-w-2xl">
           life of every tree — turning data into a forest of impact.
@@ -66,7 +66,7 @@ const Hero = () => {
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center pt-8 sm:pt-12 gap-3 sm:gap-4 md:gap-12 w-full sm:w-auto px-2">
           <Link
-            href="https://verdan-beige.vercel.app/"
+            href="https://Harit-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-3 sm:px-5 py-2 sm:py-2.5 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-xs sm:text-sm transition-all duration-200"

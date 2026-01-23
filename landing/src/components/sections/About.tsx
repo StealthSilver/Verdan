@@ -75,7 +75,7 @@ const About = () => {
             About
           </h2>
           <p className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-3xl mx-auto">
-            We believe every tree matters. Verdan empowers organizations and
+            We believe every tree matters. Harit empowers organizations and
             individuals to plant with purpose, track with precision, and grow
             with impact.
           </p>
@@ -92,7 +92,7 @@ const About = () => {
             className="text-center"
           >
             <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-medium mb-6 sm:mb-8">
-              Why Verdan?
+              Why Harit?
             </h3>
             <p className="text-base sm:text-lg font-sans opacity-80 mb-4 sm:mb-6 leading-relaxed">
               Traditional tree-planting efforts often lack transparency and
@@ -100,7 +100,7 @@ const About = () => {
               measure the real impact of reforestation projects.
             </p>
             <p className="text-base sm:text-lg font-sans opacity-80 mb-8 sm:mb-12 leading-relaxed">
-              Verdan solves this by providing a comprehensive platform where
+              Harit solves this by providing a comprehensive platform where
               every tree is documented, monitored, and celebrated. From planting
               to growth milestones, your forest grows with full visibility.
             </p>

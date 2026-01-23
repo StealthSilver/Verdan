@@ -16,6 +16,7 @@ interface TreeForm {
   timestamp: string;
   status: string;
   remarks: string;
+  plantedBy: string;
   image: string | null;
 }
 
@@ -44,7 +45,7 @@ export default function AddPlants({
   }>();
   const siteId = propSiteId || routeSiteId; // prefer explicit prop for modal usage
   const treeId = propTreeId || routeTreeId; // prefer explicit prop for modal usage
-  const { token, role } = useAuth();
+  const { token, role, username } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [site, setSite] = useState<Site | null>(null);
@@ -92,8 +93,16 @@ export default function AddPlants({
     timestamp: getLocalDateTimeMinuteString(),
     status: "healthy",
     remarks: "",
+    plantedBy: username || "",
     image: null,
   });
+
+  // Update plantedBy when username changes
+  useEffect(() => {
+    if (username && !form.plantedBy) {
+      setForm((prev) => ({ ...prev, plantedBy: username }));
+    }
+  }, [username]);
 
   // Validate coordinates
   const validateCoordinates = (lat: number, lng: number): boolean => {
@@ -309,6 +318,7 @@ export default function AddPlants({
               timestamp,
               status: tree.status || "healthy",
               remarks: tree.remarks || "",
+              plantedBy: tree.plantedByName || username || "",
               image:
                 tree.images && tree.images.length > 0
                   ? tree.images[0].url
@@ -468,6 +478,7 @@ export default function AddPlants({
             timestamp: form.timestamp,
             status: form.status,
             remarks: form.remarks || undefined,
+            plantedBy: form.plantedBy || username || undefined,
             images,
           },
           { headers: { Authorization: `Bearer ${token}` } }
@@ -491,6 +502,7 @@ export default function AddPlants({
               timestamp: form.timestamp,
               status: form.status,
               remarks: form.remarks || undefined,
+              plantedBy: form.plantedBy || username || undefined,
               images,
             },
             { headers: { Authorization: `Bearer ${token}` } }
@@ -1186,6 +1198,27 @@ export default function AddPlants({
                   </p>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="plantedBy"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Planted By
+                <span className="text-xs text-gray-500 ml-1">
+                  (Optional - defaults to your name)
+                </span>
+              </label>
+              <input
+                type="text"
+                id="plantedBy"
+                name="plantedBy"
+                value={form.plantedBy}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter the name of the person who planted this tree"
+              />
             </div>
 
             <div>
