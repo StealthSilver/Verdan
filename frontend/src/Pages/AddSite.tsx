@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
-import verdanLogo from "../assets/verdan_light.svg";
 
 interface SiteForm {
   name: string;
@@ -217,7 +216,10 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+              <div className="flex items-center gap-2">
+                <img src="/icon.svg" alt="Harit Logo" className="h-8" />
+                <span className="text-2xl font-bold text-gray-800">हरित</span>
+              </div>
               <button
                 onClick={handleBack}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"

@@ -3,7 +3,6 @@ import { Camera, Upload, RefreshCw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
-import verdanLogo from "../assets/verdan_light.svg";
 
 interface TreeForm {
   coordinates: {
@@ -121,12 +120,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       location.hostname === "127.0.0.1";
     if (!isSecure) {
       setSecureContextWarning(
-        "Geolocation requires HTTPS or localhost. Please use https:// or run locally."
+        "Geolocation requires HTTPS or localhost. Please use https:// or run locally.",
       );
     }
     if (!navigator.geolocation) {
       setLocationError(
-        "Geolocation is not supported by your browser. Please enter coordinates manually."
+        "Geolocation is not supported by your browser. Please enter coordinates manually.",
       );
       setManualCoords(true);
       return;
@@ -195,7 +194,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         try {
           fetch("https://ipapi.co/json/")
             .then((r) =>
-              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed"))
+              r.ok ? r.json() : Promise.reject(new Error("IP lookup failed")),
             )
             .then((data) => {
               const lat = Number(data.latitude);
@@ -206,14 +205,14 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                   coordinates: { lat, lng },
                 }));
                 setLocationError(
-                  "Used approximate location from IP lookup. Please verify or edit manually."
+                  "Used approximate location from IP lookup. Please verify or edit manually.",
                 );
               }
             })
             .catch(() => {});
         } catch {}
       },
-      options
+      options,
     );
   };
 
@@ -262,7 +261,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
           }));
           validateCoordinates(
             treeRes.data.coordinates.lat,
-            treeRes.data.coordinates.lng
+            treeRes.data.coordinates.lng,
           );
         }
       } catch (err: any) {
@@ -276,7 +275,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -324,7 +323,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
     if (!validateCoordinates(form.coordinates.lat, form.coordinates.lng)) {
       setError(
-        "Valid coordinates are required. Please use the 'Get Current Location' button."
+        "Valid coordinates are required. Please use the 'Get Current Location' button.",
       );
       setLoading(false);
       return;
@@ -332,7 +331,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
     if (!validateTimestamp(form.timestamp)) {
       setError(
-        "Valid timestamp is required. Timestamp must be a valid date and time (not in the future)."
+        "Valid timestamp is required. Timestamp must be a valid date and time (not in the future).",
       );
       setLoading(false);
       return;
@@ -363,7 +362,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (embedded) {
         props.onRecordSaved?.();
@@ -386,7 +385,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
           /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
       if (isTooLarge) {
         setError(
-          "Image size limit exceeded (~600KB). Please use a smaller image."
+          "Image size limit exceeded (~600KB). Please use a smaller image.",
         );
       } else {
         setError(msg || "Failed to add record. Please try again.");
@@ -446,7 +445,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const backCam = devices.find(
-        (d) => d.kind === "videoinput" && /back|rear|environment/i.test(d.label)
+        (d) =>
+          d.kind === "videoinput" && /back|rear|environment/i.test(d.label),
       );
       if (backCam) {
         constraintsList.unshift({
@@ -479,7 +479,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
   const compressToLimit = async (
     dataUrl: string,
-    targetBytes: number = MAX_IMAGE_BYTES
+    targetBytes: number = MAX_IMAGE_BYTES,
   ): Promise<string> => {
     if (!dataUrl) return dataUrl;
     if (dataUrlBytes(dataUrl) <= targetBytes) return dataUrl;
@@ -562,7 +562,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image size limit exceeded (~600KB). Capture closer or lower resolution."
+          "Image size limit exceeded (~600KB). Capture closer or lower resolution.",
         );
         return;
       }
@@ -584,7 +584,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Image size limit exceeded (~600KB). Please choose a smaller image."
+            "Image size limit exceeded (~600KB). Please choose a smaller image.",
           );
           setImagePreview(null);
           setForm((prev) => ({ ...prev, image: null }));
@@ -647,11 +647,11 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               readyErr?.name === "SecurityError"
             ) {
               setError(
-                "Camera permission denied. Grant access and click Retry."
+                "Camera permission denied. Grant access and click Retry.",
               );
             } else {
               setError(
-                "Camera took too long to start. Check permissions or click Retry."
+                "Camera took too long to start. Check permissions or click Retry.",
               );
             }
             setCameraReady(false);
@@ -665,12 +665,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
             err?.name === "SecurityError"
           ) {
             setError(
-              "Camera permission denied. Allow access in browser settings then click Retry."
+              "Camera permission denied. Allow access in browser settings then click Retry.",
             );
           } else {
             setError(
               (err?.message || "Failed to access camera") +
-                ". Check permissions or use Upload Image."
+                ". Check permissions or use Upload Image.",
             );
           }
           setCameraReady(false);
@@ -733,7 +733,10 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+              <div className="flex items-center gap-2">
+                <img src="/icon.svg" alt="Harit Logo" className="h-8" />
+                <span className="text-2xl font-bold text-gray-800">हरित</span>
+              </div>
               <button
                 onClick={handleBack}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
@@ -935,8 +938,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                   timestampValid
                     ? "border-green-500"
                     : form.timestamp
-                    ? "border-red-500"
-                    : "border-gray-300"
+                      ? "border-red-500"
+                      : "border-gray-300"
                 }`}
               />
               {!timestampValid && form.timestamp && (
@@ -1080,8 +1083,8 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                   {cameraInitializing
                     ? "Opening Camera..."
                     : cameraAttempts > 0 && !cameraOpen && !imagePreview
-                    ? "Retry Camera"
-                    : "Open Camera"}
+                      ? "Retry Camera"
+                      : "Open Camera"}
                 </button>
                 <label
                   className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"

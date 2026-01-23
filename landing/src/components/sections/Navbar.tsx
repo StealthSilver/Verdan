@@ -26,16 +26,19 @@ export default function Navbar() {
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <Link
           href="/"
-          className="flex items-center cursor-pointer flex-shrink-0"
+          className="flex items-center gap-2 cursor-pointer flex-shrink-0"
         >
           <motion.img
-            src="/Harit-light.svg"
+            src="/icon.svg"
             alt="Harit Logo"
-            className="w-20 h-auto sm:w-24 md:w-28 lg:w-32 xl:w-36"
+            className="w-8 h-auto sm:w-10 md:w-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           />
+          <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
+            हरित
+          </span>
         </Link>
 
         <div

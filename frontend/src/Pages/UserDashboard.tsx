@@ -3,7 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
-import verdanLogo from "../assets/verdan_light.svg";
 // Site editing is not available for user dashboard
 
 const VERDAN_GREEN = "#48845C";
@@ -143,7 +142,10 @@ export default function UserDashboard() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+            <div className="flex items-center gap-2">
+              <img src="/icon.svg" alt="Harit Logo" className="h-8" />
+              <span className="text-2xl font-bold text-gray-800">हरित</span>
+            </div>
 
             <div className="relative" ref={dropdownRef}>
               <button

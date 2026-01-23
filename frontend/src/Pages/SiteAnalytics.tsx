@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
-import verdanLogo from "../assets/verdan_light.svg";
 import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
 
 // Chart.js + React wrapper
@@ -33,7 +32,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   TimeScale,
-  Filler
+  Filler,
 );
 
 const VERDAN_GREEN = "#48845C";
@@ -79,7 +78,7 @@ export default function SiteAnalytics() {
   const [site, setSite] = useState<Site | null>(null);
   const [trees, setTrees] = useState<Tree[]>([]);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -309,10 +308,10 @@ export default function SiteAnalytics() {
           label: "Tree Count",
           data,
           backgroundColor: labels.map(
-            (label) => statusColors[label] || CHART_COLORS.gray
+            (label) => statusColors[label] || CHART_COLORS.gray,
           ),
           borderColor: labels.map(
-            (label) => statusColors[label] || CHART_COLORS.gray
+            (label) => statusColors[label] || CHART_COLORS.gray,
           ),
           borderWidth: 0,
           borderRadius: 8,
@@ -511,7 +510,10 @@ export default function SiteAnalytics() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <img src={verdanLogo} alt="Verdan Logo" className="h-7" />
+            <div className="flex items-center gap-2">
+              <img src="/icon.svg" alt="Harit Logo" className="h-8" />
+              <span className="text-2xl font-bold text-gray-800">हरित</span>
+            </div>
 
             <div className="flex items-center gap-3">
               <button

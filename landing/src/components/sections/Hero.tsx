@@ -66,7 +66,7 @@ const Hero = () => {
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center pt-8 sm:pt-12 gap-3 sm:gap-4 md:gap-12 w-full sm:w-auto px-2">
           <Link
-            href="https://Harit-beige.vercel.app/"
+            href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-white border border-black text-gray-900 hover:bg-black hover:text-white rounded-full px-3 sm:px-5 py-2 sm:py-2.5 shadow-glow group flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-black/40 font-sans font-semibold text-xs sm:text-sm transition-all duration-200"
