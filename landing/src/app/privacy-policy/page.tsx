@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
               ensuring the security of your personal information. This Privacy
               Policy explains how we collect, use, disclose, and safeguard your
               information when you use our mobile application and website
-              (collectively, the "Service").
+              (collectively, the &ldquo;Service&rdquo;).
             </p>
             <p className="text-gray-700 dark:text-gray-300">
               By using Verdan, you agree to the collection and use of
@@ -231,7 +231,7 @@ export default function PrivacyPolicy() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-              8. Children's Privacy
+              8. Children&apos;s Privacy
             </h2>
             <p className="text-gray-700 dark:text-gray-300">
               Our Service is not intended for children under 13 years of age. We
@@ -272,8 +272,9 @@ export default function PrivacyPolicy() {
             <p className="text-gray-700 dark:text-gray-300">
               We may update this Privacy Policy from time to time. We will
               notify you of any changes by posting the new Privacy Policy on
-              this page and updating the "Last Updated" date. You are advised to
-              review this Privacy Policy periodically for any changes.
+              this page and updating the &ldquo;Last Updated&rdquo; date. You
+              are advised to review this Privacy Policy periodically for any
+              changes.
             </p>
           </section>
 
