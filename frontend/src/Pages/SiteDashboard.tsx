@@ -82,6 +82,7 @@ export default function SiteDashboard() {
   });
   const [deleting, setDeleting] = useState(false);
   const [verifying, setVerifying] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<Pagination>({
     currentPage: 1,
@@ -90,108 +91,148 @@ export default function SiteDashboard() {
     limit: 10,
   });
 
-  const exportDashboardXlsx = () => {
+  const exportDashboardXlsx = async () => {
     if (!site) {
       alert("Site not loaded yet.");
       return;
     }
-    if (!trees || trees.length === 0) {
-      alert("No trees to export for this site.");
+    if (!token) {
+      alert("Authentication token missing.");
       return;
     }
 
-    // Preface (metadata)
-    const metaRows = [
-      ["Site ID", site._id],
-      ["Site Name", site.name],
-      ["Address", site.address || ""],
-      ["Status", site.status],
-      ["Latitude", site.coordinates?.lat ?? ""],
-      ["Longitude", site.coordinates?.lng ?? ""],
-      ["Exported By", user?.name || ""],
-      ["Exported Email", user?.email || ""],
-      ["Exported At", new Date().toISOString()],
-    ];
+    setExporting(true);
 
-    // Trees (excluding images)
-    const headers = [
-      "Serial No.",
-      "Tree Name",
-      "Tree ID",
-      "Date",
-      "Time",
-      "Coordinates",
-      "Verified",
-      "Health Status",
-      "Remarks",
-      "Tree Type",
-      "Planted By Name",
-      "Planted By Email",
-      "Planted By ID",
-    ];
+    try {
+      // Fetch all trees without pagination
+      let allTrees: Tree[] = [];
+      const isUser = role === "user";
 
-    // Trees sheet (excluding images per request)
-    const treeRows = trees.map((tree, idx) => {
-      const timeStr = new Date(
-        tree.timestamp || tree.datePlanted,
-      ).toLocaleTimeString();
-      const dateStr = new Date(tree.datePlanted).toLocaleDateString();
-      const coords = `${tree.coordinates?.lat?.toFixed(6) ?? ""}, ${
-        tree.coordinates?.lng?.toFixed(6) ?? ""
-      }`;
-      return [
-        idx + 1,
-        tree.treeName,
-        tree._id,
-        dateStr,
-        timeStr,
-        coords,
-        tree.verified ? "Verified" : "Pending",
-        tree.status || "",
-        tree.remarks || "",
-        tree.treeType || "",
-        tree.plantedBy?.name || "",
-        tree.plantedBy?.email || "",
-        tree.plantedBy?._id || "",
+      if (isUser) {
+        const treesRes = await API.get(`/user/sites/${siteId}/trees`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: 1, limit: 100000 }, // Fetch all at once
+        });
+        allTrees = treesRes.data?.trees || treesRes.data || [];
+      } else {
+        const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: 1, limit: 100000 }, // Fetch all at once
+        });
+        allTrees = treesRes.data?.trees || treesRes.data || [];
+      }
+
+      if (!allTrees || allTrees.length === 0) {
+        alert("No trees to export for this site.");
+        setExporting(false);
+        return;
+      }
+
+      // Preface (metadata)
+      const metaRows = [
+        ["Site ID", site._id],
+        ["Site Name", site.name],
+        ["Address", site.address || ""],
+        ["Status", site.status],
+        ["Latitude", site.coordinates?.lat ?? ""],
+        ["Longitude", site.coordinates?.lng ?? ""],
+        ["Total Trees Exported", allTrees.length],
+        ["Exported By", user?.name || ""],
+        ["Exported Email", user?.email || ""],
+        ["Exported At", new Date().toISOString()],
       ];
-    });
-    // Build single worksheet: meta, blank, headers, treeRows
-    const sheetData = [...metaRows, [], headers, ...treeRows];
-    const sheet = XLSX.utils.aoa_to_sheet(sheetData);
 
-    // Widths: first two columns for meta, rest for trees table
-    sheet["!cols"] = [
-      { wch: 8 }, // Serial No.
-      { wch: 24 }, // Tree Name
-      { wch: 20 }, // Tree ID
-      { wch: 14 }, // Date
-      { wch: 12 }, // Time
-      { wch: 22 }, // Coordinates
-      { wch: 12 }, // Verified
-      { wch: 16 }, // Health Status
-      { wch: 24 }, // Remarks
-      { wch: 16 }, // Tree Type
-      { wch: 20 }, // Planted By Name
-      { wch: 26 }, // Planted By Email
-      { wch: 18 }, // Planted By ID
-    ];
-    // Put autofilter on the header row (metaRows.length + 2)
-    const headerRowIndex = metaRows.length + 2; // 1-indexed in Excel
-    const range = XLSX.utils.decode_range(sheet["!ref"]!);
-    range.s.r = headerRowIndex - 1;
-    range.e.r = headerRowIndex - 1;
-    sheet["!autofilter"] = { ref: XLSX.utils.encode_range(range) };
+      // Trees (excluding images)
+      const headers = [
+        "Serial No.",
+        "Tree Name",
+        "Tree ID",
+        "Date",
+        "Time",
+        "Coordinates",
+        "Verified",
+        "Health Status",
+        "Remarks",
+        "Tree Type",
+        "Planted By Name",
+        "Planted By Email",
+        "Planted By ID",
+      ];
 
-    // Build workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, sheet, "Site Export");
+      // Trees sheet (excluding images per request)
+      const treeRows = allTrees.map((tree, idx) => {
+        const timeStr = new Date(
+          tree.timestamp || tree.datePlanted,
+        ).toLocaleTimeString();
+        const dateStr = new Date(tree.datePlanted).toLocaleDateString();
+        const coords = `${tree.coordinates?.lat?.toFixed(6) ?? ""}, ${
+          tree.coordinates?.lng?.toFixed(6) ?? ""
+        }`;
+        return [
+          idx + 1,
+          tree.treeName,
+          tree._id,
+          dateStr,
+          timeStr,
+          coords,
+          tree.verified ? "Verified" : "Pending",
+          tree.status || "",
+          tree.remarks || "",
+          tree.treeType || "",
+          tree.plantedBy?.name || "",
+          tree.plantedBy?.email || "",
+          tree.plantedBy?._id || "",
+        ];
+      });
 
-    // Download
-    const fileName = `verdan_site_${site._id}_trees_${new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:T]/g, "-")}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+      // Build single worksheet: meta, blank, headers, treeRows
+      const sheetData = [...metaRows, [], headers, ...treeRows];
+      const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+
+      // Widths: first two columns for meta, rest for trees table
+      sheet["!cols"] = [
+        { wch: 8 }, // Serial No.
+        { wch: 24 }, // Tree Name
+        { wch: 20 }, // Tree ID
+        { wch: 14 }, // Date
+        { wch: 12 }, // Time
+        { wch: 22 }, // Coordinates
+        { wch: 12 }, // Verified
+        { wch: 16 }, // Health Status
+        { wch: 24 }, // Remarks
+        { wch: 16 }, // Tree Type
+        { wch: 20 }, // Planted By Name
+        { wch: 26 }, // Planted By Email
+        { wch: 18 }, // Planted By ID
+      ];
+
+      // Put autofilter on the header row (metaRows.length + 2)
+      const headerRowIndex = metaRows.length + 2; // 1-indexed in Excel
+      const range = XLSX.utils.decode_range(sheet["!ref"]!);
+      range.s.r = headerRowIndex - 1;
+      range.e.r = headerRowIndex - 1;
+      sheet["!autofilter"] = { ref: XLSX.utils.encode_range(range) };
+
+      // Build workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, sheet, "Site Export");
+
+      // Download
+      const fileName = `verdan_site_${site._id}_trees_${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, "-")}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      alert(`Export successful! ${allTrees.length} trees exported.`);
+    } catch (err: any) {
+      console.error("Export error:", err);
+      alert(
+        `Export failed: ${err?.response?.data?.message || err.message || "Unknown error"}`,
+      );
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Close dropdown when clicked outside
@@ -570,12 +611,12 @@ export default function SiteDashboard() {
             </button>
             <button
               onClick={exportDashboardXlsx}
-              disabled={loading || !site || trees.length === 0}
+              disabled={loading || !site || trees.length === 0 || exporting}
               className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               <FiDownload className="text-base sm:text-lg" />
-              <span>Export as Excel</span>
+              <span>{exporting ? "Exporting..." : "Export as Excel"}</span>
             </button>
             {role !== "user" && (
               <button
