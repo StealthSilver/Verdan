@@ -8,6 +8,7 @@ import Tree from "../models/tree.model.js";
 dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
+
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@verdan.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin@1005";
 const ADMIN_NAME = process.env.ADMIN_NAME || "Admin User";
@@ -40,18 +41,6 @@ async function seedDatabase() {
       designation: "System Administrator",
       gender: "other",
     });
-
-    console.log("✅ Admin user created:");
-    console.log(`   Email: ${ADMIN_EMAIL}`);
-    console.log(`   Password: ${ADMIN_PASSWORD}`);
-    console.log("   ID:", admin._id);
-
-    console.log("\n✅ Database seeded successfully!");
-    console.log("\nYou can now:");
-    console.log("1. Login with admin@verdan.com / admin@1005");
-    console.log("2. Create sites");
-    console.log("3. Add team members");
-    console.log("4. Add plants to sites");
 
     await mongoose.disconnect();
     process.exit(0);

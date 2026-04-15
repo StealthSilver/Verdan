@@ -7,6 +7,7 @@ import Site, { ISite } from "../models/site.model.js";
 import Tree from "../models/tree.model.js";
 import { sendEmail } from "../utils/email.util.js";
 import { AuthRequest } from "../middlewares/auth.middleware.js";
+import { uploadToS3, deleteFromS3 } from "../utils/s3.util.js";
 
 export const getAllSites = async (req: Request, res: Response) => {
   try {
@@ -742,19 +743,20 @@ export const getTreeById = async (req: AuthRequest, res: Response) => {
 export const addTreeRecord = async (req: AuthRequest, res: Response) => {
   try {
     console.log("addTreeRecord called with treeId:", req.params.treeId);
-    console.log("Request body:", req.body);
+    console.log("Request file:", req.file ? "Present" : "Missing");
     const { treeId } = req.params;
-    const { image, coordinates, timestamp, status, remarks } = req.body;
+    const { coordinates, timestamp, status, remarks } = req.body;
+    const file = req.file; // Get file from multer
 
     if (!treeId)
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Missing treeId" });
 
-    if (!image)
+    if (!file)
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Image is required" });
+        .json({ message: "Image file is required" });
 
     const tree = await Tree.findById(treeId);
     if (!tree)
@@ -762,9 +764,16 @@ export const addTreeRecord = async (req: AuthRequest, res: Response) => {
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
 
+    // Upload file to S3
+    const imageUrl = await uploadToS3(
+      file.buffer,
+      `trees/${tree.siteId}`,
+      file.originalname,
+    );
+
     // Add new image record to the images array
     const newImage = {
-      url: image,
+      url: imageUrl,
       timestamp: timestamp ? new Date(timestamp) : new Date(),
     };
 
@@ -800,7 +809,10 @@ export const addTreeRecord = async (req: AuthRequest, res: Response) => {
     console.error(err);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Server error" });
+      .json({
+        message: "Server error",
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
   }
 };
 
@@ -850,6 +862,14 @@ export const deleteTreeRecord = async (req: AuthRequest, res: Response) => {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Record not found on this tree" });
+    }
+
+    // Delete from S3
+    try {
+      await deleteFromS3(target.url);
+    } catch (s3Error) {
+      console.error("[deleteTreeRecord] Error deleting from S3:", s3Error);
+      // Continue even if S3 deletion fails
     }
 
     // Perform pull using the subdocument _id

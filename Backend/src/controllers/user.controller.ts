@@ -5,6 +5,7 @@ import Site from "../models/site.model";
 import Tree from "../models/tree.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { Types } from "mongoose";
+import { uploadToS3, deleteFromS3 } from "../utils/s3.util.js";
 
 export const getUserDashboard = async (req: AuthRequest, res: Response) => {
   try {
@@ -474,7 +475,9 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
     const role = req.user?.role;
     const { siteId, treeId } = req.params as any;
-    const { image, coordinates, timestamp, status, remarks } = req.body;
+    const { coordinates, timestamp, status, remarks } = req.body;
+    const file = req.file; // Get file from multer
+
     if (!userId)
       return res
         .status(StatusCodes.UNAUTHORIZED)
@@ -488,10 +491,10 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Invalid IDs" });
-    if (!image)
+    if (!file)
       return res
         .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Image is required" });
+        .json({ message: "Image file is required" });
     if (role !== "admin") {
       const site = await Site.findOne({ _id: siteId, teamMembers: userId });
       if (!site)
@@ -502,8 +505,16 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
+
+    // Upload file to S3
+    const imageUrl = await uploadToS3(
+      file.buffer,
+      `trees/${siteId}`,
+      file.originalname,
+    );
+
     const newImage = {
-      url: image,
+      url: imageUrl,
       timestamp: timestamp ? new Date(timestamp) : new Date(),
     };
     const update: any = { $push: { images: newImage } };
@@ -521,9 +532,10 @@ export const addTreeRecordInSite = async (req: AuthRequest, res: Response) => {
     return res.status(StatusCodes.OK).json(updated);
   } catch (err) {
     console.error(err);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Server error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "Server error",
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
   }
 };
 
@@ -561,13 +573,23 @@ export const deleteTreeRecordInSite = async (
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Tree not found" });
-    const exists = (tree.images as any[]).some(
+
+    const imageRecord = (tree.images as any[]).find(
       (img) => String(img._id) === recordId,
     );
-    if (!exists)
+    if (!imageRecord)
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "Record not found" });
+
+    // Delete from S3
+    try {
+      await deleteFromS3(imageRecord.url);
+    } catch (s3Error) {
+      console.error("Error deleting from S3:", s3Error);
+      // Continue even if S3 deletion fails
+    }
+
     await Tree.updateOne(
       { _id: treeId },
       { $pull: { images: { _id: new Types.ObjectId(recordId) } } },

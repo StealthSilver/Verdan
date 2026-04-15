@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import upload from "../middlewares/upload.middleware.js";
 import {
   getUserDashboard,
   getUserProfile,
@@ -34,10 +35,14 @@ router.delete("/sites/:siteId/trees/:treeId", deleteTree);
 // Parity endpoints for single tree & records
 router.get("/sites/:siteId/trees/:treeId", getSiteTree);
 router.post("/sites/:siteId/trees", createTreeInSite);
-router.post("/sites/:siteId/trees/:treeId/records", addTreeRecordInSite);
+router.post(
+  "/sites/:siteId/trees/:treeId/records",
+  upload.single("image"),
+  addTreeRecordInSite,
+);
 router.delete(
   "/sites/:siteId/trees/:treeId/records/:recordId",
-  deleteTreeRecordInSite
+  deleteTreeRecordInSite,
 );
 
 export default router;

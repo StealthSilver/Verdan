@@ -6,12 +6,13 @@ import type { Types } from "mongoose";
 
 export interface AuthRequest extends Request {
   user?: { id: string; role: "admin" | "user" };
+  file?: Express.Multer.File;
 }
 
 export async function authMiddleware(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     console.log(`Auth middleware - ${req.method} ${req.path}`);
@@ -63,7 +64,7 @@ export async function authMiddleware(
 export function requireAdmin(
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!req.user) {
     return res

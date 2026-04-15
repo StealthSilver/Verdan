@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { adminOnly } from "../middlewares/role.middleware";
+import upload from "../middlewares/upload.middleware";
 import {
   getAllSites,
   addSite,
@@ -28,7 +29,7 @@ router.use((req, res, next) => {
   console.log(`Admin route hit: ${req.method} ${req.path}`);
   console.log(
     `Headers:`,
-    req.headers.authorization ? "Authorization present" : "No Authorization"
+    req.headers.authorization ? "Authorization present" : "No Authorization",
   );
   next();
 });
@@ -65,7 +66,7 @@ router.get("/site/team", getTeamForSite);
 router.post("/site/team/add", addTeamMember);
 router.delete("/site/team/remove", removeTeamMember);
 router.post("/trees/add", addTree);
-router.post("/trees/:treeId/records", addTreeRecord);
+router.post("/trees/:treeId/records", upload.single("image"), addTreeRecord);
 router.delete("/trees/:treeId/records/:recordId", deleteTreeRecord);
 // Alias route (singular 'record') in case frontend or cached code hits this path
 router.delete("/trees/:treeId/record/:recordId", deleteTreeRecord);
