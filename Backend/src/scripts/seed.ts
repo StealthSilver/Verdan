@@ -9,7 +9,7 @@ dotenv.config();
 
 const MONGO_URI = process.env.MONGO_URI;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@verdan.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin@1005";
 const ADMIN_NAME = process.env.ADMIN_NAME || "Admin User";
 
 if (!MONGO_URI) {
@@ -48,7 +48,7 @@ async function seedDatabase() {
 
     console.log("\n✅ Database seeded successfully!");
     console.log("\nYou can now:");
-    console.log("1. Login with admin@verdan.com / admin123");
+    console.log("1. Login with admin@verdan.com / admin@1005");
     console.log("2. Create sites");
     console.log("3. Add team members");
     console.log("4. Add plants to sites");
