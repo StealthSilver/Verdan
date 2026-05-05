@@ -21,5 +21,7 @@ export default function ClientWrapper({
     }
   }, []);
 
-  return <>{loading ? <Loader /> : children}</>;
+  return (
+    <div className="relative z-10 min-h-0">{loading ? <Loader /> : children}</div>
+  );
 }

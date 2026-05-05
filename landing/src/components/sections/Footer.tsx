@@ -1,175 +1,147 @@
-"use client";
 import Image from "next/image";
+import Link from "next/link";
+import { Github, Twitter } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const VERDAN_GREEN = "#48845C";
+const navLinks = [
+  { name: "Features", href: "/#features" },
+  { name: "About", href: "/#about" },
+];
+
+const legalLinks = [
+  {
+    name: "Privacy Policy",
+    href: "https://verdan-main.vercel.app/privacy-policy",
+    external: true,
+  },
+  { name: "Terms of Service", href: "#", external: false },
+  { name: "Cookie Policy", href: "#", external: false },
+];
+
+const socialLinks = [
+  {
+    name: "Twitter",
+    href: "https://x.com/silver_srs",
+    icon: Twitter,
+  },
+  {
+    name: "GitHub",
+    href: "https://github.com/StealthSilver/Verdan",
+    icon: Github,
+  },
+];
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
-
-  const footerLinks = {
-    product: [
-      { name: "Features", href: "#features" },
-      { name: "About", href: "#about" },
-      { name: "Pricing", href: "#" },
-    ],
-    company: [
-      { name: "Blog", href: "#" },
-      { name: "Careers", href: "#" },
-      { name: "Contact", href: "#connect" },
-    ],
-    legal: [
-      {
-        name: "Privacy Policy",
-        href: "https://verdan-main.vercel.app/privacy-policy",
-      },
-      { name: "Terms of Service", href: "#" },
-      { name: "Cookie Policy", href: "#" },
-    ],
-  };
+  const year = new Date().getFullYear();
 
   return (
     <footer
-      className="w-full"
       id="footer"
-      style={{ backgroundColor: "#ffffff", color: "#000000" }}
+      className={cn(
+        "relative w-full border-t border-black/[0.08] bg-[var(--background)] text-[var(--color-font)]",
+        "font-[family-name:var(--font-dm-sans)]",
+        "shadow-[0_-12px_40px_rgba(0,0,0,0.06)]"
+      )}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-8 sm:mb-12">
-          {/* Brand */}
-          <div className="lg:col-span-2 space-y-4">
-            <a
-              href="#"
-              className="flex items-center gap-3 group"
-              aria-label="Harit Logo"
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[rgb(74,137,92)]/25"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:justify-between lg:gap-16 lg:text-left">
+          <div className="max-w-md lg:mx-0">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+              aria-label="Harit home"
             >
               <Image
                 src="/icon.svg"
-                alt="Harit Logo"
-                width={40}
-                height={40}
-                priority
-                className="w-10 h-10"
+                alt=""
+                width={44}
+                height={44}
+                className="h-10 w-10 sm:h-11 sm:w-11"
               />
-              <span
-                className="text-3xl font-bold"
-                style={{ color: VERDAN_GREEN }}
-              >
+              <span className="text-3xl font-bold text-[rgb(74,137,92)] sm:text-4xl">
                 हरित
               </span>
-            </a>
-            <p className="max-w-xs text-sm sm:text-base opacity-70">
-              Your smart companion for nurturing healthier, happier plants.
+            </Link>
+            <p className="mt-4 text-sm leading-relaxed text-[var(--color-font)]/70 sm:text-base">
+              Record, photograph, and follow every tree—turning field data into
+              lasting impact.
             </p>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
-              Product
-            </h3>
-            <ul className="space-y-2">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="transition-colors text-sm sm:text-base"
-                    style={{ color: "#000000", opacity: 0.7 }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = VERDAN_GREEN)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "#000000")
-                    }
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-wrap justify-center gap-12 sm:gap-16 lg:justify-end">
+            <nav aria-label="On this page" className="min-w-[8rem] text-left">
+              <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
+                Navigate
+              </p>
+              <ul className="space-y-3">
+                {navLinks.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className="text-sm text-[var(--color-font)]/60 transition-colors hover:text-[rgb(74,137,92)] hover:opacity-100 sm:text-base"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <nav aria-label="Legal" className="min-w-[10rem] text-left">
+              <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
+                Legal
+              </p>
+              <ul className="space-y-3">
+                {legalLinks.map((item) => (
+                  <li key={item.name}>
+                    <a
+                      href={item.href}
+                      {...(item.external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      className="text-sm text-[var(--color-font)]/60 transition-colors hover:text-[rgb(74,137,92)] hover:opacity-100 sm:text-base"
+                    >
+                      {item.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
-              Company
-            </h3>
-            <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="transition-colors text-sm sm:text-base"
-                    style={{ color: "#000000", opacity: 0.7 }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = VERDAN_GREEN)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "#000000")
-                    }
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h3 className="font-heading font-medium mb-3 sm:mb-4 text-base sm:text-lg">
-              Legal
-            </h3>
-            <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="transition-colors text-sm sm:text-base"
-                    style={{ color: "#000000", opacity: 0.7 }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = VERDAN_GREEN)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "#000000")
-                    }
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-shrink-0 items-center justify-center gap-3 lg:justify-end">
+            {socialLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.name}
+                  className={cn(
+                    "flex h-11 w-11 items-center justify-center rounded-full border border-white/55 bg-white/25 text-[var(--color-font)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.08)] outline-none transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",
+                    "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/35 hover:text-[rgb(74,137,92)] hover:shadow-[0_10px_28px_rgba(74,137,92,0.2)]",
+                    "focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/40"
+                  )}
+                  style={{ WebkitBackdropFilter: "blur(12px)" }}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={1.75} />
+                </a>
+              );
+            })}
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-6 sm:pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <p className="text-xs sm:text-sm flex items-center gap-1 opacity-80 whitespace-nowrap">
-            © {currentYear} हरित.
+        <div className="mt-12 border-t border-[rgba(255,255,255,0.08)] pt-8 text-center sm:mt-14 sm:pt-9">
+          <p className="text-xs text-[var(--color-font)]/50 sm:text-sm">
+            © {year} हरित
           </p>
-          <div className="flex gap-4 sm:gap-6 flex-wrap justify-center sm:justify-end">
-            {[
-              { name: "Twitter", href: "https://x.com/silver_srs" },
-              {
-                name: "GitHub",
-                href: "https://github.com/StealthSilver/Verdan",
-              },
-            ].map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors text-xs sm:text-sm"
-                style={{ color: "#000000", opacity: 0.7 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = VERDAN_GREEN)
-                }
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#000000")}
-              >
-                {item.name}
-              </a>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

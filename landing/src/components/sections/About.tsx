@@ -1,150 +1,113 @@
 "use client";
 
-import { CheckCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Leaf, Target, Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useInView } from "@/hooks/useInView";
+
+const pillars = [
+  {
+    label: "Purpose",
+    text: "Plant with intent—so every seedling ties back to the outcome you promised.",
+    icon: Leaf,
+  },
+  {
+    label: "Precision",
+    text: "Record, photograph, and follow each tree so progress stays measurable, not assumed.",
+    icon: Target,
+  },
+  {
+    label: "Proof",
+    text: "Give teams and stakeholders one clear story: from first planting to mature canopy.",
+    icon: Shield,
+  },
+];
 
 const About = () => {
-  const benefits = [
-    {
-      title: "Real-Time Tracking",
-      description: "Monitor the health and growth of every tree with live data",
-    },
-    {
-      title: "Photo Evidence",
-      description:
-        "Capture visual progress of each tree throughout its lifecycle",
-    },
-    {
-      title: "Data Analytics",
-      description:
-        "Transform tree data into actionable insights and impact metrics",
-    },
-    {
-      title: "Team Collaboration",
-      description: "Work together seamlessly with your environmental team",
-    },
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
+  const { ref: topRef, isInView: topVisible } = useInView<HTMLDivElement>();
+  const { ref: cardsRef, isInView: cardsVisible } = useInView<HTMLDivElement>();
 
   return (
     <section
       id="about"
-      className="relative w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-[var(--background)] text-[var(--color-font)] overflow-hidden transition-colors duration-500"
+      className={cn(
+        "section-noise relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36",
+        "font-[family-name:var(--font-dm-sans)]"
+      )}
     >
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="relative z-[1] mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div
-          className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-40"
-          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
-        ></div>
-        <div
-          className="absolute bottom-20 left-0 w-96 h-96 rounded-full blur-3xl opacity-30"
-          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
-        ></div>
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <motion.div
-          className="text-center mb-12 sm:mb-16 md:mb-20"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          ref={topRef}
+          className={cn(
+            "reveal-fade mx-auto max-w-3xl text-center",
+            topVisible && "is-visible"
+          )}
         >
-          <h2 className="text-sm sm:text-base md:text-lg font-heading font-light tracking-widest leading-tight mb-4 sm:mb-6 opacity-50 uppercase">
+          <h2 className="mb-4 text-sm font-light tracking-widest text-[var(--color-font)]/50 sm:text-base md:text-lg">
             About
           </h2>
-          <p className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-3xl mx-auto">
-            We believe every tree matters. Harit empowers organizations and
-            individuals to plant with purpose, track with precision, and grow
-            with impact.
+          <h3 className="mb-5 text-2xl font-semibold leading-snug text-[rgb(74,137,92)] sm:mb-6 sm:text-3xl md:text-4xl">
+            Accountability for every tree you plant
+          </h3>
+          <p className="text-base leading-relaxed text-[var(--color-font)]/80 sm:text-lg md:text-xl">
+            Harit helps organizations and individuals plant with purpose, track
+            with precision, and show impact that holds up to scrutiny.
           </p>
-        </motion.div>
 
-        {/* Main Content */}
-        <div className="mb-16 sm:mb-20 md:mb-24">
-          {/* Text Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-medium mb-6 sm:mb-8">
-              Why Harit?
-            </h3>
-            <p className="text-base sm:text-lg font-sans opacity-80 mb-4 sm:mb-6 leading-relaxed">
-              Traditional tree-planting efforts often lack transparency and
-              accountability. Without proper tracking, it&apos;s difficult to
-              measure the real impact of reforestation projects.
+          <div className="mx-auto mt-10 max-w-3xl space-y-6 text-left sm:mt-12 sm:space-y-7">
+            <p className="text-base leading-relaxed text-[var(--color-font)]/80 sm:text-lg">
+              Traditional planting programs often lose signal in the field:
+              spreadsheets, one-off photos, and handoffs that make it hard to
+              prove what grew—and what did not.
             </p>
-            <p className="text-base sm:text-lg font-sans opacity-80 mb-8 sm:mb-12 leading-relaxed">
-              Harit solves this by providing a comprehensive platform where
-              every tree is documented, monitored, and celebrated. From planting
-              to growth milestones, your forest grows with full visibility.
+            <p className="text-base leading-relaxed text-[var(--color-font)]/80 sm:text-lg">
+              We built Harit as a single place to document each tree, revisit it
+              over time, and turn that trail into a credible narrative for your
+              team and your community.
             </p>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Bottom Benefits Grid */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {benefits.map((benefit, idx) => (
-            <motion.div
-              key={idx}
-              className="p-6 sm:p-8 rounded-xl bg-white/50 backdrop-blur border transition-all duration-300 hover:shadow-lg"
-              style={{
-                borderColor: "rgb(200, 200, 200)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgb(74, 137, 92)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgb(200, 200, 200)";
-              }}
-              variants={itemVariants}
-            >
-              <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <CheckCircle
-                  className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5"
-                  style={{ color: "rgb(74, 137, 92)" }}
-                />
-                <h4 className="font-heading font-semibold text-base sm:text-lg">
-                  {benefit.title}
-                </h4>
-              </div>
-              <p className="text-sm sm:text-base opacity-70 leading-relaxed">
-                {benefit.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="mx-auto mt-14 max-w-5xl text-center sm:mt-16 md:mt-20">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[rgb(74,137,92)] sm:text-sm">
+            How we think
+          </p>
+          <div
+            ref={cardsRef}
+            className={cn(
+              "reveal-stagger mt-6 grid grid-cols-1 gap-4 sm:mt-8 md:grid-cols-3 md:gap-5",
+              cardsVisible && "is-visible"
+            )}
+          >
+            {pillars.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className={cn(
+                    "flex flex-col items-center gap-4 rounded-[24px] border border-black/[0.08] bg-white p-5 text-center shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:p-6",
+                    "transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",
+                    "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/35 hover:shadow-[0_12px_40px_rgba(74,137,92,0.15)]"
+                  )}
+                >
+                  <div
+                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-[rgb(74,137,92)]/25 bg-[rgb(74,137,92)]/10 text-[rgb(74,137,92)]"
+                    aria-hidden
+                  >
+                    <Icon className="h-6 w-6" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[var(--color-font)] sm:text-base">
+                      {item.label}
+                    </h4>
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--color-font)]/70 sm:text-base">
+                      {item.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );

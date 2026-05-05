@@ -1,165 +1,149 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useInView } from "@/hooks/useInView";
+import { useCountUp } from "@/hooks/useCountUp";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const Cta = () => {
+  const { ref: statsRef, isInView: statsVisible } = useInView<HTMLDivElement>({
+    once: true,
+    threshold: 0.25,
+  });
+  const reducedMotion = usePrefersReducedMotion();
+
+  const treesDisplay = useCountUp({
+    end: 1000,
+    suffix: "+",
+    isActive: statsVisible,
+    durationMs: 1800,
+    reducedMotion,
+  });
+  const orgsDisplay = useCountUp({
+    end: 10,
+    suffix: "+",
+    isActive: statsVisible,
+    durationMs: 1500,
+    reducedMotion,
+  });
+  const uptimeDisplay = useCountUp({
+    end: 99.9,
+    decimals: 1,
+    suffix: "%",
+    isActive: statsVisible,
+    durationMs: 1700,
+    reducedMotion,
+  });
+
   return (
     <section
       id="cta"
-      className="relative w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-[var(--background)] text-[var(--color-font)] overflow-hidden transition-colors duration-500"
+      className={cn(
+        "relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36",
+        "font-[family-name:var(--font-dm-sans)]"
+      )}
     >
-      {/* Animated background */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="relative z-[1] mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div
-          className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl opacity-30"
-          style={{ backgroundColor: "rgba(74, 137, 92, 0.15)" }}
-        ></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent opacity-50"></div>
-        </div>
-      </div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main CTA Card */}
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          ref={statsRef}
+          className={cn(
+            "mx-auto max-w-4xl rounded-[1.75rem] border border-black/[0.08] bg-white px-6 py-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:px-10 sm:py-14 md:px-12 md:py-16",
+            "transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)"
+          )}
         >
-          {/* Badge */}
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full mb-6 sm:mb-8 border"
-            style={{
-              backgroundColor: "rgba(74, 137, 92, 0.1)",
-              borderColor: "rgba(74, 137, 92, 0.3)",
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          <div
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgb(74,137,92)]/25 bg-[rgb(74,137,92)]/10 px-4 py-2 sm:mb-8 sm:px-5 sm:py-2.5"
           >
             <Sparkles
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              style={{ color: "rgb(74, 137, 92)" }}
+              className="h-4 w-4 text-[rgb(74,137,92)] sm:h-5 sm:w-5"
+              aria-hidden
             />
-            <span
-              className="text-xs sm:text-sm font-semibold"
-              style={{ color: "rgb(74, 137, 92)" }}
-            >
+            <span className="text-xs font-semibold text-[rgb(74,137,92)] sm:text-sm">
               Ready to make an impact?
             </span>
-          </motion.div>
+          </div>
 
-          {/* Main Heading */}
-          <motion.h2
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-semibold leading-tight mb-4 sm:mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
+          <h2 className="mb-4 text-3xl font-semibold leading-tight text-[rgb(74,137,92)] sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl">
             Start Planting with Purpose Today
-          </motion.h2>
+          </h2>
 
-          {/* Description */}
-          <motion.p
-            className="text-base sm:text-lg md:text-xl font-sans opacity-80 max-w-2xl mx-auto mb-8 sm:mb-12 leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-[var(--color-font)]/80 sm:mb-12 sm:text-lg md:text-xl">
             Join thousands of organizations using Harit to track, measure, and
             celebrate their tree-planting impact. Get started free today.
-          </motion.p>
+          </p>
 
-          {/* Buttons Container */}
-          <motion.div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            {/* Primary Button */}
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
             <Link
               href="https://verdan-beige.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto group relative px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-black text-white font-heading font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-2xl overflow-hidden"
+              className={cn(
+                "group relative w-full overflow-hidden rounded-full border border-[rgb(74,137,92)]/45 bg-white px-7 py-3.5 text-center text-sm font-semibold text-gray-900 shadow-[0_8px_32px_rgba(0,0,0,0.1)] sm:w-auto sm:px-8 sm:py-4 sm:text-base",
+                "outline-none transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",
+                "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/65 hover:shadow-[0_10px_36px_rgba(74,137,92,0.25)]",
+                "focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/45"
+              )}
             >
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-
-              <span className="relative flex items-center justify-center">
+              <span className="relative inline-flex items-center justify-center">
                 Get Started Free
-                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
               </span>
             </Link>
 
-            {/* Secondary Button */}
             <Link
-              href="#about"
-              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-full border-2 border-black text-black hover:bg-black hover:text-white font-heading font-semibold text-sm sm:text-base transition-all duration-300"
+              href="/#about"
+              className={cn(
+                "w-full rounded-full border border-black/[0.12] bg-[var(--background)] px-7 py-3.5 text-center text-sm font-semibold text-gray-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)] sm:w-auto sm:px-8 sm:py-4 sm:text-base",
+                "outline-none transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",
+                "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/35 hover:bg-white hover:text-[rgb(74,137,92)]",
+                "focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+              )}
             >
               Learn More
             </Link>
-          </motion.div>
+          </div>
 
-          {/* Trust indicators */}
-          <motion.div
-            className="mt-12 sm:mt-16 md:mt-20 pt-12 sm:pt-16 border-t border-gray-200"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <p className="text-xs sm:text-sm opacity-60 mb-6 sm:mb-8 font-semibold uppercase tracking-wide">
-              Trusted by leading organizations
-            </p>
+          <p className="mt-12 text-xs font-semibold uppercase tracking-wide text-[var(--color-font)]/55 sm:mt-14">
+            Trusted by leading organizations
+          </p>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
-              <div className="text-center">
-                <div
-                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
-                  style={{ color: "rgb(74, 137, 92)" }}
-                >
-                  1000+
-                </div>
-                <p className="text-xs sm:text-sm opacity-70 font-sans">
-                  Trees planted and tracked
-                </p>
-              </div>
-              <div className="text-center">
-                <div
-                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
-                  style={{ color: "rgb(74, 137, 92)" }}
-                >
-                  10+
-                </div>
-                <p className="text-xs sm:text-sm opacity-70 font-sans">
-                  Organizations on Harit
-                </p>
-              </div>
-              <div className="text-center">
-                <div
-                  className="text-3xl sm:text-4xl font-heading font-bold mb-2"
-                  style={{ color: "rgb(74, 137, 92)" }}
-                >
-                  99.9%
-                </div>
-                <p className="text-xs sm:text-sm opacity-70 font-sans">
-                  Data availability
-                </p>
-              </div>
+          <div className="mt-8 flex flex-col items-stretch gap-4 border-t border-black/[0.08] pt-8 sm:mt-10 sm:flex-row sm:items-center sm:justify-center sm:gap-0 sm:pt-10">
+            <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-black/[0.08] bg-[var(--background)] px-4 py-3 sm:rounded-full sm:py-3.5">
+              <span className="text-2xl font-bold text-[rgb(74,137,92)] sm:text-3xl">
+                {treesDisplay}
+              </span>
+              <span className="mt-1 max-w-[10rem] text-center text-xs text-[var(--color-font)]/70 sm:text-sm">
+                Trees planted and tracked
+              </span>
             </div>
-          </motion.div>
-        </motion.div>
+            <div
+              className="hidden h-12 w-px shrink-0 bg-[rgba(0,0,0,0.08)] sm:block"
+              aria-hidden
+            />
+            <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-black/[0.08] bg-[var(--background)] px-4 py-3 sm:rounded-full sm:py-3.5">
+              <span className="text-2xl font-bold text-[rgb(74,137,92)] sm:text-3xl">
+                {orgsDisplay}
+              </span>
+              <span className="mt-1 max-w-[10rem] text-center text-xs text-[var(--color-font)]/70 sm:text-sm">
+                Organizations on Harit
+              </span>
+            </div>
+            <div
+              className="hidden h-12 w-px shrink-0 bg-[rgba(0,0,0,0.08)] sm:block"
+              aria-hidden
+            />
+            <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-black/[0.08] bg-[var(--background)] px-4 py-3 sm:rounded-full sm:py-3.5">
+              <span className="text-2xl font-bold text-[rgb(74,137,92)] sm:text-3xl">
+                {uptimeDisplay}
+              </span>
+              <span className="mt-1 max-w-[10rem] text-center text-xs text-[var(--color-font)]/70 sm:text-sm">
+                Data availability
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
