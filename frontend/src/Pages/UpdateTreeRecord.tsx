@@ -1,8 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { Camera, Upload, RefreshCw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import {
+  axiosResponseStatus,
+  errorMessage,
+  errorName,
+  messageFromUnknown,
+} from "../utils/apiError";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 interface TreeForm {
   coordinates: {
@@ -145,7 +159,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         const { latitude, longitude } = position.coords;
 
         if (validateCoordinates(latitude, longitude)) {
-          setForm((prev) => ({
+          setForm((prev: TreeForm) => ({
             ...prev,
             coordinates: {
               lat: latitude,
@@ -196,11 +210,15 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
             .then((r) =>
               r.ok ? r.json() : Promise.reject(new Error("IP lookup failed")),
             )
-            .then((data) => {
-              const lat = Number(data.latitude);
-              const lng = Number(data.longitude);
+            .then((data: unknown) => {
+              const row =
+                data && typeof data === "object"
+                  ? (data as { latitude?: unknown; longitude?: unknown })
+                  : {};
+              const lat = Number(row.latitude);
+              const lng = Number(row.longitude);
               if (validateCoordinates(lat, lng)) {
-                setForm((prev) => ({
+                setForm((prev: TreeForm) => ({
                   ...prev,
                   coordinates: { lat, lng },
                 }));
@@ -209,8 +227,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                 );
               }
             })
-            .catch(() => {});
-        } catch {}
+            .catch(() => {
+              /* optional IP lookup */
+            });
+        } catch {
+          /* geolocation error path may not provide ipapi */
+        }
       },
       options,
     );
@@ -222,7 +244,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       const now = new Date();
       const currentTimestamp = getLocalDateTimeMinuteString(now);
 
-      setForm((prev) => ({
+      setForm((prev: TreeForm) => ({
         ...prev,
         timestamp: currentTimestamp,
       }));
@@ -252,7 +274,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
 
         // Pre-populate coordinates from tree
         if (treeRes.data.coordinates) {
-          setForm((prev) => ({
+          setForm((prev: TreeForm) => ({
             ...prev,
             coordinates: {
               lat: treeRes.data.coordinates.lat,
@@ -264,16 +286,16 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
             treeRes.data.coordinates.lng,
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch tree data");
+        setError(messageFromUnknown(err, "Failed to fetch tree data"));
       }
     };
     fetchData();
   }, [token, effectiveTreeId, role, effectiveSiteId]);
 
   const handleChange = (
-    e: React.ChangeEvent<
+    e: ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
@@ -310,7 +332,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -374,18 +396,20 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
           navigate(`/admin/dashboard/${effectiveSiteId}/${effectiveTreeId}`);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const status = err?.response?.status;
-      const msg: string | undefined =
-        err?.response?.data?.message || err?.message;
+      const status = axiosResponseStatus(err);
+      const msg = messageFromUnknown(
+        err,
+        err instanceof Error ? err.message : "",
+      );
       const isTooLarge =
         status === 413 ||
         (typeof msg === "string" &&
           /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
       if (isTooLarge) {
         setError(
-          "Image size limit exceeded (~600KB). Please use a smaller image.",
+          "Image size limit exceeded (~4MB). Please use a smaller image.",
         );
       } else {
         setError(msg || "Failed to add record. Please try again.");
@@ -457,7 +481,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     } catch {
       // ignore
     }
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (const c of constraintsList) {
       try {
         return await navigator.mediaDevices.getUserMedia(c);
@@ -468,8 +492,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Backend JSON limit increased; allow larger but still bounded images (~600KB)
-  const MAX_IMAGE_BYTES = 600_000;
+  const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
   const dataUrlBytes = (dataUrl: string): number => {
     const base64 = dataUrl.split(",")[1] || "";
@@ -522,10 +545,12 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   // Open camera (deferred stream init handled in useEffect)
   const openCamera = () => {
     setError("");
-    setCameraAttempts((a) => a + 1);
+    setCameraAttempts((a: number) => a + 1);
     // If a previous stream exists, ensure cleanup before reopening
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current
+        .getTracks()
+        .forEach((t: MediaStreamTrack) => t.stop());
       streamRef.current = null;
     }
     setCameraReady(false);
@@ -536,7 +561,9 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   // Close camera
   const closeCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current
+        .getTracks()
+        .forEach((track: MediaStreamTrack) => track.stop());
       streamRef.current = null;
     }
     setCameraOpen(false);
@@ -562,20 +589,20 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image size limit exceeded (~600KB). Capture closer or lower resolution.",
+          "Image size limit exceeded (~4MB). Capture closer or lower resolution.",
         );
         return;
       }
       setImagePreview(dataUrl);
-      setForm((prev) => ({ ...prev, image: dataUrl }));
+      setForm((prev: TreeForm) => ({ ...prev, image: dataUrl }));
       closeCamera();
-    } catch (e: any) {
-      setError(e?.message || "Failed to capture image");
+    } catch (e: unknown) {
+      setError(errorMessage(e) || "Failed to capture image");
     }
   };
 
   // Handle file input change
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -584,14 +611,14 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Image size limit exceeded (~600KB). Please choose a smaller image.",
+            "Image size limit exceeded (~4MB). Please choose a smaller image.",
           );
           setImagePreview(null);
-          setForm((prev) => ({ ...prev, image: null }));
+          setForm((prev: TreeForm) => ({ ...prev, image: null }));
           return;
         }
         setImagePreview(compressed);
-        setForm((prev) => ({ ...prev, image: compressed }));
+        setForm((prev: TreeForm) => ({ ...prev, image: compressed }));
       };
       reader.readAsDataURL(file);
     }
@@ -600,7 +627,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   // Remove image
   const removeImage = () => {
     setImagePreview(null);
-    setForm((prev) => ({ ...prev, image: null }));
+    setForm((prev: TreeForm) => ({ ...prev, image: null }));
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -624,7 +651,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
       try {
         const stream = await getStreamWithFallback();
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
           return;
         }
         streamRef.current = stream;
@@ -634,17 +661,17 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
         try {
           await videoRef.current.play();
         } catch (playErr) {
-          console.warn("Video play may need user gesture:", playErr);
+          void playErr;
         }
         try {
           await waitForVideoReady(videoRef.current);
           if (!cancelled) setCameraReady(true);
-        } catch (readyErr: any) {
+        } catch (readyErr: unknown) {
           console.error(readyErr);
           if (!cancelled) {
             if (
-              readyErr?.name === "NotAllowedError" ||
-              readyErr?.name === "SecurityError"
+              errorName(readyErr) === "NotAllowedError" ||
+              errorName(readyErr) === "SecurityError"
             ) {
               setError(
                 "Camera permission denied. Grant access and click Retry.",
@@ -657,19 +684,19 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
             setCameraReady(false);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error accessing camera:", err);
         if (!cancelled) {
           if (
-            err?.name === "NotAllowedError" ||
-            err?.name === "SecurityError"
+            errorName(err) === "NotAllowedError" ||
+            errorName(err) === "SecurityError"
           ) {
             setError(
               "Camera permission denied. Allow access in browser settings then click Retry.",
             );
           } else {
             setError(
-              (err?.message || "Failed to access camera") +
+              (errorMessage(err) || "Failed to access camera") +
                 ". Check permissions or use Upload Image.",
             );
           }
@@ -685,7 +712,9 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
     return () => {
       cancelled = true;
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current
+        .getTracks()
+        .forEach((t: MediaStreamTrack) => t.stop());
         streamRef.current = null;
       }
     };
@@ -695,7 +724,9 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
   useEffect(() => {
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current
+        .getTracks()
+        .forEach((track: MediaStreamTrack) => track.stop());
       }
     };
   }, []);
@@ -737,12 +768,15 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                 <img src="/icon.svg" alt="Harit Logo" className="h-8" />
                 <span className="text-2xl font-bold text-gray-800">हरित</span>
               </div>
-              <button
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Back
-              </button>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <button
+                  onClick={handleBack}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Back
+                </button>
+              </div>
             </div>
           </div>
         </nav>
@@ -783,17 +817,17 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
               <button
                 onClick={getCurrentLocation}
                 disabled={locationLoading}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                className="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                 style={{ backgroundColor: "#48845C" }}
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 {locationLoading ? "Locating..." : "Refresh Location"}
               </button>
               <button
                 onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
+                className="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center gap-2"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 {embedded ? "Close" : "Back"}
               </button>
             </div>
@@ -994,6 +1028,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                   <img
                     src={imagePreview}
                     alt="Plant preview"
+                    crossOrigin={crossOriginForRemoteImage(imagePreview)}
                     className="max-w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
                   />
                   <button
@@ -1087,8 +1122,7 @@ export default function UpdateTreeRecord(props: UpdateTreeRecordProps) {
                       : "Open Camera"}
                 </button>
                 <label
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"
-                  style={{ backgroundColor: "#4B5563" }}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-lg text-center cursor-pointer inline-flex items-center justify-center gap-2 border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 active:bg-sky-200 transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-sky-300/60 focus-within:ring-offset-2"
                 >
                   <Upload className="w-4 h-4" />
                   Upload Image

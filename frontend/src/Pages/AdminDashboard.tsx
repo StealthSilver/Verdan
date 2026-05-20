@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 import AddSite from "./AddSite";
 import type { Site as SiteType } from "./AddSite";
+import { messageFromUnknown } from "../utils/apiError";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 const VERDAN_GREEN = "#48845C";
-
-// Chart color for analytics button
 
 interface User {
   id: string;
@@ -22,7 +23,7 @@ interface Site {
   name: string;
   address: string;
   status: "active" | "inactive";
-  teamMembers: Array<any>;
+  teamMembers: unknown[];
   image: string;
   coordinates: {
     lat: number;
@@ -32,7 +33,8 @@ interface Site {
 }
 
 export default function AdminDashboard() {
-  const { token, logout } = useAuth();
+  const { token, logout, avatarId } = useAuth();
+  const toast = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +53,22 @@ export default function AdminDashboard() {
     siteName: "",
   });
   const [deleting, setDeleting] = useState(false);
+  const [addressPreview, setAddressPreview] = useState<{
+    open: boolean;
+    siteName: string;
+    address: string;
+  }>({ open: false, siteName: "", address: "" });
+
+  const copyText = async (value: string, doneMsg: string) => {
+    const text = value?.trim();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.info(doneMsg);
+    } catch {
+      // ignore
+    }
+  };
 
   // Dropdown outside click
   useEffect(() => {
@@ -76,8 +94,8 @@ export default function AdminDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch user data");
+      } catch (err: unknown) {
+        setError(messageFromUnknown(err, "Failed to fetch user data"));
       } finally {
         setLoading(false);
       }
@@ -96,8 +114,8 @@ export default function AdminDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSites(res.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch sites");
+      } catch (err: unknown) {
+        setError(messageFromUnknown(err, "Failed to fetch sites"));
       } finally {
         setLoading(false);
       }
@@ -168,7 +186,7 @@ export default function AdminDashboard() {
     const id = deleteConfirm.siteId;
     const backup = sites.find((s) => s._id === id);
 
-    setSites((prev) => prev.filter((s) => s._id !== id));
+    setSites((prev: Site[]) => prev.filter((s: Site) => s._id !== id));
     setDeleteConfirm({ show: false, siteId: null, siteName: "" });
     setDeleting(true);
 
@@ -176,9 +194,10 @@ export default function AdminDashboard() {
       await API.delete(`/admin/sites/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-    } catch (err: any) {
-      if (backup) setSites((prev) => [...prev, backup]);
-      alert(err?.response?.data?.message || "Failed to delete site");
+      toast.danger("Site deleted successfully");
+    } catch (err: unknown) {
+      if (backup) setSites((prev: Site[]) => [...prev, backup]);
+      toast.error(messageFromUnknown(err, "Failed to delete site"));
     } finally {
       setDeleting(false);
     }
@@ -198,12 +217,19 @@ export default function AdminDashboard() {
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
 
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FaUserCircle className="text-2xl text-gray-600" />
+                <img
+                  src={avatarDataUrl(avatarId)}
+                  alt="Profile avatar"
+                  className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                  style={{ imageRendering: "pixelated" }}
+                />
                 <span className="font-medium text-gray-800 text-sm hidden sm:block">
                   {user?.name}
                 </span>
@@ -212,9 +238,30 @@ export default function AdminDashboard() {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg border border-gray-200 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                    <p className="font-semibold text-sm text-gray-900">
-                      {user?.name}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-sm text-gray-900 truncate">
+                        {user?.name}
+                      </p>
+                      {user?.name ? (
+                        <button
+                          type="button"
+                          className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-800 hover:bg-gray-200/60 transition-colors"
+                          aria-label="Copy username"
+                          title="Copy username"
+                          onClick={() => copyText(user.name, "Username copied")}
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M5.75 3A2.75 2.75 0 0 0 3 5.75v7.5A2.75 2.75 0 0 0 5.75 16h3.5A2.75 2.75 0 0 0 12 13.25v-7.5A2.75 2.75 0 0 0 9.25 3h-3.5z" />
+                            <path d="M12.75 4.5c.2.39.31.84.31 1.31v7.44c0 1.8-1.45 3.25-3.25 3.25H6.5a.75.75 0 0 0 .75.75h3.5A2.75 2.75 0 0 0 13.5 14.5V7a2.75 2.75 0 0 0-.75-1.89z" />
+                          </svg>
+                        </button>
+                      ) : null}
+                    </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {user?.email}
                     </p>
@@ -227,7 +274,7 @@ export default function AdminDashboard() {
                       Profile
                     </li>
                     <li
-                      onClick={() => navigate("/setting")}
+                      onClick={() => navigate("/settings")}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       Settings
@@ -242,6 +289,7 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -251,17 +299,14 @@ export default function AdminDashboard() {
         {/* HEADER WITH ADD BUTTON */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
               All Sites
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Admin can manage all sites
-            </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => navigate("/admin/sites/analytics")}
-              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center gap-2"
+              className="px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95 flex items-center gap-2"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               <svg
@@ -281,7 +326,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={handleAdd}
-              className="px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
+              className="px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               + Add New Site
@@ -291,23 +336,23 @@ export default function AdminDashboard() {
 
         {/* SITES TABLE - Desktop */}
         <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div className="overflow-x-hidden">
+            <table className="w-full table-fixed divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-[28%] px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Site Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-[14%] px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Site ID
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-[28%] px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Address
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-[10%] px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="w-[20%] sticky right-0 z-10 bg-gray-50 px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -318,8 +363,8 @@ export default function AdminDashboard() {
                     key={site._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
+                    <td className="px-6 py-4 align-top">
+                      <div className="font-medium text-gray-900 break-words whitespace-normal">
                         {site.name}
                       </div>
                     </td>
@@ -328,9 +373,42 @@ export default function AdminDashboard() {
                         {site._id.slice(0, 8)}...
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700 max-w-xs truncate">
-                        {site.address}
+                    <td className="px-6 py-4 align-top">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <div
+                          className="text-sm text-gray-700 max-w-[10rem] lg:max-w-[12rem] truncate"
+                          title={site.address}
+                        >
+                          {site.address}
+                        </div>
+                        {site.address?.trim() ? (
+                          <button
+                            type="button"
+                            className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                            onClick={() =>
+                              setAddressPreview({
+                                open: true,
+                                siteName: site.name,
+                                address: site.address,
+                              })
+                            }
+                            aria-label="View full address"
+                            title="View full address"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -344,10 +422,10 @@ export default function AdminDashboard() {
                         {site.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex justify-end gap-2">
+                    <td className="sticky right-0 bg-white px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex flex-nowrap justify-end gap-2">
                         <button
-                          className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap"
                           style={{
                             backgroundColor: VERDAN_GREEN,
                             color: "white",
@@ -365,7 +443,7 @@ export default function AdminDashboard() {
                           View
                         </button>
                         <button
-                          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors whitespace-nowrap"
                           onClick={() =>
                             navigate(`/admin/Dashboard/${site._id}/team`)
                           }
@@ -373,7 +451,7 @@ export default function AdminDashboard() {
                           Team
                         </button>
                         <button
-                          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors whitespace-nowrap"
                           onClick={() => {
                             setEditingSite({
                               _id: site._id,
@@ -392,7 +470,7 @@ export default function AdminDashboard() {
                           Edit
                         </button>
                         <button
-                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors whitespace-nowrap"
                           onClick={() =>
                             setDeleteConfirm({
                               show: true,
@@ -421,12 +499,45 @@ export default function AdminDashboard() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">
+                  <h3 className="font-semibold text-gray-900 break-words whitespace-normal">
                     {site.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
-                    {site.address}
-                  </p>
+                  <div className="mt-1 flex items-start gap-2">
+                    <p
+                      className="text-xs text-gray-500 truncate"
+                      title={site.address}
+                    >
+                      {site.address}
+                    </p>
+                    {site.address?.trim() ? (
+                      <button
+                        type="button"
+                        className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                        onClick={() =>
+                          setAddressPreview({
+                            open: true,
+                            siteName: site.name,
+                            address: site.address,
+                          })
+                        }
+                        aria-label="View full address"
+                        title="View full address"
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <span
                   className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -441,28 +552,28 @@ export default function AdminDashboard() {
               <div className="text-xs text-gray-500 mb-3 font-mono">
                 ID: {site._id.slice(0, 12)}...
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <button
-                  className="flex-1 px-3 py-2 text-xs font-medium rounded-md text-white transition-opacity"
+                  className="px-2 py-2 text-xs font-medium rounded-md text-white transition-opacity whitespace-nowrap"
                   style={{ backgroundColor: VERDAN_GREEN }}
                   onClick={() => navigate(`/admin/dashboard/${site._id}`)}
                 >
                   View
                 </button>
                 <button
-                  className="flex-1 px-3 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  className="px-2 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => navigate(`/admin/Dashboard/${site._id}/team`)}
                 >
                   Team
                 </button>
                 <button
-                  className="flex-1 px-3 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  className="px-2 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleUpdate(site)}
                 >
                   Edit
                 </button>
                 <button
-                  className="flex-1 px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                  className="px-2 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors whitespace-nowrap"
                   onClick={() =>
                     setDeleteConfirm({
                       show: true,
@@ -491,31 +602,63 @@ export default function AdminDashboard() {
             </button>
           </div>
         )}
-
-        {/* Floating Analytics Button for Mobile */}
-        {sites.length > 0 && (
-          <button
-            onClick={() => navigate("/admin/sites/analytics")}
-            className="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white z-30 transition-all active:scale-95"
-            style={{ backgroundColor: VERDAN_GREEN }}
-            aria-label="Show Analytics"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          </button>
-        )}
       </div>
+
+      {/* Address Preview Modal */}
+      {addressPreview.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full address"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setAddressPreview({ open: false, siteName: "", address: "" });
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {addressPreview.siteName}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">Full address</div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                aria-label="Close"
+                onClick={() =>
+                  setAddressPreview({ open: false, siteName: "", address: "" })
+                }
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="text-sm text-gray-800 break-words whitespace-pre-wrap">
+                {addressPreview.address}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setAddressPreview({
+                      open: false,
+                      siteName: "",
+                      address: "",
+                    })
+                  }
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DRAWER */}
       <div
@@ -538,7 +681,12 @@ export default function AdminDashboard() {
               setShowSiteDrawer(false);
               setEditingSite(null);
             }}
-            onSiteSaved={() => setRefreshCounter((c) => c + 1)}
+            onSiteSaved={() => {
+              const isEdit = !!editingSite;
+              setRefreshCounter((c) => c + 1);
+              if (isEdit) toast.info("Site updated successfully");
+              else toast.success("Site added successfully");
+            }}
           />
         </div>
       </div>

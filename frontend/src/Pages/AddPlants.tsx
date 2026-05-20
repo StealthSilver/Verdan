@@ -1,8 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from "react";
 import { Camera, Upload, RefreshCw, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 import API from "../api";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import {
+  axiosResponseDataMessage,
+  axiosResponseStatus,
+  errorMessage,
+  errorName,
+  messageFromUnknown,
+} from "../utils/apiError";
 
 interface TreeForm {
   treeName: string;
@@ -22,6 +32,20 @@ interface TreeForm {
 interface Site {
   _id: string;
   name: string;
+}
+
+/** Shape used when loading an existing tree for edit */
+interface FetchedTree {
+  _id: string;
+  treeName?: string;
+  treeType?: string;
+  coordinates?: { lat?: number; lng?: number };
+  datePlanted?: string;
+  timestamp?: string;
+  status?: string;
+  remarks?: string;
+  plantedByName?: string;
+  images?: { url: string }[];
 }
 
 interface AddPlantsProps {
@@ -45,6 +69,7 @@ export default function AddPlants({
   const siteId = propSiteId || routeSiteId; // prefer explicit prop for modal usage
   const treeId = propTreeId || routeTreeId; // prefer explicit prop for modal usage
   const { token, role, username } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [site, setSite] = useState<Site | null>(null);
@@ -99,9 +124,9 @@ export default function AddPlants({
   // Update plantedBy when username changes
   useEffect(() => {
     if (username && !form.plantedBy) {
-      setForm((prev) => ({ ...prev, plantedBy: username }));
+      setForm((prev: TreeForm) => ({ ...prev, plantedBy: username }));
     }
-  }, [username]);
+  }, [username, form.plantedBy]);
 
   // Validate coordinates
   const validateCoordinates = (lat: number, lng: number): boolean => {
@@ -165,7 +190,7 @@ export default function AddPlants({
       (position) => {
         const { latitude, longitude } = position.coords;
         if (validateCoordinates(latitude, longitude)) {
-          setForm((prev) => ({
+          setForm((prev: TreeForm) => ({
             ...prev,
             coordinates: { lat: latitude, lng: longitude },
           }));
@@ -201,11 +226,15 @@ export default function AddPlants({
             .then((r) =>
               r.ok ? r.json() : Promise.reject(new Error("IP lookup failed")),
             )
-            .then((data) => {
-              const lat = Number(data.latitude);
-              const lng = Number(data.longitude);
+            .then((data: unknown) => {
+              const row =
+                data && typeof data === "object"
+                  ? (data as { latitude?: unknown; longitude?: unknown })
+                  : {};
+              const lat = Number(row.latitude);
+              const lng = Number(row.longitude);
               if (validateCoordinates(lat, lng)) {
-                setForm((prev) => ({
+                setForm((prev: TreeForm) => ({
                   ...prev,
                   coordinates: { lat, lng },
                 }));
@@ -214,8 +243,12 @@ export default function AddPlants({
                 );
               }
             })
-            .catch(() => {});
-        } catch {}
+            .catch(() => {
+              /* optional IP lookup */
+            });
+        } catch {
+          /* geolocation error path may not provide ipapi */
+        }
       },
       options,
     );
@@ -229,7 +262,7 @@ export default function AddPlants({
         const currentDate = getLocalDateString(now);
         const currentTimestamp = getLocalDateTimeMinuteString(now);
 
-        setForm((prev) => ({
+        setForm((prev: TreeForm) => ({
           ...prev,
           datePlanted: currentDate,
           timestamp: currentTimestamp,
@@ -273,31 +306,47 @@ export default function AddPlants({
         }
 
         if (treeId) {
-          let tree: any = null;
+          let tree: FetchedTree | null = null;
           if (isUser) {
             try {
-              const singleTreeRes = await API.get<any>(
+              const singleTreeRes = await API.get<FetchedTree>(
                 `/user/sites/${siteId}/trees/${treeId}`,
                 { headers: { Authorization: `Bearer ${token}` } },
               );
               tree = singleTreeRes.data;
-            } catch (e) {
-              // Fallback list
-              const listRes = await API.get<any>(
-                `/user/sites/${siteId}/trees`,
-                { headers: { Authorization: `Bearer ${token}` } },
-              );
-              const arr = listRes.data.trees || listRes.data;
+            } catch {
+              const listRes = await API.get<
+                { trees?: FetchedTree[] } | FetchedTree[]
+              >(`/user/sites/${siteId}/trees`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const raw = listRes.data;
+              const arr = Array.isArray(raw) ? raw : raw.trees;
               tree = Array.isArray(arr)
-                ? arr.find((t: any) => t._id === treeId)
+                ? arr.find((t) => t._id === treeId) ?? null
                 : null;
             }
           } else {
-            const treesRes = await API.get<any[]>(
-              `/admin/sites/${siteId}/trees`,
-              { headers: { Authorization: `Bearer ${token}` } },
-            );
-            tree = treesRes.data.find((t: any) => t._id === treeId);
+            // Prefer single-tree endpoint for edit (most reliable shape)
+            try {
+              const singleTreeRes = await API.get<FetchedTree>(
+                `/admin/trees/${treeId}`,
+                { headers: { Authorization: `Bearer ${token}` } },
+              );
+              tree = singleTreeRes.data;
+            } catch {
+              // Fallback: some endpoints return { trees: [] }, others return []
+              const treesRes = await API.get<
+                { trees?: FetchedTree[] } | FetchedTree[]
+              >(`/admin/sites/${siteId}/trees`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const raw = treesRes.data;
+              const arr = Array.isArray(raw) ? raw : raw.trees;
+              tree = Array.isArray(arr)
+                ? arr.find((t) => t._id === treeId) ?? null
+                : null;
+            }
           }
           if (tree) {
             const datePlanted = tree.datePlanted
@@ -330,30 +379,34 @@ export default function AddPlants({
             validateTimestamp(timestamp);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch data");
+        setError(messageFromUnknown(err, "Failed to fetch data"));
       }
     };
     fetchData();
-  }, [token, siteId, treeId, role]);
+  }, [token, siteId, treeId, role, username]);
 
   // Auto geolocation attempt for new entries (runs once shortly after mount if coords unset)
-  useEffect(() => {
-    if (
-      !isEditMode &&
-      form.coordinates.lat === 0 &&
-      form.coordinates.lng === 0
-    ) {
-      const timer = setTimeout(() => {
-        getCurrentLocation();
-      }, 300); // slight delay to allow initial render
-      return () => clearTimeout(timer);
-    }
-  }, [isEditMode, form.coordinates.lat, form.coordinates.lng]);
+  useEffect(
+    () => {
+      if (
+        !isEditMode &&
+        form.coordinates.lat === 0 &&
+        form.coordinates.lng === 0
+      ) {
+        const timer = setTimeout(() => {
+          getCurrentLocation();
+        }, 300); // slight delay to allow initial render
+        return () => clearTimeout(timer);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot; getCurrentLocation is not stable
+    [isEditMode, form.coordinates.lat, form.coordinates.lng],
+  );
 
   const handleChange = (
-    e: React.ChangeEvent<
+    e: ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
@@ -408,7 +461,7 @@ export default function AddPlants({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -477,11 +530,13 @@ export default function AddPlants({
             timestamp: form.timestamp,
             status: form.status,
             remarks: form.remarks || undefined,
-            plantedBy: form.plantedBy || username || undefined,
+            // Backend stores plantedBy (ObjectId) separately; this is display-only.
+            plantedByName: form.plantedBy || username || undefined,
             images,
           },
           { headers: { Authorization: `Bearer ${token}` } },
         );
+        toast.info("Plant updated successfully");
       } else {
         const createUrl = isUser
           ? `/user/sites/${siteId}/trees`
@@ -501,37 +556,35 @@ export default function AddPlants({
               timestamp: form.timestamp,
               status: form.status,
               remarks: form.remarks || undefined,
-              plantedBy: form.plantedBy || username || undefined,
+              // Backend stores plantedBy (ObjectId) separately; this is display-only.
+              plantedByName: form.plantedBy || username || undefined,
               images,
             },
             { headers: { Authorization: `Bearer ${token}` } },
           );
-        } catch (primaryErr: any) {
-          // Fallback: older user endpoint (pre site-scoped CRUD) if new route not deployed yet
+          toast.success("Plant added successfully");
+        } catch (primaryErr: unknown) {
           const notFound =
-            primaryErr?.response?.status === 404 &&
-            /Route not found/i.test(primaryErr?.response?.data?.message || "");
+            axiosResponseStatus(primaryErr) === 404 &&
+            /Route not found/i.test(axiosResponseDataMessage(primaryErr));
           if (isUser && notFound) {
-            try {
-              await API.post(
-                `/user/site/dashboard/add`,
-                {
-                  treeName: form.treeName,
-                  coordinates: {
-                    lat: form.coordinates.lat,
-                    lng: form.coordinates.lng,
-                  },
-                  image: images[0]?.url, // legacy endpoint expects single image field
-                  status: form.status,
-                  remarks: form.remarks || undefined,
+            await API.post(
+              `/user/site/dashboard/add`,
+              {
+                treeName: form.treeName,
+                coordinates: {
+                  lat: form.coordinates.lat,
+                  lng: form.coordinates.lng,
                 },
-                { headers: { Authorization: `Bearer ${token}` } },
-              );
-            } catch (fallbackErr: any) {
-              throw fallbackErr; // propagate fallback error to outer catch
-            }
+                image: images[0]?.url, // legacy endpoint expects single image field
+                status: form.status,
+                remarks: form.remarks || undefined,
+              },
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            toast.success("Plant added successfully");
           } else {
-            throw primaryErr; // propagate original
+            throw primaryErr;
           }
         }
       }
@@ -547,18 +600,20 @@ export default function AddPlants({
           navigate(`/admin/dashboard/${siteId}`, { state: { refresh: true } });
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const status = err?.response?.status;
-      const msg: string | undefined =
-        err?.response?.data?.message || err?.message;
+      const status = axiosResponseStatus(err);
+      const msg = messageFromUnknown(
+        err,
+        err instanceof Error ? err.message : "",
+      );
       const isTooLarge =
         status === 413 ||
         (typeof msg === "string" &&
           /payload\s*too\s*large|entity\s*too\s*large|too\s*large/i.test(msg));
       if (isTooLarge) {
         setError(
-          "Image size limit exceeded (~600KB). Please use a smaller image.",
+          "Image size limit exceeded (~4MB). Please use a smaller image.",
         );
       } else {
         setError(
@@ -566,6 +621,10 @@ export default function AddPlants({
             `Failed to ${isEditMode ? "update" : "add"} tree. Please try again.`,
         );
       }
+      toast.error(
+        msg ||
+          `Failed to ${isEditMode ? "update" : "add"} plant. Please try again.`,
+      );
     } finally {
       setLoading(false);
     }
@@ -633,7 +692,7 @@ export default function AddPlants({
     } catch {
       // ignore errors
     }
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (const c of constraintsList) {
       try {
         return await navigator.mediaDevices.getUserMedia(c);
@@ -644,8 +703,8 @@ export default function AddPlants({
     throw lastError || new Error("Unable to access camera");
   };
 
-  // Backend JSON limit increased; allow larger but bounded images (~600KB)
-  const MAX_IMAGE_BYTES = 600_000;
+  // Larger cap when API uploads to S3 (see harit-api body limit); still compress on device
+  const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
   const dataUrlBytes = (dataUrl: string): number => {
     const base64 = dataUrl.split(",")[1] || "";
     const padding = (base64.match(/=+$/) || [""])[0].length;
@@ -696,9 +755,11 @@ export default function AddPlants({
   // Open camera (stream init deferred to effect)
   const openCamera = () => {
     setError("");
-    setCameraAttempts((a) => a + 1);
+    setCameraAttempts((a: number) => a + 1);
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current
+        .getTracks()
+        .forEach((t: MediaStreamTrack) => t.stop());
       streamRef.current = null;
     }
     setCameraReady(false);
@@ -709,7 +770,9 @@ export default function AddPlants({
   // Close camera
   const closeCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current
+        .getTracks()
+        .forEach((track: MediaStreamTrack) => track.stop());
       streamRef.current = null;
     }
     setCameraOpen(false);
@@ -735,20 +798,20 @@ export default function AddPlants({
       const dataUrl = await compressToLimit(rawDataUrl);
       if (dataUrlBytes(dataUrl) > MAX_IMAGE_BYTES) {
         setError(
-          "Image size limit exceeded (~600KB). Capture closer or lower resolution.",
+          "Image size limit exceeded (~4MB). Capture closer or lower resolution.",
         );
         return;
       }
       setImagePreview(dataUrl);
-      setForm((prev) => ({ ...prev, image: dataUrl }));
+      setForm((prev: TreeForm) => ({ ...prev, image: dataUrl }));
       closeCamera();
-    } catch (e: any) {
-      setError(e?.message || "Failed to capture image");
+    } catch (e: unknown) {
+      setError(errorMessage(e) || "Failed to capture image");
     }
   };
 
   // Handle file input change
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -757,14 +820,14 @@ export default function AddPlants({
         const compressed = await compressToLimit(result);
         if (dataUrlBytes(compressed) > MAX_IMAGE_BYTES) {
           setError(
-            "Image size limit exceeded (~600KB). Please choose a smaller image.",
+            "Image size limit exceeded (~4MB). Please choose a smaller image.",
           );
           setImagePreview(null);
-          setForm((prev) => ({ ...prev, image: null }));
+          setForm((prev: TreeForm) => ({ ...prev, image: null }));
           return;
         }
         setImagePreview(compressed);
-        setForm((prev) => ({ ...prev, image: compressed }));
+        setForm((prev: TreeForm) => ({ ...prev, image: compressed }));
       };
       reader.readAsDataURL(file);
     }
@@ -773,7 +836,7 @@ export default function AddPlants({
   // Remove image
   const removeImage = () => {
     setImagePreview(null);
-    setForm((prev) => ({ ...prev, image: null }));
+    setForm((prev: TreeForm) => ({ ...prev, image: null }));
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -796,7 +859,7 @@ export default function AddPlants({
       try {
         const stream = await getStreamWithFallback();
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
           return;
         }
         streamRef.current = stream;
@@ -806,17 +869,17 @@ export default function AddPlants({
         try {
           await videoRef.current.play();
         } catch (playErr) {
-          console.warn("Video play may need user gesture:", playErr);
+          void playErr;
         }
         try {
           await waitForVideoReady(videoRef.current);
           if (!cancelled) setCameraReady(true);
-        } catch (readyErr: any) {
+        } catch (readyErr: unknown) {
           console.error(readyErr);
           if (!cancelled) {
             if (
-              readyErr?.name === "NotAllowedError" ||
-              readyErr?.name === "SecurityError"
+              errorName(readyErr) === "NotAllowedError" ||
+              errorName(readyErr) === "SecurityError"
             ) {
               setError(
                 "Camera permission denied. Grant access and click Retry.",
@@ -829,19 +892,19 @@ export default function AddPlants({
             setCameraReady(false);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error accessing camera:", err);
         if (!cancelled) {
           if (
-            err?.name === "NotAllowedError" ||
-            err?.name === "SecurityError"
+            errorName(err) === "NotAllowedError" ||
+            errorName(err) === "SecurityError"
           ) {
             setError(
               "Camera permission denied. Allow access then click Retry.",
             );
           } else {
             setError(
-              (err?.message || "Failed to access camera") +
+              (errorMessage(err) || "Failed to access camera") +
                 ". Check permissions or use Upload Image.",
             );
           }
@@ -856,7 +919,9 @@ export default function AddPlants({
     return () => {
       cancelled = true;
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current
+        .getTracks()
+        .forEach((track: MediaStreamTrack) => track.stop());
         streamRef.current = null;
       }
     };
@@ -866,7 +931,9 @@ export default function AddPlants({
   useEffect(() => {
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current
+        .getTracks()
+        .forEach((track: MediaStreamTrack) => track.stop());
       }
     };
   }, []);
@@ -909,12 +976,15 @@ export default function AddPlants({
                 <img src="/icon.svg" alt="Harit Logo" className="h-8" />
                 <span className="text-2xl font-bold text-gray-800">हरित</span>
               </div>
-              <button
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Back
-              </button>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <button
+                  onClick={handleBack}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Back
+                </button>
+              </div>
             </div>
           </div>
         </nav>
@@ -1276,6 +1346,7 @@ export default function AddPlants({
                   <img
                     src={imagePreview}
                     alt="Plant preview"
+                    crossOrigin={crossOriginForRemoteImage(imagePreview)}
                     className="max-w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
                   />
                   <button
@@ -1373,8 +1444,7 @@ export default function AddPlants({
                       : "Open Camera"}
                 </button>
                 <label
-                  className="sm:flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 text-center cursor-pointer inline-flex items-center justify-center gap-2"
-                  style={{ backgroundColor: "#4B5563" }}
+                  className="sm:flex-1 px-4 py-2 text-sm font-medium rounded-lg text-center cursor-pointer inline-flex items-center justify-center gap-2 border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 active:bg-sky-200 transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-sky-300/60 focus-within:ring-offset-2"
                 >
                   <Upload className="w-4 h-4" />
                   Upload Image

@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 import API from "../api";
 import UpdateTreeRecord from "./UpdateTreeRecord";
 import QRCodeDisplay from "../components/QRCodeDisplay";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import { messageFromUnknown } from "../utils/apiError";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -36,22 +40,32 @@ interface Tree {
   siteId: Site | string;
 }
 
+type DeleteRecordConfirmState = {
+  show: boolean;
+  recordId: string | null;
+  timestamp: string;
+  deleting: boolean;
+};
+
 export default function TreeDetail() {
   const { siteId, treeId } = useParams<{ siteId: string; treeId: string }>();
   const navigate = useNavigate();
   const { token, role } = useAuth();
+  const toast = useToast();
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showRecordDrawer, setShowRecordDrawer] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [deleteConfirm, setDeleteConfirm] = useState({
-    show: false,
-    recordId: null as string | null,
-    timestamp: "",
-    deleting: false,
-  });
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteRecordConfirmState>(
+    {
+      show: false,
+      recordId: null,
+      timestamp: "",
+      deleting: false,
+    },
+  );
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -69,15 +83,18 @@ export default function TreeDetail() {
                 `/user/sites/${siteId}/trees/${treeId}`,
                 { headers: { Authorization: `Bearer ${token}` } },
               );
-            } catch (e) {
-              // Fallback to list then filter
-              const list = await API.get<any>(`/user/sites/${siteId}/trees`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const arr = list.data.trees || list.data;
+            } catch {
+              const list = await API.get<{ trees?: Tree[] } | Tree[]>(
+                `/user/sites/${siteId}/trees`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                },
+              );
+              const raw = list.data;
+              const arr = Array.isArray(raw) ? raw : raw.trees;
               const found = Array.isArray(arr)
-                ? arr.find((t: any) => t._id === treeId)
-                : null;
+                ? arr.find((t) => t._id === treeId)
+                : undefined;
               if (!found) throw new Error("Tree not found in accessible site");
               setTree(found);
               return;
@@ -102,9 +119,9 @@ export default function TreeDetail() {
             setSelectedImageIndex(sorted.length - 1);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch tree data");
+        setError(messageFromUnknown(err, "Failed to fetch tree data"));
       } finally {
         setLoading(false);
       }
@@ -212,12 +229,15 @@ export default function TreeDetail() {
               <img src="/icon.svg" alt="Harit Logo" className="h-8" />
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
-            <button
-              onClick={handleBack}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Back
-            </button>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -248,11 +268,10 @@ export default function TreeDetail() {
                 {tree.verified ? "Verified" : "Pending"}
               </span>
             </div>
-            <p className="text-xs text-gray-500 font-mono">
-              ID: {tree._id.slice(-8)}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-gray-600">{siteName}</span>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500 font-mono">
+                ID: {tree._id.slice(-8)}
+              </p>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                   siteStatus === "active"
@@ -262,6 +281,9 @@ export default function TreeDetail() {
               >
                 {siteStatus}
               </span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-gray-600">{siteName}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -568,6 +590,9 @@ export default function TreeDetail() {
                   <img
                     src={sortedImages[selectedImageIndex]?.url}
                     alt={`Tree record ${selectedImageIndex + 1}`}
+                    crossOrigin={crossOriginForRemoteImage(
+                      sortedImages[selectedImageIndex]?.url,
+                    )}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
@@ -651,6 +676,7 @@ export default function TreeDetail() {
                       <img
                         src={image.url}
                         alt={`Tree record ${index + 1}`}
+                        crossOrigin={crossOriginForRemoteImage(image.url)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
@@ -729,7 +755,10 @@ export default function TreeDetail() {
               siteId={siteIdValue}
               treeId={treeId}
               onClose={() => setShowRecordDrawer(false)}
-              onRecordSaved={() => setRefreshCounter((c) => c + 1)}
+              onRecordSaved={() => {
+                toast.success("Record added successfully");
+                setRefreshCounter((c) => c + 1);
+              }}
             />
           )}
         </div>
@@ -777,16 +806,19 @@ export default function TreeDetail() {
                   onClick={async () => {
                     if (!token || !treeId || !deleteConfirm.recordId) return;
                     const recordId = deleteConfirm.recordId;
-                    setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
+                    setDeleteConfirm((prev: DeleteRecordConfirmState) => ({
+                      ...prev,
+                      deleting: true,
+                    }));
                     const backup = tree?.images || [];
                     // Optimistically update local state
-                    setTree((prev) =>
+                    setTree((prev: Tree | null) =>
                       prev
                         ? {
                             ...prev,
                             images: prev.images.filter(
-                              (img: any) =>
-                                String((img as any)._id) !== String(recordId),
+                              (img: TreeImage) =>
+                                String(img._id) !== String(recordId),
                             ),
                           }
                         : prev,
@@ -799,8 +831,9 @@ export default function TreeDetail() {
                       await API.delete(delUrl, {
                         headers: { Authorization: `Bearer ${token}` },
                       });
+                      toast.danger("Record deleted successfully");
                       // Adjust selected index if needed
-                      setSelectedImageIndex((idx) =>
+                      setSelectedImageIndex((idx: number) =>
                         idx >= sortedImages.length - 1
                           ? Math.max(0, sortedImages.length - 2)
                           : idx,
@@ -811,14 +844,11 @@ export default function TreeDetail() {
                         timestamp: "",
                         deleting: false,
                       });
-                    } catch (err: any) {
+                    } catch (err: unknown) {
                       console.error(err);
-                      alert(
-                        err?.response?.data?.message ||
-                          "Failed to delete record",
-                      );
+                      toast.error(messageFromUnknown(err, "Failed to delete record"));
                       // Rollback on error
-                      setTree((prev) =>
+                      setTree((prev: Tree | null) =>
                         prev ? { ...prev, images: backup } : prev,
                       );
                       setDeleteConfirm({

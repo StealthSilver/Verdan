@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { isAxiosError } from "axios";
 import API from "../api";
+import { getPortalOrigin } from "../utils/publicPortalUrl";
 
 interface ConnectionStatus {
   status: "testing" | "success" | "error";
@@ -22,12 +24,17 @@ const ConnectionTest = () => {
         message: response.data.message || "Connected successfully!",
         timestamp: response.data.timestamp,
       });
-    } catch (error: any) {
-      console.error("Connection test failed:", error);
+    } catch (error: unknown) {
+      const message = isAxiosError(error)
+        ? (error.response?.data as { message?: string })?.message ||
+          error.message ||
+          "Connection failed"
+        : error instanceof Error
+          ? error.message
+          : "Connection failed";
       setConnection({
         status: "error",
-        message:
-          error.response?.data?.message || error.message || "Connection failed",
+        message,
       });
     }
   };
@@ -89,7 +96,7 @@ const ConnectionTest = () => {
 
       <div className="mt-4 p-3 bg-gray-50 rounded text-sm">
         <p>
-          <strong>Frontend URL:</strong> https://verdan-beige.vercel.app/
+          <strong>Frontend URL:</strong> {getPortalOrigin()}/
         </p>
         <p>
           <strong>Backend URL:</strong> {import.meta.env.VITE_API_BASE_URL}

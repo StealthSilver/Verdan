@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
-import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
+import { messageFromUnknown } from "../utils/apiError";
+import { FaArrowLeft } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 // Chart.js + React wrapper
 import {
@@ -73,9 +76,14 @@ export default function SiteAnalytics() {
   const { siteId: rawId } = useParams<{ siteId: string }>();
   const siteId = rawId ? decodeURIComponent(rawId).trim() : undefined;
   const navigate = useNavigate();
-  const { token, role, logout } = useAuth();
+  const { token, role, logout, avatarId } = useAuth();
 
   const [site, setSite] = useState<Site | null>(null);
+  const [addressPreview, setAddressPreview] = useState<{
+    open: boolean;
+    siteName: string;
+    address: string;
+  }>({ open: false, siteName: "", address: "" });
   const [trees, setTrees] = useState<Tree[]>([]);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null,
@@ -87,12 +95,7 @@ export default function SiteAnalytics() {
   const hasScheduledRefresh = useRef(false);
   const initialLoadDone = useRef(false);
 
-  // Guard: admin only
-  useEffect(() => {
-    if (role === "user") {
-      navigate("/user/dashboard");
-    }
-  }, [role, navigate]);
+  // Allow both admin + user (role-aware fetch below)
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -136,18 +139,53 @@ export default function SiteAnalytics() {
       if (isInitialLoad) setLoading(true);
       setError("");
       try {
-        const siteRes = await API.get(`/admin/sites/${siteId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSite(siteRes.data);
-        const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTrees(treesRes.data?.trees || []);
+        const isUser = role === "user";
+        if (isUser) {
+          // Site details for user: pull from assigned sites list (includes address/status)
+          try {
+            const sitesRes = await API.get<Site[]>(
+              "/user/sites/assigned",
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            const found = sitesRes.data?.find((s) => s._id === siteId) || null;
+            if (found) setSite(found);
+            else
+              setSite({
+                _id: siteId,
+                name: "Site",
+                status: "active",
+                address: "",
+              });
+          } catch {
+            setSite({
+              _id: siteId,
+              name: "Site",
+              status: "active",
+              address: "",
+            });
+          }
+
+          const treesRes = await API.get<{ trees?: Tree[] } | Tree[]>(
+            `/user/sites/${siteId}/trees`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          const raw = treesRes.data;
+          const arr = Array.isArray(raw) ? raw : raw?.trees;
+          setTrees(Array.isArray(arr) ? arr : []);
+        } else {
+          const siteRes = await API.get(`/admin/sites/${siteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSite(siteRes.data);
+          const treesRes = await API.get(`/admin/sites/${siteId}/trees`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setTrees(treesRes.data?.trees || []);
+        }
         if (!initialLoadDone.current) initialLoadDone.current = true;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to load analytics");
+        setError(messageFromUnknown(err, "Failed to load analytics"));
       } finally {
         if (isInitialLoad) setLoading(false);
       }
@@ -162,7 +200,7 @@ export default function SiteAnalytics() {
       if (timer) window.clearInterval(timer);
       hasScheduledRefresh.current = false;
     };
-  }, [token, siteId]);
+  }, [token, siteId, role]);
 
   // Transformations
   const treesByDate = useMemo(() => {
@@ -214,7 +252,7 @@ export default function SiteAnalytics() {
         raw === "need attention" || raw === "needs_attention"
           ? "needs attention"
           : raw;
-      if (orderedStatuses.includes(s as any)) {
+      if ((orderedStatuses as readonly string[]).includes(s)) {
         counts[s as (typeof orderedStatuses)[number]] += 1;
       }
     });
@@ -518,7 +556,7 @@ export default function SiteAnalytics() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <FaArrowLeft className="text-xs" />
@@ -526,12 +564,19 @@ export default function SiteAnalytics() {
                 </span>
               </button>
 
+              <NotificationBell />
+
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <FaUserCircle className="text-2xl text-gray-600" />
+                  <img
+                    src={avatarDataUrl(avatarId)}
+                    alt="Profile avatar"
+                    className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                    style={{ imageRendering: "pixelated" }}
+                  />
                   <span className="font-medium text-gray-800 text-sm hidden sm:block">
                     {user?.name || "User"}
                   </span>
@@ -559,7 +604,7 @@ export default function SiteAnalytics() {
                       </li>
                       <li
                         onClick={() => {
-                          navigate("/admin/dashboard");
+                          navigate(role === "user" ? "/user/dashboard" : "/admin/Dashboard");
                           setDropdownOpen(false);
                         }}
                         className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -588,7 +633,7 @@ export default function SiteAnalytics() {
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <div className="flex items-center gap-3 mb-3">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">
               Site Analytics
             </h1>
             <span
@@ -602,18 +647,53 @@ export default function SiteAnalytics() {
             </span>
           </div>
           <p className="text-lg text-foreground font-medium">{site?.name}</p>
-          <p className="text-sm text-muted-foreground mt-1">{site?.address}</p>
+          <div className="mt-1 flex items-start gap-2 min-w-0">
+            <p
+              className="text-sm text-muted-foreground truncate max-w-[22rem] sm:max-w-[32rem] lg:max-w-[40rem]"
+              title={site?.address}
+            >
+              {site?.address}
+            </p>
+            {site?.address?.trim() ? (
+              <button
+                type="button"
+                className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                onClick={() =>
+                  setAddressPreview({
+                    open: true,
+                    siteName: site?.name || "Site",
+                    address: site?.address || "",
+                  })
+                }
+                aria-label="View full address"
+                title="View full address"
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            ) : null}
+          </div>
           <p className="text-xs text-muted-foreground font-mono mt-2 opacity-60">
             ID: {site?._id || siteId}
           </p>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {statCards.map((stat, index) => (
             <div
               key={stat.label}
-              className="bg-card rounded-2xl border border-border p-5 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+              className="bg-card rounded-2xl border border-border p-4 sm:p-5 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-start justify-between">
@@ -621,12 +701,12 @@ export default function SiteAnalytics() {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     {stat.label}
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">
                     {stat.value}
                   </p>
                 </div>
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
                   style={{
                     backgroundColor: `${stat.color}15`,
                     color: stat.color,
@@ -643,24 +723,24 @@ export default function SiteAnalytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Line Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "400ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Planting Timeline
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Trees planted over time
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${VERDAN_GREEN}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: VERDAN_GREEN }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -675,31 +755,31 @@ export default function SiteAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[280px]">
+            <div className="h-[220px] sm:h-[280px]">
               <Line data={lineData} options={commonOptions} />
             </div>
           </div>
 
           {/* Bar Chart - Types */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "500ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Species Distribution
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Trees by species type
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.emerald}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.emerald }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -714,31 +794,31 @@ export default function SiteAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[280px]">
+            <div className="h-[220px] sm:h-[280px]">
               <Bar data={typeBarData} options={commonOptions} />
             </div>
           </div>
 
           {/* Pie Chart - Verification */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "600ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Verification Status
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Verified vs unverified trees
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.blue}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.blue }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -753,22 +833,22 @@ export default function SiteAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[280px]">
+            <div className="h-[220px] sm:h-[280px]">
               <Pie data={verificationPieData} options={pieOptions} />
             </div>
           </div>
 
           {/* Bar Chart - Status */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "700ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Health Overview
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Current tree health status
                 </p>
               </div>
@@ -791,7 +871,7 @@ export default function SiteAnalytics() {
                 ></span>
               </div>
             </div>
-            <div className="h-[280px]">
+            <div className="h-[220px] sm:h-[280px]">
               <Bar data={statusBarData} options={commonOptions} />
             </div>
           </div>
@@ -829,6 +909,62 @@ export default function SiteAnalytics() {
           </div>
         )}
       </div>
+
+      {/* Address Preview Modal */}
+      {addressPreview.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full address"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setAddressPreview({ open: false, siteName: "", address: "" });
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {addressPreview.siteName}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">Full address</div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                aria-label="Close"
+                onClick={() =>
+                  setAddressPreview({ open: false, siteName: "", address: "" })
+                }
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="text-sm text-gray-800 break-words whitespace-pre-wrap">
+                {addressPreview.address}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setAddressPreview({
+                      open: false,
+                      siteName: "",
+                      address: "",
+                    })
+                  }
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

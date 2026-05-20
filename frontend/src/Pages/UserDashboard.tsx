@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
-// Site editing is not available for user dashboard
+import { messageFromUnknown } from "../utils/apiError";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -19,7 +20,7 @@ interface Site {
   name: string;
   address: string;
   status: "active" | "inactive";
-  teamMembers: Array<any>;
+  teamMembers: unknown[];
   image: string;
   coordinates: {
     lat: number;
@@ -29,9 +30,14 @@ interface Site {
 }
 
 export default function UserDashboard() {
-  const { token, logout } = useAuth();
+  const { token, logout, avatarId } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
+  const [addressPreview, setAddressPreview] = useState<{
+    open: boolean;
+    siteName: string;
+    address: string;
+  }>({ open: false, siteName: "", address: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -64,8 +70,8 @@ export default function UserDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch user data");
+      } catch (err: unknown) {
+        setError(messageFromUnknown(err, "Failed to fetch user data"));
       } finally {
         setLoading(false);
       }
@@ -84,8 +90,8 @@ export default function UserDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSites(res.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to fetch sites");
+      } catch (err: unknown) {
+        setError(messageFromUnknown(err, "Failed to fetch sites"));
       } finally {
         setLoading(false);
       }
@@ -147,12 +153,19 @@ export default function UserDashboard() {
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
 
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FaUserCircle className="text-2xl text-gray-600" />
+                <img
+                  src={avatarDataUrl(avatarId)}
+                  alt="Profile avatar"
+                  className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                  style={{ imageRendering: "pixelated" }}
+                />
                 <span className="font-medium text-gray-800 text-sm hidden sm:block">
                   {user?.name}
                 </span>
@@ -170,13 +183,23 @@ export default function UserDashboard() {
                   </div>
                   <ul className="py-1">
                     <li
+                      onClick={() =>
+                        navigate("/notifications", {
+                          state: { from: location.pathname },
+                        })
+                      }
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      Notifications
+                    </li>
+                    <li
                       onClick={() => navigate("/profile")}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       Profile
                     </li>
                     <li
-                      onClick={() => navigate("/setting")}
+                      onClick={() => navigate("/settings")}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       Settings
@@ -190,6 +213,7 @@ export default function UserDashboard() {
                   </ul>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>
@@ -211,8 +235,8 @@ export default function UserDashboard() {
 
         {/* SITES TABLE - Desktop */}
         <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div className="overflow-x-hidden">
+            <table className="w-full table-fixed divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -238,8 +262,8 @@ export default function UserDashboard() {
                     key={site._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
+                    <td className="px-6 py-4 align-top">
+                      <div className="font-medium text-gray-900 break-words whitespace-normal">
                         {site.name}
                       </div>
                     </td>
@@ -249,8 +273,41 @@ export default function UserDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700 max-w-xs truncate">
-                        {site.address}
+                      <div className="flex items-start gap-2 min-w-0">
+                        <div
+                          className="text-sm text-gray-700 max-w-[20rem] truncate"
+                          title={site.address}
+                        >
+                          {site.address}
+                        </div>
+                        {site.address?.trim() ? (
+                          <button
+                            type="button"
+                            className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                            onClick={() =>
+                              setAddressPreview({
+                                open: true,
+                                siteName: site.name,
+                                address: site.address,
+                              })
+                            }
+                            aria-label="View full address"
+                            title="View full address"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -290,12 +347,51 @@ export default function UserDashboard() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">
+                  <h3
+                    className="font-semibold text-gray-900"
+                    title={site.name}
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
                     {site.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
-                    {site.address}
-                  </p>
+                  <div className="mt-1 flex items-start gap-2 min-w-0">
+                    <p className="text-xs text-gray-500 truncate" title={site.address}>
+                      {site.address}
+                    </p>
+                    {site.address?.trim() ? (
+                      <button
+                        type="button"
+                        className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                        onClick={() =>
+                          setAddressPreview({
+                            open: true,
+                            siteName: site.name,
+                            address: site.address,
+                          })
+                        }
+                        aria-label="View full address"
+                        title="View full address"
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <span
                   className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -329,6 +425,62 @@ export default function UserDashboard() {
           </div>
         )}
       </div>
+
+      {/* Address Preview Modal */}
+      {addressPreview.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full address"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setAddressPreview({ open: false, siteName: "", address: "" });
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {addressPreview.siteName}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">Full address</div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                aria-label="Close"
+                onClick={() =>
+                  setAddressPreview({ open: false, siteName: "", address: "" })
+                }
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="text-sm text-gray-800 break-words whitespace-pre-wrap">
+                {addressPreview.address}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setAddressPreview({
+                      open: false,
+                      siteName: "",
+                      address: "",
+                    })
+                  }
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

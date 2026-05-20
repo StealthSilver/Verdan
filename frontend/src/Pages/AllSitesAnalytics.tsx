@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
-import { FaArrowLeft, FaUserCircle } from "react-icons/fa";
+import { messageFromUnknown } from "../utils/apiError";
+import { FaArrowLeft } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 // Chart.js + React wrapper
 import {
@@ -72,7 +75,7 @@ interface Site {
 
 export default function AllSitesAnalytics() {
   const navigate = useNavigate();
-  const { token, role, logout } = useAuth();
+  const { token, role, logout, avatarId } = useAuth();
 
   const [sites, setSites] = useState<Site[]>([]);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
@@ -157,9 +160,9 @@ export default function AllSitesAnalytics() {
 
         setSites(sitesWithTrees);
         if (!initialLoadDone.current) initialLoadDone.current = true;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to load analytics");
+        setError(messageFromUnknown(err, "Failed to load analytics"));
       } finally {
         if (isInitialLoad) setLoading(false);
       }
@@ -627,7 +630,7 @@ export default function AllSitesAnalytics() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/admin/dashboard")}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <FaArrowLeft className="text-xs" />
@@ -635,12 +638,19 @@ export default function AllSitesAnalytics() {
                 </span>
               </button>
 
+              <NotificationBell />
+
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <FaUserCircle className="text-2xl text-gray-600" />
+                  <img
+                    src={avatarDataUrl(avatarId)}
+                    alt="Profile avatar"
+                    className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                    style={{ imageRendering: "pixelated" }}
+                  />
                   <span className="font-medium text-gray-800 text-sm hidden sm:block">
                     {user?.name || "User"}
                   </span>
@@ -697,21 +707,21 @@ export default function AllSitesAnalytics() {
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <div className="flex items-center gap-3 mb-3">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">
               Site Comparison Analytics
             </h1>
           </div>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm sm:text-lg text-muted-foreground">
             Compare tree plantation data across all sites
           </p>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {statCards.map((stat, index) => (
             <div
               key={stat.label}
-              className="bg-card rounded-2xl border border-border p-5 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+              className="bg-card rounded-2xl border border-border p-4 sm:p-5 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-start justify-between">
@@ -719,12 +729,12 @@ export default function AllSitesAnalytics() {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     {stat.label}
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">
                     {stat.value}
                   </p>
                 </div>
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
                   style={{
                     backgroundColor: `${stat.color}15`,
                     color: stat.color,
@@ -791,24 +801,24 @@ export default function AllSitesAnalytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Trees per Site - Bar Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "400ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Trees by Site
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Comparison of plantation across sites
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${VERDAN_GREEN}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: VERDAN_GREEN }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -823,31 +833,31 @@ export default function AllSitesAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Bar data={treesPerSiteData} options={commonOptions} />
             </div>
           </div>
 
           {/* Tree Types Distribution - Bar Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "500ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Species Distribution
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Top tree species across all sites
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.emerald}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.emerald }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -862,31 +872,31 @@ export default function AllSitesAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Bar data={treeTypesData} options={commonOptions} />
             </div>
           </div>
 
           {/* Planting Timeline - Line Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "600ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Planting Timeline
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Trees planted over time (all sites)
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.blue}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.blue }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -901,22 +911,22 @@ export default function AllSitesAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Line data={timelineData} options={commonOptions} />
             </div>
           </div>
 
           {/* Health Status - Bar Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "700ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Overall Health Status
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Tree health across all sites
                 </p>
               </div>
@@ -939,31 +949,31 @@ export default function AllSitesAnalytics() {
                 ></span>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Bar data={healthData} options={commonOptions} />
             </div>
           </div>
 
           {/* Verification Status - Doughnut Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "800ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Verification Status
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Verified vs unverified trees
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.purple}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.purple }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -978,31 +988,31 @@ export default function AllSitesAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Doughnut data={verificationData} options={pieOptions} />
             </div>
           </div>
 
           {/* Site Status - Pie Chart */}
           <div
-            className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
+            className="bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-card hover:shadow-card-hover transition-all animate-slide-up"
             style={{ animationDelay: "900ms" }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
                   Site Status Distribution
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Active vs inactive sites
                 </p>
               </div>
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${CHART_COLORS.teal}15` }}
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   style={{ color: CHART_COLORS.teal }}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -1023,7 +1033,7 @@ export default function AllSitesAnalytics() {
                 </svg>
               </div>
             </div>
-            <div className="h-[320px]">
+            <div className="h-[240px] sm:h-[320px]">
               <Doughnut data={siteStatusData} options={pieOptions} />
             </div>
           </div>

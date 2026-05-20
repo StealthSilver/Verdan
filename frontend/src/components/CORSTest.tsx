@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { isAxiosError } from "axios";
 import API from "../api";
 
 const CORSTest: React.FC = () => {
@@ -17,19 +18,22 @@ const CORSTest: React.FC = () => {
           response.status
         }\nData: ${JSON.stringify(response.data, null, 2)}`
       );
-    } catch (error: any) {
-      console.error("CORS Test Error:", error);
-
+    } catch (error: unknown) {
       let errorMessage = "❌ CORS Test Failed!\n";
 
-      if (error.code === "ERR_NETWORK") {
-        errorMessage += "Error: Network Error (likely CORS issue)\n";
-      } else if (error.response) {
-        errorMessage += `Status: ${error.response.status}\n`;
-        errorMessage += `Message: ${
-          error.response.data?.message || "Unknown error"
-        }\n`;
-      } else if (error.message) {
+      if (isAxiosError(error)) {
+        if (error.code === "ERR_NETWORK") {
+          errorMessage += "Error: Network Error (likely CORS issue)\n";
+        } else if (error.response) {
+          errorMessage += `Status: ${error.response.status}\n`;
+          errorMessage += `Message: ${
+            (error.response.data as { message?: string })?.message ||
+            "Unknown error"
+          }\n`;
+        } else if (error.message) {
+          errorMessage += `Message: ${error.message}\n`;
+        }
+      } else if (error instanceof Error && error.message) {
         errorMessage += `Message: ${error.message}\n`;
       }
 
@@ -53,19 +57,22 @@ const CORSTest: React.FC = () => {
       setTestResult(
         `Auth test response: ${JSON.stringify(response.data, null, 2)}`
       );
-    } catch (error: any) {
-      console.error("Auth Test Error:", error);
-
+    } catch (error: unknown) {
       let errorMessage = "🔐 Auth Test (Expected to fail):\n";
 
-      if (error.code === "ERR_NETWORK") {
-        errorMessage += "❌ Network Error (CORS issue)\n";
-      } else if (error.response) {
-        errorMessage += `✅ Got response (CORS working): Status ${error.response.status}\n`;
-        errorMessage += `Message: ${
-          error.response.data?.message || "Auth failed as expected"
-        }\n`;
-      } else if (error.message) {
+      if (isAxiosError(error)) {
+        if (error.code === "ERR_NETWORK") {
+          errorMessage += "❌ Network Error (CORS issue)\n";
+        } else if (error.response) {
+          errorMessage += `✅ Got response (CORS working): Status ${error.response.status}\n`;
+          errorMessage += `Message: ${
+            (error.response.data as { message?: string })?.message ||
+            "Auth failed as expected"
+          }\n`;
+        } else if (error.message) {
+          errorMessage += `Message: ${error.message}\n`;
+        }
+      } else if (error instanceof Error && error.message) {
         errorMessage += `Message: ${error.message}\n`;
       }
 

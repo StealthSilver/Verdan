@@ -2,6 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import {
+  signinErrorMessage,
+  signupRequestErrorMessage,
+} from "../utils/apiError";
+import {
+  TEAM_MEMBER_PASSWORD_MAX_LENGTH,
+  teamMemberPasswordPolicyMessage,
+  validateTeamMemberPassword,
+} from "../utils/teamMemberPassword";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 interface SigninForm {
@@ -16,11 +25,13 @@ interface SigninResponse {
     name: string;
     email: string;
     role: string;
+    avatarId?: number;
     avatarUrl?: string;
   };
 }
 
-const VERDAN_GREEN = "#48845C";
+/** Primary brand green (HARIT) */
+const HARIT_PRIMARY = "#48845C";
 
 export default function Signin() {
   const [form, setForm] = useState<SigninForm>({ email: "", password: "" });
@@ -34,8 +45,9 @@ export default function Signin() {
     name: "",
     email: "",
     company: "",
-    message: "",
+    password: "",
   });
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [deletionMessage, setDeletionMessage] = useState<string>("");
   const [sessionExpiredMsg, setSessionExpiredMsg] = useState<string>("");
 
@@ -68,20 +80,21 @@ export default function Signin() {
     try {
       const res = await API.post<SigninResponse>("/auth/signin", form);
 
-      setUser(res.data.user.name, res.data.access, res.data.user.role);
+      setUser(
+        res.data.user.name,
+        res.data.access,
+        res.data.user.role,
+        res.data.user.email,
+        res.data.user.avatarId,
+      );
 
       if (res.data.user.role.toLowerCase() === "user") {
         navigate("/user/dashboard");
       } else {
         navigate("/admin/Dashboard");
       }
-    } catch (err: any) {
-      const serverMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err.message ||
-        "Signin failed";
-      setErrorMsg(serverMsg);
+    } catch (err: unknown) {
+      setErrorMsg(signinErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -90,28 +103,22 @@ export default function Signin() {
   const handleSignupSubmit = async () => {
     setSignupLoading(true);
     setSignupMsg("");
+    const pwdCheck = validateTeamMemberPassword(signupForm.password);
+    if (!pwdCheck.ok) {
+      setSignupMsg(
+        pwdCheck.message ?? teamMemberPasswordPolicyMessage(),
+      );
+      setSignupLoading(false);
+      return;
+    }
     try {
       await API.post("/auth/signup-request", signupForm);
-      setSignupMsg("Request sent! We'll reach out shortly.");
-      setSignupForm({ name: "", email: "", company: "", message: "" });
-    } catch (err: any) {
-      const data = err?.response?.data;
-      const fieldErrors = data?.errors?.fieldErrors;
-      if (fieldErrors) {
-        const parts: string[] = [];
-        if (fieldErrors.name?.length)
-          parts.push(`Name: ${fieldErrors.name.join(" ")}`);
-        if (fieldErrors.email?.length)
-          parts.push(`Email: ${fieldErrors.email.join(" ")}`);
-        if (fieldErrors.company?.length)
-          parts.push(`Company: ${fieldErrors.company.join(" ")}`);
-        if (fieldErrors.message?.length)
-          parts.push(`Message: ${fieldErrors.message.join(" ")}`);
-        setSignupMsg(parts.join("\n"));
-      } else {
-        const serverMsg = data?.message || err?.message || "Failed to send";
-        setSignupMsg(serverMsg);
-      }
+      setSignupMsg(
+        "Request sent. Check your inbox for a confirmation email from HARIT. Our team will follow up soon.",
+      );
+      setSignupForm({ name: "", email: "", company: "", password: "" });
+    } catch (err: unknown) {
+      setSignupMsg(signupRequestErrorMessage(err));
     } finally {
       setSignupLoading(false);
     }
@@ -123,9 +130,9 @@ export default function Signin() {
   };
 
   const inputFocusStyles = {
-    borderColor: VERDAN_GREEN,
+    borderColor: HARIT_PRIMARY,
     outline: "none",
-    boxShadow: `0 0 0 3px ${VERDAN_GREEN}20`,
+    boxShadow: `0 0 0 3px ${HARIT_PRIMARY}20`,
   };
 
   return (
@@ -134,7 +141,7 @@ export default function Signin() {
         {/* Logo/Brand */}
         <div className="flex items-center justify-center mb-8 gap-3">
           <img src="/icon.svg" alt="Harit Logo" className="w-12 h-12" />
-          <h1 className="text-4xl font-bold" style={{ color: VERDAN_GREEN }}>
+          <h1 className="text-4xl font-bold" style={{ color: HARIT_PRIMARY }}>
             हरित
           </h1>
         </div>
@@ -200,14 +207,14 @@ export default function Signin() {
               onClick={() => setActiveTab("signin")}
               className="flex-1 py-4 text-center font-semibold transition-all relative"
               style={{
-                color: activeTab === "signin" ? VERDAN_GREEN : "#9CA3AF",
+                color: activeTab === "signin" ? HARIT_PRIMARY : "#9CA3AF",
               }}
             >
               Sign In
               {activeTab === "signin" && (
                 <div
                   className="absolute bottom-0 left-0 right-0 h-0.5"
-                  style={{ backgroundColor: VERDAN_GREEN }}
+                  style={{ backgroundColor: HARIT_PRIMARY }}
                 />
               )}
             </button>
@@ -216,14 +223,14 @@ export default function Signin() {
               onClick={() => setActiveTab("signup")}
               className="flex-1 py-4 text-center font-semibold transition-all relative"
               style={{
-                color: activeTab === "signup" ? VERDAN_GREEN : "#9CA3AF",
+                color: activeTab === "signup" ? HARIT_PRIMARY : "#9CA3AF",
               }}
             >
               Request Access
               {activeTab === "signup" && (
                 <div
                   className="absolute bottom-0 left-0 right-0 h-0.5"
-                  style={{ backgroundColor: VERDAN_GREEN }}
+                  style={{ backgroundColor: HARIT_PRIMARY }}
                 />
               )}
             </button>
@@ -308,13 +315,13 @@ export default function Signin() {
                     type="submit"
                     disabled={loading}
                     className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-                    style={{ backgroundColor: VERDAN_GREEN }}
+                    style={{ backgroundColor: HARIT_PRIMARY }}
                     onMouseEnter={(e) => {
                       if (!loading)
                         e.currentTarget.style.backgroundColor = "#3a6b4a";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = VERDAN_GREEN;
+                      e.currentTarget.style.backgroundColor = HARIT_PRIMARY;
                     }}
                   >
                     {loading ? "Signing In..." : "Sign In"}
@@ -329,19 +336,16 @@ export default function Signin() {
               </>
             ) : (
               <>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Request Admin Access
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">
+                  Request access to HARIT
                 </h2>
-                <p className="text-gray-600 text-sm mb-6">
-                  Fill out the form below and we'll get back to you shortly.
-                </p>
 
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (!signupLoading) handleSignupSubmit();
                   }}
-                  className="space-y-4"
+                  className="space-y-4 rounded-2xl border border-gray-100 bg-white/90 p-5 shadow-sm sm:p-6"
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,6 +361,8 @@ export default function Signin() {
                         setSignupForm((s) => ({ ...s, name: e.target.value }))
                       }
                       required
+                      minLength={2}
+                      title="At least 2 characters"
                       onFocus={(e) => {
                         Object.assign(e.target.style, inputFocusStyles);
                       }}
@@ -391,6 +397,55 @@ export default function Signin() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password *
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+                      {teamMemberPasswordPolicyMessage()}
+                    </p>
+                    <div className="relative">
+                      <input
+                        type={showSignupPassword ? "text" : "password"}
+                        className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400"
+                        style={inputStyles}
+                        placeholder="Create a password"
+                        value={signupForm.password}
+                        maxLength={TEAM_MEMBER_PASSWORD_MAX_LENGTH}
+                        onChange={(e) =>
+                          setSignupForm((s) => ({
+                            ...s,
+                            password: e.target.value,
+                          }))
+                        }
+                        required
+                        autoComplete="new-password"
+                        onFocus={(e) => {
+                          Object.assign(e.target.style, inputFocusStyles);
+                        }}
+                        onBlur={(e) => {
+                          Object.assign(e.target.style, inputStyles);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowSignupPassword((prev) => !prev)
+                        }
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                        aria-label={
+                          showSignupPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showSignupPassword ? (
+                          <AiFillEyeInvisible size={20} />
+                        ) : (
+                          <AiFillEye size={20} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Company
                     </label>
                     <input
@@ -414,51 +469,25 @@ export default function Signin() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message *
-                    </label>
-                    <textarea
-                      className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 placeholder-gray-400 resize-none"
-                      style={inputStyles}
-                      placeholder="Tell us why you need admin access..."
-                      value={signupForm.message}
-                      onChange={(e) =>
-                        setSignupForm((s) => ({
-                          ...s,
-                          message: e.target.value,
-                        }))
-                      }
-                      rows={4}
-                      required
-                      onFocus={(e) => {
-                        Object.assign(e.target.style, inputFocusStyles);
-                      }}
-                      onBlur={(e) => {
-                        Object.assign(e.target.style, inputStyles);
-                      }}
-                    />
-                  </div>
-
                   <button
                     type="submit"
                     disabled={signupLoading}
                     className="w-full py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-                    style={{ backgroundColor: VERDAN_GREEN }}
+                    style={{ backgroundColor: HARIT_PRIMARY }}
                     onMouseEnter={(e) => {
                       if (!signupLoading)
                         e.currentTarget.style.backgroundColor = "#3a6b4a";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = VERDAN_GREEN;
+                      e.currentTarget.style.backgroundColor = HARIT_PRIMARY;
                     }}
                   >
-                    {signupLoading ? "Sending..." : "Send Request"}
+                    {signupLoading ? "Sending..." : "Send request"}
                   </button>
                 </form>
 
                 {signupMsg && (
-                  <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line">
+                  <div className="mt-5 text-sm text-gray-700 bg-emerald-50/80 p-4 rounded-xl border border-emerald-100/90 whitespace-pre-line leading-relaxed">
                     {signupMsg}
                   </div>
                 )}

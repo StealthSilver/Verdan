@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import { messageFromUnknown } from "../utils/apiError";
+import { useToast } from "../context/ToastContext";
 
 interface TreeItem {
   _id: string;
@@ -18,6 +21,7 @@ const VERDAN_GREEN = "#48845C";
 export default function UserSiteDashboard() {
   const { siteId } = useParams<{ siteId: string }>();
   const { token } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const [trees, setTrees] = useState<TreeItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,8 +37,8 @@ export default function UserSiteDashboard() {
       });
       const data = res.data.trees || res.data;
       setTrees(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to fetch plants");
+    } catch (err: unknown) {
+      setError(messageFromUnknown(err, "Failed to fetch plants"));
     } finally {
       setLoading(false);
     }
@@ -48,14 +52,15 @@ export default function UserSiteDashboard() {
   const handleDelete = async (treeId: string) => {
     if (!token || !siteId) return;
     const backup = [...trees];
-    setTrees((prev) => prev.filter((t) => t._id !== treeId));
+    setTrees((prev: TreeItem[]) => prev.filter((t: TreeItem) => t._id !== treeId));
     try {
       await API.delete(`/user/sites/${siteId}/trees/${treeId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-    } catch (err: any) {
+      toast.danger("Plant deleted successfully");
+    } catch (err: unknown) {
       setTrees(backup);
-      alert(err?.response?.data?.message || "Failed to delete plant");
+      toast.error(messageFromUnknown(err, "Failed to delete plant"));
     }
   };
 
@@ -155,6 +160,13 @@ export default function UserSiteDashboard() {
                           )[0].url
                         }
                         alt={t.treeName}
+                        crossOrigin={crossOriginForRemoteImage(
+                          [...t.images].sort(
+                            (a, b) =>
+                              new Date(b.timestamp).getTime() -
+                              new Date(a.timestamp).getTime()
+                          )[0].url,
+                        )}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =

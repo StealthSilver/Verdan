@@ -3,6 +3,13 @@ import Select, { type MultiValue, type StylesConfig } from "react-select";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { messageFromUnknown } from "../utils/apiError";
+import { useToast } from "../context/ToastContext";
+import {
+  TEAM_MEMBER_PASSWORD_MAX_LENGTH,
+  teamMemberPasswordPolicyMessage,
+  validateTeamMemberPassword,
+} from "../utils/teamMemberPassword";
 
 interface TeamMemberForm {
   name: string;
@@ -15,22 +22,57 @@ interface TeamMemberForm {
   siteIds: string[];
 }
 
+interface AdminSiteRow {
+  _id: string;
+  name: string;
+}
+
+interface AddTeamMemberApiResponse {
+  message?: string;
+  emailSent?: boolean;
+  noChanges?: boolean;
+  user?: unknown;
+}
+
+interface TeamMemberEditPayload {
+  _id: string;
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  gender: "male" | "female" | "other";
+  designation: string;
+  organization: string;
+  siteIds: string[];
+}
+
 interface AddTeamMemberProps {
   siteId?: string; // provided in modal usage
+  /** When set, drawer loads this member and PATCHes on save */
+  memberId?: string | null;
   onClose?: () => void; // closes drawer/modal
-  onMemberAdded?: (member: any) => void; // callback after successful creation
+  onMemberAdded?: (member: unknown) => void; // callback after successful create/update
+  /** Prefill create form (e.g. access-request email deep link). Ignored in edit mode. */
+  initialCreatePrefill?: {
+    name: string;
+    email: string;
+    password: string;
+  } | null;
 }
 
 export default function AddTeamMember({
   siteId: siteIdProp,
+  memberId,
   onClose,
   onMemberAdded,
+  initialCreatePrefill = null,
 }: AddTeamMemberProps) {
   const { siteId: routeSiteId } = useParams<{ siteId: string }>();
   const effectiveSiteId = siteIdProp || routeSiteId; // prefer prop for modal usage
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, role } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingMember, setLoadingMember] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -59,23 +101,69 @@ export default function AddTeamMember({
     const loadSites = async () => {
       if (!token) return;
       try {
-        const res = await API.get("/admin/sites", {
+        const res = await API.get<AdminSiteRow[]>("/admin/sites", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const list = (res.data || []).map((s: any) => ({
+        const list = (res.data || []).map((s) => ({
           _id: s._id,
           name: s.name,
         }));
         setAvailableSites(list);
-      } catch (err: any) {
-        console.warn(
-          "Failed to load sites for assignment",
-          err?.response || err,
-        );
+      } catch (err: unknown) {
+        void messageFromUnknown(err, "");
       }
     };
     loadSites();
   }, [token]);
+
+  const isEditMode = Boolean(memberId);
+
+  useEffect(() => {
+    const loadMember = async () => {
+      if (!memberId || !effectiveSiteId || !token) return;
+      setLoadingMember(true);
+      setError("");
+      try {
+        const res = await API.get<TeamMemberEditPayload>(
+          `/admin/site/team/member?siteId=${effectiveSiteId}&memberId=${memberId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const d = res.data;
+        setForm({
+          name: d.name ?? "",
+          email: d.email ?? "",
+          password: "",
+          role: (d.role === "admin" ? "admin" : "user") as "admin" | "user",
+          gender: (d.gender === "male" || d.gender === "female"
+            ? d.gender
+            : "other") as TeamMemberForm["gender"],
+          designation: d.designation ?? "",
+          organization: d.organization || "Serentica",
+          siteIds: Array.isArray(d.siteIds) ? d.siteIds : [],
+        });
+      } catch (err: unknown) {
+        const msg = messageFromUnknown(err, "Could not load team member");
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setLoadingMember(false);
+      }
+    };
+    if (memberId) {
+      void loadMember();
+    } else {
+      setForm({
+        name: initialCreatePrefill?.name?.trim() ?? "",
+        email: initialCreatePrefill?.email?.trim() ?? "",
+        password: initialCreatePrefill?.password ?? "",
+        role: "user",
+        gender: "other",
+        designation: "",
+        organization: "Serentica",
+        siteIds: [],
+      });
+    }
+  }, [memberId, effectiveSiteId, token, initialCreatePrefill]);
 
   const customSelectStyles: StylesConfig<
     { value: string; label: string },
@@ -122,10 +210,25 @@ export default function AddTeamMember({
       setLoading(false);
       return;
     }
-    if (!form.password.trim() || form.password.length < 6) {
-      setError("Password is required and must be at least 6 characters");
-      setLoading(false);
-      return;
+    const pwdTrim = form.password.trim();
+    if (!isEditMode) {
+      const pwdResult = validateTeamMemberPassword(pwdTrim);
+      if (!pwdResult.ok) {
+        const msg = pwdResult.message ?? teamMemberPasswordPolicyMessage();
+        setError(msg);
+        toast.error(msg);
+        setLoading(false);
+        return;
+      }
+    } else if (pwdTrim.length > 0) {
+      const pwdResult = validateTeamMemberPassword(pwdTrim);
+      if (!pwdResult.ok) {
+        const msg = pwdResult.message ?? teamMemberPasswordPolicyMessage();
+        setError(msg);
+        toast.error(msg);
+        setLoading(false);
+        return;
+      }
     }
     if (!form.designation.trim()) {
       setError("Designation is required");
@@ -152,39 +255,95 @@ export default function AddTeamMember({
     }
 
     try {
-      // Attempt API call (assuming an endpoint exists)
-      let createdMember: any = null;
-      try {
-        const response = await API.post(
-          `/admin/site/team/add`,
-          {
-            // Keep single siteId for backward compatibility (first selected)
-            siteId: finalSiteIds[0],
-            siteIds: finalSiteIds,
-            name: form.name,
-            email: form.email,
-            password: form.password,
-            role: form.role,
-            gender: form.gender,
-            designation: form.designation,
-            organization: form.organization,
-          },
+      if (isEditMode && memberId && effectiveSiteId) {
+        const body: Record<string, unknown> = {
+          memberId,
+          siteId: effectiveSiteId,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          role: form.role,
+          gender: form.gender,
+          designation: form.designation.trim(),
+          organization: form.organization.trim(),
+          siteIds: finalSiteIds,
+        };
+        if (pwdTrim) {
+          body.password = pwdTrim;
+        }
+        const response = await API.patch<AddTeamMemberApiResponse>(
+          `/admin/site/team/update`,
+          body,
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        createdMember = response.data;
-      } catch (apiErr: any) {
-        // If the API endpoint is not ready, fall back to optimistic success
-        console.warn(
-          "Team member API create failed or not implemented",
-          apiErr?.response || apiErr,
-        );
+        const mailOk = Boolean(response.data?.emailSent);
+        const noChanges = Boolean(response.data?.noChanges);
+        setSuccess(true);
+        setError("");
+        setLoading(false);
+        if (onMemberAdded)
+          onMemberAdded(response.data?.user ?? { ...form, _id: memberId });
+        if (noChanges) {
+          toast.info("No changes to save.");
+        } else if (mailOk) {
+          toast.success(
+            "Team member updated. A summary email was sent to their inbox.",
+          );
+        } else {
+          toast.warning(
+            "Team member updated, but the notification email was not sent. Configure SMTP on the API server.",
+          );
+        }
+        setTimeout(() => {
+          if (onClose) {
+            onClose();
+          } else {
+            navigate(`/admin/Dashboard/${effectiveSiteId}/team`, {
+              state: { refresh: true },
+            });
+          }
+        }, 1200);
+        return;
       }
+
+      const response = await API.post<AddTeamMemberApiResponse>(
+        `/admin/site/team/add`,
+        {
+          // Keep single siteId for backward compatibility (first selected)
+          siteId: finalSiteIds[0],
+          siteIds: finalSiteIds,
+          name: form.name,
+          email: form.email,
+          password: pwdTrim,
+          role: form.role,
+          gender: form.gender,
+          designation: form.designation,
+          organization: form.organization,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const createdMember = response.data;
+      const mailOk = Boolean(response.data?.emailSent);
 
       setSuccess(true);
       setError("");
       setLoading(false);
       if (onMemberAdded)
-        onMemberAdded(createdMember || { ...form, _id: Date.now().toString() });
+        onMemberAdded(
+          createdMember?.user ?? createdMember ?? {
+            ...form,
+            _id: Date.now().toString(),
+          },
+        );
+      if (mailOk) {
+        toast.success(
+          "Team member added successfully. Welcome email sent to their inbox.",
+        );
+      } else {
+        toast.warning(
+          "Team member added, but the welcome email was not sent. Configure SMTP on the API server.",
+        );
+      }
 
       // Reset form for subsequent additions (if staying open)
       setForm({
@@ -208,13 +367,17 @@ export default function AddTeamMember({
           });
         }
       }, 1200);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setSuccess(false);
-      setError(
-        err?.response?.data?.message ||
-          "Failed to add team member. Please try again.",
+      const msg = messageFromUnknown(
+        err,
+        isEditMode
+          ? "Failed to update team member. Please try again."
+          : "Failed to add team member. Please try again.",
       );
+      setError(msg);
+      toast.error(msg);
       setLoading(false);
     }
   };
@@ -227,6 +390,7 @@ export default function AddTeamMember({
   };
 
   const isModal = !!onClose;
+  const canCreateAdmins = role === "admin";
 
   return (
     <div
@@ -273,7 +437,7 @@ export default function AddTeamMember({
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">
-                Add Team Member
+                {isEditMode ? "Edit Team Member" : "Add Team Member"}
               </h1>
               {effectiveSiteId && (
                 <p className="mt-1 text-xs font-mono text-gray-500">
@@ -297,11 +461,24 @@ export default function AddTeamMember({
 
           {success && (
             <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-700 rounded-md text-sm">
-              Team member added successfully! Redirecting...
+              {isEditMode
+                ? "Team member updated! Closing..."
+                : "Team member added successfully! Redirecting..."}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {loadingMember && (
+            <div className="mb-4 p-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-md text-sm">
+              Loading member...
+            </div>
+          )}
+
+          <form
+            noValidate
+            onSubmit={handleSubmit}
+            className="space-y-6"
+            aria-busy={loadingMember}
+          >
             <div>
               <label
                 htmlFor="name"
@@ -345,7 +522,8 @@ export default function AddTeamMember({
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Password <span className="text-red-500">*</span>
+                Password{" "}
+                {!isEditMode && <span className="text-red-500">*</span>}
               </label>
               <div className="relative">
                 <input
@@ -354,10 +532,15 @@ export default function AddTeamMember({
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  required
-                  minLength={6}
+                  required={!isEditMode}
+                  maxLength={TEAM_MEMBER_PASSWORD_MAX_LENGTH}
                   className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter password (min 6 characters)"
+                  placeholder={
+                    isEditMode
+                      ? "Leave blank to keep current password"
+                      : "Enter password"
+                  }
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -393,6 +576,14 @@ export default function AddTeamMember({
                   )}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-gray-600">
+                {teamMemberPasswordPolicyMessage()}
+              </p>
+              {isEditMode && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Leave blank to keep the current password.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -410,12 +601,13 @@ export default function AddTeamMember({
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled
+                  disabled={!canCreateAdmins}
                 >
                   <option value="user">User</option>
+                  {canCreateAdmins && <option value="admin">Admin</option>}
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
-                  Admins can only add users.
+                  Only admins can create new admins.
                 </p>
               </div>
 
@@ -520,11 +712,15 @@ export default function AddTeamMember({
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || loadingMember}
                 className="sm:flex-1 px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#48845C" }}
               >
-                {loading ? "Saving..." : "Save Team Member"}
+                {loading
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Update Team Member"
+                    : "Save Team Member"}
               </button>
             </div>
           </form>

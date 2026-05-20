@@ -1,4 +1,9 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
+
+type RetryableAxiosRequestConfig = InternalAxiosRequestConfig & {
+  __retryCount?: number;
+  __didRefreshRetry?: boolean;
+};
 
 // Determine the correct base URL based on environment
 const getBaseURL = () => {
@@ -10,7 +15,7 @@ const getBaseURL = () => {
 
   // For production, use the deployed backend
   if (import.meta.env.PROD) {
-    return "https://verdan-1-iwlt.onrender.com/";
+    return import.meta.env.VITE_API_URL || "/api";
   }
 
   // For development, use localhost
@@ -28,15 +33,17 @@ const API = axios.create({
   },
 });
 
+async function refreshAccessToken(): Promise<string> {
+  const res = await API.post<{ access: string }>("/auth/refresh");
+  const nextAccess = res.data.access;
+  localStorage.setItem("token", nextAccess);
+  return nextAccess;
+}
+
 // Request interceptor
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    console.log(
-      `🌐 Making ${config.method?.toUpperCase()} request to: ${config.url}`,
-    );
-    console.log(`🔑 Token present: ${!!token}`);
 
     if (token && config.headers) {
       // Use `set` to mutate AxiosHeaders safely
@@ -48,7 +55,6 @@ API.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("❌ Request interceptor error:", error);
     return Promise.reject(error);
   },
 );
@@ -56,21 +62,23 @@ API.interceptors.request.use(
 // Response interceptor for better error handling
 API.interceptors.response.use(
   (response) => {
-    console.log(
-      `✅ Response received from ${response.config.url}:`,
-      response.status,
-    );
     return response;
   },
-  (error) => {
-    console.error("❌ API Error:", error);
-
+  async (error) => {
     // Simple retry for transient network/timeout errors
-    const config = error.config as any;
+    const config = error.config as RetryableAxiosRequestConfig | undefined;
+    if (!config) {
+      return Promise.reject(error);
+    }
+    const requestUrl = String(config.url || "");
+    const isAuthRequest =
+      requestUrl.includes("/auth/signin") ||
+      requestUrl.includes("/auth/signup") ||
+      requestUrl.includes("/auth/signup-request") ||
+      requestUrl.includes("/auth/refresh");
     const isTransient =
       error.code === "ERR_NETWORK" || error.code === "ECONNABORTED";
     if (isTransient) {
-      console.error("❌ Network/Timeout Error - possibly CORS or server down");
       config.__retryCount = config.__retryCount || 0;
       const maxRetries = 2;
       if (config.__retryCount < maxRetries) {
@@ -83,30 +91,61 @@ API.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      console.warn("🔐 Unauthorized - clearing token");
+      // Never redirect or refresh-token-retry for auth endpoints.
+      // These errors should be handled by the calling page (e.g. invalid credentials).
+      if (isAuthRequest) {
+        return Promise.reject(error);
+      }
+
+      // If the user was deleted, do not attempt refresh.
+      if (error.response?.data?.code === "USER_NOT_FOUND") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("name");
+        localStorage.removeItem("role");
+        localStorage.setItem(
+          "deletionMessage",
+          "Your account has been removed due to site deletion or administrative action. Please contact your administrator for assistance.",
+        );
+        window.location.href = "/";
+        return Promise.reject(error);
+      }
+
+      // Attempt a single silent refresh + retry.
+      if (!config.__didRefreshRetry && !requestUrl.includes("/auth/refresh")) {
+        config.__didRefreshRetry = true;
+        try {
+          const nextAccess = await refreshAccessToken();
+          if (config.headers) {
+            if ("set" in config.headers && typeof config.headers.set === "function") {
+              config.headers.set("Authorization", `Bearer ${nextAccess}`);
+            } else {
+              config.headers["Authorization"] = `Bearer ${nextAccess}`;
+            }
+          }
+          return API.request(config);
+        } catch (refreshErr) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("name");
+          localStorage.removeItem("role");
+          localStorage.setItem(
+            "sessionExpired",
+            "Your session has expired. Please sign in again.",
+          );
+          window.location.href = "/";
+          return Promise.reject(refreshErr);
+        }
+      }
 
       // Clear authentication data
       localStorage.removeItem("token");
       localStorage.removeItem("name");
       localStorage.removeItem("role");
 
-      // Check if this is a user deletion scenario
-      if (error.response?.data?.code === "USER_NOT_FOUND") {
-        console.warn(
-          "👤 User account deleted - showing notification and clearing session",
-        );
-        // Store a message for the login page to display
-        localStorage.setItem(
-          "deletionMessage",
-          "Your account has been removed due to site deletion or administrative action. Please contact your administrator for assistance.",
-        );
-      } else {
-        // For token expiration or invalid token
-        localStorage.setItem(
-          "sessionExpired",
-          "Your session has expired. Please sign in again.",
-        );
-      }
+      // For token expiration or invalid token
+      localStorage.setItem(
+        "sessionExpired",
+        "Your session has expired. Please sign in again.",
+      );
 
       // Force redirect to login for all 401 errors
       window.location.href = "/";

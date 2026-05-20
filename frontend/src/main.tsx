@@ -5,13 +5,16 @@ import { HeroUIProvider } from "@heroui/react";
 
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
-      <HeroUIProvider>
-        <App />
-      </HeroUIProvider>
+      <ToastProvider>
+        <HeroUIProvider>
+          <App />
+        </HeroUIProvider>
+      </ToastProvider>
     </AuthProvider>
   </React.StrictMode>
 );

@@ -4,6 +4,7 @@ import "./App.css";
 import UserDashboard from "./Pages/UserDashboard";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
+import Settings from "./Pages/Settings";
 import AddSites from "./Pages/AddSite";
 import TeamDashboard from "./Pages/TeamDashboard";
 import AddTeamMember from "./Pages/AddTeamMember";
@@ -17,6 +18,7 @@ import PublicTreeView from "./Pages/PublicTreeView";
 import QRRedirect from "./Pages/QRRedirect";
 // UserSiteDashboard now replaced by role-aware SiteDashboard for parity
 import ConnectionTest from "./components/ConnectionTest";
+import NotificationsPage from "./Pages/Notifications/NotificationsPage";
 // import UserProfile from "./Pages/UserProfile"
 const App = () => {
   return (
@@ -69,6 +71,10 @@ const App = () => {
 
         {/* User Routes */}
         <Route path="/user/dashboard" element={<UserDashboard />}></Route>
+        <Route
+          path="/user/notifications"
+          element={<NotificationsPage />}
+        ></Route>
         <Route path="/user/site/:siteId" element={<SiteDashboard />}></Route>
         <Route
           path="/user/site/:siteId/:treeId"
@@ -79,9 +85,15 @@ const App = () => {
           element={<UpdateTreeRecord />}
         ></Route>
         <Route path="/user/site/:siteId/plants" element={<AddPlants />}></Route>
+        <Route
+          path="/user/site/:siteId/analytics"
+          element={<SiteAnalytics />}
+        ></Route>
 
         {/* Shared Routes */}
+        <Route path="/notifications" element={<NotificationsPage />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
+        <Route path="/settings" element={<Settings />}></Route>
 
         {/* 404 - Redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />}></Route>

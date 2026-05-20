@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
+import { messageFromUnknown } from "../utils/apiError";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -33,7 +36,8 @@ interface UserSiteDashboard {
 }
 
 export default function Profile() {
-  const { token, logout, role } = useAuth();
+  const { token, logout, role, email: authEmail, avatarId, setAvatarId } = useAuth();
+  const toast = useToast();
   const [user, setUser] = useState<UserMe | null>(null);
   const [adminSites, setAdminSites] = useState<AdminSite[]>([]);
   const [userSite, setUserSite] = useState<UserSiteDashboard | null>(null);
@@ -43,11 +47,8 @@ export default function Profile() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  // Debug: Log auth state
-  useEffect(() => {
-    console.log("Profile - Auth state:", { token: !!token, role });
-  }, [token, role]);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [pendingAvatarId, setPendingAvatarId] = useState<number>(avatarId);
 
   // Outside click for dropdown
   useEffect(() => {
@@ -72,18 +73,13 @@ export default function Profile() {
       }
       try {
         setLoadingUser(true);
-        console.log("Fetching user profile data...");
         const res = await API.get<UserMe>("/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("User profile data received:", res.data);
         setUser(res.data);
         setError("");
-      } catch (err: any) {
-        console.error("Failed to fetch user data:", err);
-        const errorMsg =
-          err?.response?.data?.message || "Failed to fetch user data";
-        console.error("Error message:", errorMsg);
+      } catch (err: unknown) {
+        const errorMsg = messageFromUnknown(err, "Failed to fetch user data");
         setError(errorMsg);
       } finally {
         setLoadingUser(false);
@@ -91,6 +87,10 @@ export default function Profile() {
     };
     run();
   }, [token]);
+
+  useEffect(() => {
+    setPendingAvatarId(avatarId);
+  }, [avatarId]);
 
   // Fetch sites depending on role
   useEffect(() => {
@@ -101,22 +101,18 @@ export default function Profile() {
       }
       try {
         setLoadingSites(true);
-        console.log(`Fetching sites for role: ${role}`);
         if (role === "admin") {
           const res = await API.get<AdminSite[]>("/admin/sites", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          console.log("Admin sites received:", res.data);
           setAdminSites(res.data);
         } else if (role === "user") {
           const res = await API.get<UserSiteDashboard>("/user/dashboard", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          console.log("User site received:", res.data);
           setUserSite(res.data);
         }
-      } catch (err: any) {
-        console.error("Failed to fetch site data:", err);
+      } catch {
         // Non-fatal; profile still shows basic info
       } finally {
         setLoadingSites(false);
@@ -149,12 +145,19 @@ export default function Profile() {
               <img src="/icon.svg" alt="Harit Logo" className="h-8" />
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FaUserCircle className="text-2xl text-gray-600" />
+                <img
+                  src={avatarDataUrl(avatarId)}
+                  alt="Profile avatar"
+                  className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                  style={{ imageRendering: "pixelated" }}
+                />
                 <span className="font-medium text-gray-800 text-sm hidden sm:block">
                   {user?.name}
                 </span>
@@ -177,7 +180,7 @@ export default function Profile() {
                       Profile
                     </li>
                     <li
-                      onClick={() => navigate("/setting")}
+                      onClick={() => navigate("/settings")}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       Settings
@@ -191,6 +194,7 @@ export default function Profile() {
                   </ul>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
@@ -246,7 +250,21 @@ export default function Profile() {
         {user && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
             <div className="flex items-start gap-4">
-              <FaUserCircle className="text-5xl text-gray-300" />
+              <button
+                type="button"
+                onClick={() => setAvatarModalOpen(true)}
+                className="group relative"
+                aria-label="Change avatar"
+                title="Change avatar"
+              >
+                <img
+                  src={avatarDataUrl(avatarId)}
+                  alt="Profile avatar"
+                  className="h-16 w-16 rounded-2xl border border-gray-200 bg-white shadow-sm"
+                  style={{ imageRendering: "pixelated" }}
+                />
+                <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/5 transition-colors" />
+              </button>
               <div className="flex-1">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {user.name}
@@ -256,10 +274,135 @@ export default function Profile() {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
                     {user.role}
                   </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    ID: {user._id.slice(0, 8)}...
-                  </span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 max-w-full">
+                    <span className="shrink-0">ID:</span>
+                    <span className="font-mono break-all">{user._id}</span>
+                    <button
+                      type="button"
+                      className="ml-1 shrink-0 rounded-md p-1 hover:bg-blue-200/50 transition-colors"
+                      aria-label="Copy user ID"
+                      title="Copy user ID"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(user._id);
+                          toast.info("ID copied");
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d="M5.75 3A2.75 2.75 0 0 0 3 5.75v7.5A2.75 2.75 0 0 0 5.75 16h3.5A2.75 2.75 0 0 0 12 13.25v-7.5A2.75 2.75 0 0 0 9.25 3h-3.5z" />
+                        <path d="M12.75 4.5c.2.39.31.84.31 1.31v7.44c0 1.8-1.45 3.25-3.25 3.25H6.5a.75.75 0 0 0 .75.75h3.5A2.75 2.75 0 0 0 13.5 14.5V7a2.75 2.75 0 0 0-.75-1.89z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Avatar Modal */}
+        {avatarModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Choose avatar"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setAvatarModalOpen(false);
+            }}
+          >
+            <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+              <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-gray-900">
+                    Choose your avatar
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    Pixel plant characters (saved to your account)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  aria-label="Close"
+                  onClick={() => setAvatarModalOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="px-5 py-5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                  {Array.from({ length: 10 }, (_, id) => id).map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setPendingAvatarId(id)}
+                      className={`rounded-2xl border p-2 transition-all hover:shadow-sm ${
+                        pendingAvatarId === id
+                          ? "border-[#48845C] ring-2 ring-[#48845C]/20 bg-emerald-50/60"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                      aria-label={`Choose avatar ${id + 1}`}
+                    >
+                      <img
+                        src={avatarDataUrl(id)}
+                        alt=""
+                        className="h-14 w-14 mx-auto"
+                        style={{ imageRendering: "pixelated" }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                    onClick={() => setAvatarModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: VERDAN_GREEN }}
+                    onClick={async () => {
+                      if (!token) return;
+                      try {
+                        await API.patch(
+                          "/auth/me/avatar",
+                          { avatarId: pendingAvatarId },
+                          { headers: { Authorization: `Bearer ${token}` } },
+                        );
+                        setAvatarId(pendingAvatarId);
+                        toast.info("Avatar updated");
+                        setAvatarModalOpen(false);
+                      } catch (err: unknown) {
+                        toast.error(
+                          messageFromUnknown(err, "Failed to update avatar"),
+                        );
+                      }
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+
+                {!authEmail && (
+                  <div className="mt-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    Email isn’t loaded yet, but avatar will still be saved for your
+                    account when you’re authenticated.
+                  </div>
+                )}
               </div>
             </div>
           </div>

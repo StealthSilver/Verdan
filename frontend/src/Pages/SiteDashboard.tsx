@@ -2,10 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaUserCircle } from "react-icons/fa";
+import { avatarDataUrl } from "../utils/avatars";
 import { FiArrowLeft, FiDownload, FiBarChart2, FiPlus } from "react-icons/fi";
 import API from "../api";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import { messageFromUnknown } from "../utils/apiError";
 import AddPlants from "./AddPlants";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -63,7 +67,8 @@ export default function SiteDashboard() {
   const siteId = rawSiteId ? decodeURIComponent(rawSiteId).trim() : undefined;
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, logout, role } = useAuth();
+  const { token, logout, role, avatarId } = useAuth();
+  const toast = useToast();
 
   const [site, setSite] = useState<Site | null>(null);
   const [trees, setTrees] = useState<Tree[]>([]);
@@ -90,6 +95,11 @@ export default function SiteDashboard() {
     totalCount: 0,
     limit: 10,
   });
+  const [addressPreview, setAddressPreview] = useState<{
+    open: boolean;
+    siteName: string;
+    address: string;
+  }>({ open: false, siteName: "", address: "" });
 
   const exportDashboardXlsx = async () => {
     if (!site) {
@@ -225,11 +235,9 @@ export default function SiteDashboard() {
       XLSX.writeFile(wb, fileName);
 
       alert(`Export successful! ${allTrees.length} trees exported.`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Export error:", err);
-      alert(
-        `Export failed: ${err?.response?.data?.message || err.message || "Unknown error"}`,
-      );
+      alert(`Export failed: ${messageFromUnknown(err, "Unknown error")}`);
     } finally {
       setExporting(false);
     }
@@ -266,8 +274,9 @@ export default function SiteDashboard() {
   }, [token]);
 
   // Fetch site and trees
-  useEffect(() => {
-    const fetchData = async () => {
+  useEffect(
+    () => {
+      const fetchData = async () => {
       if (!token || !siteId) {
         if (!siteId) setError("Site ID missing");
         return;
@@ -323,26 +332,27 @@ export default function SiteDashboard() {
           // This prevents overriding optimistic updates
           if (!verifying) {
             setTrees(fetchedTrees);
-          } else {
-            console.log("Skipping tree update during verification process");
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch site");
+        setError(messageFromUnknown(err, "Failed to fetch site"));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [
-    token,
-    siteId,
-    location.state?.refresh,
-    refreshCounter,
-    role,
-    currentPage,
-  ]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- site/verifying omitted to avoid clobbering optimistic verify
+    [
+      token,
+      siteId,
+      location.state?.refresh,
+      refreshCounter,
+      role,
+      currentPage,
+    ],
+  );
 
   const handleLogout = () => {
     logout();
@@ -361,8 +371,8 @@ export default function SiteDashboard() {
 
   const handleViewAnalytics = () => {
     if (!siteId) return;
-    if (role === "user") return; // Only admins have analytics
-    navigate(`/admin/dashboard/${siteId}/analytics`);
+    if (role === "user") navigate(`/user/site/${siteId}/analytics`);
+    else navigate(`/admin/dashboard/${siteId}/analytics`);
   };
 
   const performDeleteTree = async () => {
@@ -371,7 +381,7 @@ export default function SiteDashboard() {
     const backup = trees.find((t) => t._id === id);
 
     // Optimistic removal
-    setTrees((prev) => prev.filter((t) => t._id !== id));
+    setTrees((prev: Tree[]) => prev.filter((t: Tree) => t._id !== id));
     setDeleteConfirm({ show: false, treeId: null, treeName: "" });
     setDeleting(true);
     try {
@@ -413,10 +423,11 @@ export default function SiteDashboard() {
           }
         }
       }
-    } catch (err: any) {
+      toast.danger("Plant deleted successfully");
+    } catch (err: unknown) {
       // Rollback on error
-      if (backup) setTrees((prev) => [...prev, backup]);
-      alert(err?.response?.data?.message || "Failed to delete tree");
+      if (backup) setTrees((prev: Tree[]) => [...prev, backup]);
+      toast.error(messageFromUnknown(err, "Failed to delete plant"));
     } finally {
       setDeleting(false);
     }
@@ -434,44 +445,36 @@ export default function SiteDashboard() {
 
   const handleVerifyTree = async (treeId: string) => {
     if (!token || role === "user") return;
-    console.log(`Starting verification for tree: ${treeId}`);
     setVerifying(treeId);
 
     // Update local state optimistically first
-    setTrees((prev) => {
-      const updated = prev.map((tree) =>
+    setTrees((prev: Tree[]) => {
+      const updated = prev.map((tree: Tree) =>
         tree._id === treeId ? { ...tree, verified: true } : tree,
       );
-      console.log("Optimistically updated trees state before API call");
       return updated;
     });
 
     try {
-      const response = await API.patch(
+      await API.patch(
         `/admin/verify/${treeId}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      console.log("Verification API response:", response.data);
-
-      // Verify the API response matches our optimistic update
-      if (response.data.verified === true) {
-        console.log("Verification confirmed by server");
-      }
-    } catch (err: any) {
+      toast.success("Plant verified successfully");
+    } catch (err: unknown) {
       console.error("Verification failed:", err);
       // Rollback optimistic update on error
-      setTrees((prev) =>
-        prev.map((tree) =>
+      setTrees((prev: Tree[]) =>
+        prev.map((tree: Tree) =>
           tree._id === treeId ? { ...tree, verified: false } : tree,
         ),
       );
-      alert(err?.response?.data?.message || "Failed to verify tree");
+      toast.error(messageFromUnknown(err, "Failed to verify plant"));
     } finally {
       setVerifying(null);
-      console.log(`Verification process completed for tree: ${treeId}`);
     }
   };
   if (loading)
@@ -529,12 +532,19 @@ export default function SiteDashboard() {
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
 
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FaUserCircle className="text-2xl text-gray-600" />
+                <img
+                  src={avatarDataUrl(avatarId)}
+                  alt="Profile avatar"
+                  className="h-8 w-8 rounded-xl border border-gray-200 bg-white"
+                  style={{ imageRendering: "pixelated" }}
+                />
                 <span className="font-medium text-gray-800 text-sm hidden sm:block">
                   {user?.name}
                 </span>
@@ -558,7 +568,7 @@ export default function SiteDashboard() {
                       Profile
                     </li>
                     <li
-                      onClick={() => navigate("/setting")}
+                      onClick={() => navigate("/settings")}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       Settings
@@ -573,6 +583,7 @@ export default function SiteDashboard() {
                 </div>
               )}
             </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -580,12 +591,15 @@ export default function SiteDashboard() {
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* HEADER WITH BUTTONS */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 leading-snug">
                 {site.name}
               </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500 font-mono">ID: {site._id}</p>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   site.status === "active"
@@ -596,45 +610,77 @@ export default function SiteDashboard() {
                 {site.status}
               </span>
             </div>
-            <p className="text-xs text-gray-500 font-mono">ID: {site._id}</p>
-            <p className="text-sm text-gray-600 mt-1">{site.address}</p>
+            <div className="mt-1 flex items-start gap-2 min-w-0">
+              <p
+                className="text-sm text-gray-600 truncate max-w-[22rem] sm:max-w-[28rem] lg:max-w-[34rem]"
+                title={site.address}
+              >
+                {site.address}
+              </p>
+              {site.address?.trim() ? (
+                <button
+                  type="button"
+                  className="shrink-0 rounded-md p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  onClick={() =>
+                    setAddressPreview({
+                      open: true,
+                      siteName: site.name,
+                      address: site.address,
+                    })
+                  }
+                  aria-label="View full address"
+                  title="View full address"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v.25a.75.75 0 001.5 0V6.5zM10 8a.75.75 0 00-.75.75v5a.75.75 0 001.5 0v-5A.75.75 0 0010 8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {/* Action Buttons: compact grid on small screens, regular layout on larger */}
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 w-full sm:w-auto">
+          <div className="w-full sm:w-auto lg:ml-auto grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3 lg:w-[24rem] justify-items-stretch">
             <button
               onClick={handleBack}
-              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              className="w-full row-start-1 col-start-1 flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
               <FiArrowLeft className="text-base sm:text-lg" />
               <span>Back</span>
             </button>
             <button
-              onClick={exportDashboardXlsx}
-              disabled={loading || !site || trees.length === 0 || exporting}
-              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+              onClick={handleViewAnalytics}
+              className="w-full row-start-2 col-start-1 flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
-              <FiDownload className="text-base sm:text-lg" />
-              <span>{exporting ? "Exporting..." : "Export as Excel"}</span>
+              <FiBarChart2 className="text-base sm:text-lg" />
+              <span>Analytics</span>
             </button>
-            {role !== "user" && (
-              <button
-                onClick={handleViewAnalytics}
-                className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
-                style={{ backgroundColor: VERDAN_GREEN }}
-              >
-                <FiBarChart2 className="text-base sm:text-lg" />
-                <span>Analytics</span>
-              </button>
-            )}
             <button
               onClick={handleAddPlants}
-              className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
+              className="w-full row-start-1 col-start-2 flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: VERDAN_GREEN }}
             >
               <FiPlus className="text-base sm:text-lg" />
               <span>Add Plants</span>
+            </button>
+            <button
+              onClick={exportDashboardXlsx}
+              disabled={loading || !site || trees.length === 0 || exporting}
+              className="row-start-2 col-start-2 w-full flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+              style={{ backgroundColor: VERDAN_GREEN }}
+            >
+              <FiDownload className="text-base sm:text-lg" />
+              <span>{exporting ? "Exporting..." : "Export as Excel"}</span>
             </button>
           </div>
         </div>
@@ -694,6 +740,13 @@ export default function SiteDashboard() {
                             )[0].url
                           }
                           alt={tree.treeName}
+                          crossOrigin={crossOriginForRemoteImage(
+                            [...tree.images].sort(
+                              (a, b) =>
+                                new Date(b.timestamp).getTime() -
+                                new Date(a.timestamp).getTime(),
+                            )[0].url,
+                          )}
                           className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
@@ -811,6 +864,13 @@ export default function SiteDashboard() {
                       )[0].url
                     }
                     alt={tree.treeName}
+                    crossOrigin={crossOriginForRemoteImage(
+                      [...tree.images].sort(
+                        (a, b) =>
+                          new Date(b.timestamp).getTime() -
+                          new Date(a.timestamp).getTime(),
+                      )[0].url,
+                    )}
                     className="w-20 h-20 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
@@ -953,7 +1013,7 @@ export default function SiteDashboard() {
                 </button>
                 <button
                   onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                    setCurrentPage((prev: number) => Math.max(1, prev - 1))
                   }
                   disabled={currentPage === 1}
                   className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -996,7 +1056,7 @@ export default function SiteDashboard() {
                 </div>
                 <button
                   onClick={() =>
-                    setCurrentPage((prev) =>
+                    setCurrentPage((prev: number) =>
                       Math.min(pagination.totalPages, prev + 1),
                     )
                   }
@@ -1049,6 +1109,62 @@ export default function SiteDashboard() {
           )}
         </div>
       </div>
+
+      {/* Address Preview Modal */}
+      {addressPreview.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full address"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setAddressPreview({ open: false, siteName: "", address: "" });
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {addressPreview.siteName}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">Full address</div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                aria-label="Close"
+                onClick={() =>
+                  setAddressPreview({ open: false, siteName: "", address: "" })
+                }
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="text-sm text-gray-800 break-words whitespace-pre-wrap">
+                {addressPreview.address}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() =>
+                    setAddressPreview({
+                      open: false,
+                      siteName: "",
+                      address: "",
+                    })
+                  }
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteConfirm.show && (

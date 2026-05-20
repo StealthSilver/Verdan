@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { messageFromUnknown } from "../utils/apiError";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 interface SiteForm {
   name: string;
@@ -172,18 +174,23 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
         if (response.data?._id) {
           setCreatedSiteId(response.data._id);
           if (onSiteSaved) onSiteSaved(response.data);
+          if (onClose) {
+            onClose();
+            return;
+          }
           setLoading(false);
-          // Keep modal open to allow Add Team action (same as original standalone behavior)
+          // Standalone route: keep open to allow Add Team action
           return;
         }
       }
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
       setError(
-        err?.response?.data?.message ||
-          (isEditMode
+        messageFromUnknown(
+          err,
+          isEditMode
             ? "Failed to update site. Please try again."
-            : "Failed to add site. Please try again."),
+            : "Failed to add site. Please try again.",
+        ),
       );
     } finally {
       setLoading(false);
@@ -220,12 +227,15 @@ export default function AddSite({ onClose, site, onSiteSaved }: AddSiteProps) {
                 <img src="/icon.svg" alt="Harit Logo" className="h-8" />
                 <span className="text-2xl font-bold text-gray-800">हरित</span>
               </div>
-              <button
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Back
-              </button>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <button
+                  onClick={handleBack}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Back
+                </button>
+              </div>
             </div>
           </div>
         </nav>

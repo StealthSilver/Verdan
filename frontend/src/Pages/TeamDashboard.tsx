@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { messageFromUnknown } from "../utils/apiError";
 import AddTeamMember from "./AddTeamMember";
+import { useToast } from "../context/ToastContext";
+import NotificationBell from "../components/NotificationBell/NotificationBell";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -26,12 +29,14 @@ export default function TeamDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuth();
+  const toast = useToast();
 
   const [site, setSite] = useState<Site | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showMemberDrawer, setShowMemberDrawer] = useState(false);
+  const [drawerMemberId, setDrawerMemberId] = useState<string | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState({
     show: false,
@@ -39,6 +44,23 @@ export default function TeamDashboard() {
     memberName: "",
   });
   const [deleting, setDeleting] = useState(false);
+  const [createPrefill, setCreatePrefill] = useState<{
+    name: string;
+    email: string;
+    password: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const sp = new URLSearchParams(location.search);
+    if (sp.get("openAddMember") !== "1") return;
+    const name = sp.get("name") ?? "";
+    const email = sp.get("email") ?? "";
+    const password = sp.get("password") ?? "";
+    setCreatePrefill({ name, email, password });
+    setDrawerMemberId(null);
+    setShowMemberDrawer(true);
+    navigate({ pathname: location.pathname }, { replace: true });
+  }, [location.search, location.pathname, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,9 +82,9 @@ export default function TeamDashboard() {
           },
         );
         setTeamMembers(teamRes.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.response?.data?.message || "Failed to fetch data");
+        setError(messageFromUnknown(err, "Failed to fetch data"));
       } finally {
         setLoading(false);
       }
@@ -71,14 +93,26 @@ export default function TeamDashboard() {
     fetchData();
   }, [token, siteId, location.state?.refresh, refreshCounter]);
 
-  const handleAddTeamMember = () => setShowMemberDrawer(true);
+  const handleAddTeamMember = () => {
+    setCreatePrefill(null);
+    setDrawerMemberId(null);
+    setShowMemberDrawer(true);
+  };
+
+  const handleEditMember = (memberId: string) => {
+    setCreatePrefill(null);
+    setDrawerMemberId(memberId);
+    setShowMemberDrawer(true);
+  };
   const handleBack = () => navigate("/admin/Dashboard");
 
   const handleDelete = async () => {
     if (!deleteConfirm.memberId || !token || !siteId) return;
     const id = deleteConfirm.memberId;
     const backup = teamMembers.find((m) => m._id === id);
-    setTeamMembers((prev) => prev.filter((m) => m._id !== id));
+    setTeamMembers((prev: TeamMember[]) =>
+      prev.filter((m: TeamMember) => m._id !== id),
+    );
     setDeleteConfirm({ show: false, memberId: null, memberName: "" });
     setDeleting(true);
     try {
@@ -87,16 +121,15 @@ export default function TeamDashboard() {
           `/admin/site/team/remove?siteId=${siteId}&memberId=${id}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
-      } catch (apiErr: any) {
-        console.warn(
-          "Team member delete API failed or not implemented",
-          apiErr?.response || apiErr,
-        );
+      } catch (apiErr: unknown) {
+        void apiErr;
       }
       setRefreshCounter((c) => c + 1);
-    } catch (err: any) {
-      if (backup) setTeamMembers((prev) => [...prev, backup]);
-      alert(err?.response?.data?.message || "Failed to delete team member");
+      toast.danger("Team member deleted successfully");
+    } catch (err: unknown) {
+      if (backup)
+        setTeamMembers((prev: TeamMember[]) => [...prev, backup]);
+      toast.error(messageFromUnknown(err, "Failed to delete team member"));
     } finally {
       setDeleting(false);
     }
@@ -149,12 +182,15 @@ export default function TeamDashboard() {
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
 
-            <button
-              onClick={handleBack}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Back
-            </button>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -259,18 +295,28 @@ export default function TeamDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button
-                        className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                        onClick={() =>
-                          setDeleteConfirm({
-                            show: true,
-                            memberId: member._id,
-                            memberName: member.name,
-                          })
-                        }
-                      >
-                        Delete
-                      </button>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                          onClick={() => handleEditMember(member._id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                          onClick={() =>
+                            setDeleteConfirm({
+                              show: true,
+                              memberId: member._id,
+                              memberName: member.name,
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -323,18 +369,28 @@ export default function TeamDashboard() {
                   </span>
                 </div>
               </div>
-              <button
-                className="w-full px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                onClick={() =>
-                  setDeleteConfirm({
-                    show: true,
-                    memberId: member._id,
-                    memberName: member.name,
-                  })
-                }
-              >
-                Delete Member
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  onClick={() => handleEditMember(member._id)}
+                >
+                  Edit Member
+                </button>
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 text-xs font-medium bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: true,
+                      memberId: member._id,
+                      memberName: member.name,
+                    })
+                  }
+                >
+                  Delete Member
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -364,7 +420,10 @@ export default function TeamDashboard() {
       >
         <div
           className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-          onClick={() => setShowMemberDrawer(false)}
+          onClick={() => {
+            setShowMemberDrawer(false);
+            setDrawerMemberId(null);
+          }}
         />
         <div
           className={`relative h-full w-full max-w-2xl bg-white transition-transform duration-300 ${
@@ -373,7 +432,13 @@ export default function TeamDashboard() {
         >
           <AddTeamMember
             siteId={siteId}
-            onClose={() => setShowMemberDrawer(false)}
+            memberId={drawerMemberId}
+            initialCreatePrefill={createPrefill}
+            onClose={() => {
+              setShowMemberDrawer(false);
+              setDrawerMemberId(null);
+              setCreatePrefill(null);
+            }}
             onMemberAdded={() => setRefreshCounter((c) => c + 1)}
           />
         </div>

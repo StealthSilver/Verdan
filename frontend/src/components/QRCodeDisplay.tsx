@@ -1,5 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import { buildPublicTreeDetailUrl } from "../utils/publicPortalUrl";
 
 interface QRCodeDisplayProps {
   treeId: string;
@@ -8,17 +9,11 @@ interface QRCodeDisplayProps {
   role?: string;
 }
 
-export default function QRCodeDisplay({
-  treeId,
-  treeName,
-  siteId: _siteId,
-  role: _role = "user",
-}: QRCodeDisplayProps) {
+export default function QRCodeDisplay(props: QRCodeDisplayProps) {
+  const { treeId, treeName } = props;
   const [showModal, setShowModal] = useState(false);
 
-  // Generate the URL for the public tree view page (works for both authenticated and non-authenticated users)
-  const baseUrl = "https://verdan-beige.vercel.app";
-  const treeDetailUrl = `${baseUrl}/tree/${treeId}`;
+  const treeDetailUrl = buildPublicTreeDetailUrl(treeId);
 
   const handleDownload = () => {
     // Get the SVG element
@@ -63,7 +58,7 @@ export default function QRCodeDisplay({
       ctx.font = "12px Arial";
       ctx.fillStyle = "#666666";
       ctx.fillText(
-        "Scan to view tree details",
+        "Public tree page — Harit",
         canvas.width / 2,
         qrSize + padding + 50,
       );
@@ -166,9 +161,9 @@ export default function QRCodeDisplay({
               ${svgData}
             </div>
             <h1>${treeName}</h1>
-            <p class="subtitle">Scan this QR code to view tree details</p>
+            <p class="subtitle">Scan or open this link — public tree page</p>
             <p class="url">${treeDetailUrl}</p>
-            <div class="logo">Verdan</div>
+            <div class="logo">Harit</div>
           </div>
           <script>
             window.onload = function() {
@@ -266,7 +261,7 @@ export default function QRCodeDisplay({
                   {treeName}
                 </p>
                 <p className="text-xs text-gray-500 mb-2">
-                  Scan this QR code to view tree details
+                  Scan or open this link — same URL as the QR code (public tree page)
                 </p>
                 <p className="text-xs text-gray-400 font-mono break-all px-2">
                   {treeDetailUrl}

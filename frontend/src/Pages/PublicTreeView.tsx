@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
+import { crossOriginForRemoteImage } from "../utils/crossOriginMedia";
+import { messageFromUnknown } from "../utils/apiError";
 
 const VERDAN_GREEN = "#48845C";
 
@@ -37,6 +39,10 @@ interface Tree {
   };
 }
 
+interface PublicTreePayload {
+  tree: Tree;
+}
+
 export default function PublicTreeView() {
   const { treeId } = useParams<{ treeId: string }>();
   const navigate = useNavigate();
@@ -46,7 +52,6 @@ export default function PublicTreeView() {
   const [error, setError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [siteId, setSiteId] = useState<string>("");
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -56,7 +61,7 @@ export default function PublicTreeView() {
         setLoading(true);
 
         // Fetch from public endpoint (no authentication required)
-        const res = await API.get<any>(`/public/trees/${treeId}`);
+        const res = await API.get<PublicTreePayload>(`/public/trees/${treeId}`);
 
         if (res && res.data && res.data.tree) {
           setTree(res.data.tree);
@@ -67,11 +72,6 @@ export default function PublicTreeView() {
               ? res.data.tree.siteId._id
               : res.data.tree.siteId;
           setSiteId(extractedSiteId);
-
-          // Show auth prompt if user is logged in
-          if (token && role) {
-            setShowAuthPrompt(true);
-          }
 
           // Set selectedImageIndex to the latest image
           if (res.data.tree.images && res.data.tree.images.length > 0) {
@@ -85,29 +85,37 @@ export default function PublicTreeView() {
             setSelectedImageIndex(sorted.length - 1);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching tree:", err);
-        setError(err?.response?.data?.message || "Failed to fetch tree data");
+        setError(messageFromUnknown(err, "Failed to fetch tree data"));
       } finally {
         setLoading(false);
       }
     };
     fetchTree();
-  }, [treeId, token, role]);
+  }, [treeId]);
+
+  // Signed-in staff go to the full tree page (role-specific); anonymous users stay on public view.
+  useEffect(() => {
+    if (!tree || !treeId || !siteId || !token || !role) return;
+    if (role !== "admin" && role !== "user") return;
+    if (role === "admin") {
+      navigate(`/admin/dashboard/${siteId}/${treeId}`, { replace: true });
+    } else {
+      navigate(`/user/site/${siteId}/${treeId}`, { replace: true });
+    }
+  }, [tree, treeId, siteId, token, role, navigate]);
 
   const handleSignIn = () => {
     navigate("/");
   };
 
-  const handleGoToAuthView = () => {
-    if (siteId && role) {
-      if (role === "admin") {
-        navigate(`/admin/dashboard/${siteId}/${treeId}`);
-      } else {
-        navigate(`/user/site/${siteId}/${treeId}`);
-      }
-    }
-  };
+  const fullViewPending =
+    !!tree &&
+    !!siteId &&
+    !!token &&
+    !!role &&
+    (role === "admin" || role === "user");
 
   if (loading) {
     return (
@@ -121,6 +129,25 @@ export default function PublicTreeView() {
             />
           </div>
           <p className="text-gray-600 font-medium">Loading tree details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fullViewPending) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-4 border-gray-200"></div>
+            <div
+              className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent animate-spin"
+              style={{ borderTopColor: VERDAN_GREEN }}
+            />
+          </div>
+          <p className="text-gray-600 font-medium">
+            Opening full tree view…
+          </p>
         </div>
       </div>
     );
@@ -198,82 +225,17 @@ export default function PublicTreeView() {
               <span className="text-2xl font-bold text-gray-800">हरित</span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {token && role ? (
-                <>
-                  <button
-                    onClick={handleGoToAuthView}
-                    className="px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-sm font-medium text-white rounded-lg transition-colors"
-                    style={{ backgroundColor: VERDAN_GREEN }}
-                  >
-                    Go to Full View
-                  </button>
-                  <button
-                    onClick={() => setShowAuthPrompt(false)}
-                    className="px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
-                  >
-                    Read-Only
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleSignIn}
-                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                  style={{ backgroundColor: VERDAN_GREEN }}
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Auth Prompt Banner - Only show if authenticated */}
-      {showAuthPrompt && token && role && (
-        <div className="bg-green-50 border-b border-green-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-green-800">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span>
-                  You're signed in as <strong>{role}</strong>. Switch to full
-                  view to access all features and make updates.
-                </span>
-              </div>
               <button
-                onClick={() => setShowAuthPrompt(false)}
-                className="text-green-600 hover:text-green-800"
+                onClick={handleSignIn}
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                style={{ backgroundColor: VERDAN_GREEN }}
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                Sign In
               </button>
             </div>
           </div>
         </div>
-      )}
+      </nav>
 
       {/* Public View Banner - Only show if not authenticated */}
       {(!token || !role) && (
@@ -400,6 +362,9 @@ export default function PublicTreeView() {
                 <img
                   src={sortedImages[selectedImageIndex]?.url}
                   alt={`${tree.treeName} - Record ${selectedImageIndex + 1}`}
+                  crossOrigin={crossOriginForRemoteImage(
+                    sortedImages[selectedImageIndex]?.url,
+                  )}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -431,6 +396,7 @@ export default function PublicTreeView() {
                     <img
                       src={img.url}
                       alt={`Thumbnail ${idx + 1}`}
+                      crossOrigin={crossOriginForRemoteImage(img.url)}
                       className="w-full h-full object-cover"
                     />
                   </button>
