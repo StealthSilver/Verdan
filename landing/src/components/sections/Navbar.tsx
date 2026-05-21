@@ -1,38 +1,62 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-const SECTION_IDS = ["about", "features", "cta", "footer"] as const;
-
 const navItems = [
-  { name: "About", href: "#about", sectionId: "about" as const },
-  { name: "Features", href: "#features", sectionId: "features" as const },
-  { name: "Testimonials", href: "#cta", sectionId: "cta" as const },
-  { name: "Contact us", href: "#footer", sectionId: "footer" as const },
+  { name: "The Need", href: "#the-need" },
+  { name: "Product", href: "#product" },
+  { name: "Features", href: "#features" },
+  { name: "Proof", href: "#proof" },
+  { name: "Contact", href: "#contact" },
 ];
 
 const navTransition =
   "transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)";
 
+const navLinkTransition =
+  "transition-all duration-150 ease-out";
+
+const navLinkGlassHover =
+  "border border-transparent hover:border-white/55 hover:bg-white/25 hover:shadow-[0_2px_6px_rgba(0,0,0,0.11)] hover:backdrop-blur-xl hover:backdrop-saturate-[180%] hover:[-webkit-backdrop-filter:blur(20px)_saturate(180%)]";
+
+const beginNowCtaClassName =
+  "begin-now-cta group flex items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-full border border-[rgb(74,137,92)]/35 bg-white/15 text-sm font-normal uppercase leading-none tracking-wide text-black shadow-[0_2px_6px_rgba(0,0,0,0.11)] backdrop-blur-md outline-none transition-[border-color] duration-[320ms] ease-in-out hover:border-[#48845c] focus-visible:ring-2 focus-visible:ring-[#48845c]/45";
+
+function BeginNowArrow() {
+  return (
+    <svg
+      viewBox="0 0 10 10"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className={cn(
+        "begin-now-cta__arrow h-[0.85em] w-[0.85em] shrink-0",
+        "[&_path:first-child]:opacity-0",
+        "[&_path:first-child]:transition-opacity [&_path:first-child]:duration-300 [&_path:first-child]:ease-[cubic-bezier(0.25,1,0.5,1)]",
+        "[&_path:last-child]:transition-transform [&_path:last-child]:duration-300 [&_path:last-child]:ease-[cubic-bezier(0.25,1,0.5,1)]",
+        "group-hover:[&_path:first-child]:opacity-100 group-focus-visible:[&_path:first-child]:opacity-100",
+        "group-hover:[&_path:last-child]:translate-x-[3px] group-focus-visible:[&_path:last-child]:translate-x-[3px]"
+      )}
+    >
+      <path d="M0.5 5.5h7" />
+      <path d="M1.5 1.5l4 4-4 4" />
+    </svg>
+  );
+}
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>("");
 
   const updateScroll = useCallback(() => {
     setScrolled(window.scrollY > 48);
-    const y = window.scrollY + 140;
-    let current = "";
-    for (const id of SECTION_IDS) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      if (el.offsetTop <= y) current = id;
-    }
-    setActiveSection(current);
   }, []);
 
   useEffect(() => {
@@ -51,23 +75,20 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsOpen((v) => !v);
 
-  const font = "font-[family-name:var(--font-dm-sans)]";
-
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-[100] px-3 sm:px-5 pt-3 sm:pt-4",
-        font,
+        "fixed top-0 left-0 right-0 z-[100] flex justify-center px-3 sm:px-5 pt-3 sm:pt-4",
         navTransition
       )}
     >
       <nav
         aria-label="Primary"
         className={cn(
-          "mx-auto flex w-full max-w-7xl items-center justify-between gap-3",
+          "flex w-full max-w-7xl items-center justify-between gap-3",
           navTransition,
           scrolled &&
-            "max-w-5xl rounded-full border border-white/55 bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
+            "rounded-full border border-white/55 bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
           !scrolled && "bg-transparent py-1"
         )}
         style={
@@ -80,41 +101,37 @@ export default function Navbar() {
       >
         <Link
           href="/"
-          className="flex flex-shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/40"
+          className="flex flex-shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/40"
         >
           <Image
             src="/icon.svg"
             alt=""
-            width={44}
-            height={44}
+            width={30}
+            height={30}
             unoptimized
-            className="h-8 w-auto sm:h-10 md:h-11"
+            className="h-6 w-6 sm:h-8 sm:w-8"
           />
-          <span className="text-2xl font-bold text-gray-800 sm:text-3xl md:text-4xl">
+          <span className="text-2xl font-medium tracking-tight text-black sm:text-3xl">
             हरित
           </span>
         </Link>
 
         <div className="hidden flex-1 justify-center md:flex">
-          <div className="flex items-center gap-1 lg:gap-2">
-            {navItems.map((item) => {
-              const active = activeSection === item.sectionId;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "relative rounded-full px-3 py-2 text-sm font-medium text-gray-700 outline-none lg:px-4 lg:text-base",
-                    navTransition,
-                    "hover:text-[rgb(74,137,92)] hover:shadow-[0_0_18px_rgba(74,137,92,0.18)]",
-                    active &&
-                      "text-[rgb(74,137,92)] shadow-[0_0_14px_rgba(74,137,92,0.2)]"
-                  )}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
+          <div className="flex translate-y-0.5 items-center gap-1 lg:gap-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "relative rounded-full px-3 py-2 text-[13px] font-light text-gray-600 outline-none lg:px-4 lg:text-[15px]",
+                  navLinkTransition,
+                  navLinkGlassHover,
+                  "hover:text-black"
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -123,15 +140,11 @@ export default function Navbar() {
             href="https://verdan-beige.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              "group flex items-center justify-center whitespace-nowrap rounded-full border border-[rgb(74,137,92)]/35 bg-white/15 px-4 py-2 text-sm font-semibold text-gray-900 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-md outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/45 lg:text-base",
-              navTransition,
-              "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/60 hover:shadow-[0_8px_28px_rgba(74,137,92,0.22)]"
-            )}
+            className={cn(beginNowCtaClassName, "px-5 py-3")}
             style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
           >
-            Get Started
-            <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span className="begin-now-cta__label">Begin Now</span>
+            <BeginNowArrow />
           </Link>
         </div>
 
@@ -150,13 +163,13 @@ export default function Navbar() {
       <div
         id="mobile-nav-drawer"
         className={cn(
-          "fixed inset-x-0 top-[4.25rem] z-[99] overflow-hidden md:hidden",
+          "fixed inset-x-0 top-[4.25rem] z-[99] flex justify-center overflow-hidden px-3 sm:px-5 md:hidden",
           navTransition,
           isOpen ? "pointer-events-auto max-h-[min(70vh,28rem)] opacity-100" : "pointer-events-none max-h-0 opacity-0"
         )}
       >
         <div
-          className="mx-3 rounded-2xl border border-white/50 bg-white/45 px-4 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%]"
+          className="w-full max-w-7xl rounded-2xl border border-white/50 bg-white/45 px-4 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%]"
           style={{ WebkitBackdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="flex flex-col items-center gap-1">
@@ -165,7 +178,12 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="w-full rounded-xl py-3 text-center text-base font-medium text-gray-800 outline-none transition hover:bg-white/50 hover:text-[rgb(74,137,92)] focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+                className={cn(
+                  "w-full rounded-full py-3 text-center text-[15px] font-light text-gray-600 outline-none",
+                  navLinkTransition,
+                  navLinkGlassHover,
+                  "hover:text-black focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+                )}
               >
                 {item.name}
               </Link>
@@ -175,9 +193,14 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
-              className="mt-4 flex w-full items-center justify-center rounded-full border border-[rgb(74,137,92)]/40 bg-white/25 py-3 text-center text-sm font-semibold text-gray-900 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-md outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/45"
+              className={cn(
+                beginNowCtaClassName,
+                "mt-4 w-full px-6 py-4"
+              )}
+              style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
             >
-              Get Started Free
+              <span className="begin-now-cta__label">Begin Now</span>
+              <BeginNowArrow />
             </Link>
           </div>
         </div>

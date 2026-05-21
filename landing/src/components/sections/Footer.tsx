@@ -4,8 +4,11 @@ import { Github, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
+  { name: "The Need", href: "/#the-need" },
+  { name: "Product", href: "/#product" },
   { name: "Features", href: "/#features" },
-  { name: "About", href: "/#about" },
+  { name: "Proof", href: "/#proof" },
+  { name: "Contact", href: "/#contact" },
 ];
 
 const legalLinks = [
@@ -36,10 +39,9 @@ const Footer = () => {
 
   return (
     <footer
-      id="footer"
+      id="contact"
       className={cn(
         "relative w-full border-t border-black/[0.08] bg-[var(--background)] text-[var(--color-font)]",
-        "font-[family-name:var(--font-dm-sans)]",
         "shadow-[0_-12px_40px_rgba(0,0,0,0.06)]"
       )}
     >

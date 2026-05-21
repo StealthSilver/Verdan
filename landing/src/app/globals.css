@@ -13,7 +13,7 @@
 
 :root {
   --color-font: #0e0e0e; /* Default text color */
-  --background: #ffffff; /* Page background set to pure white */
+  --background: #fdfdfb;
   --foreground: #0e0e0e; /* Foreground or content color */
 }
 
@@ -24,26 +24,76 @@
 
   /* Light mode defaults */
   --color-font: #0e0e0e;
-  --background: #ffffff; /* White background for light mode */
+  --background: #fdfdfb;
   --foreground: #0e0e0e;
   /* --hover-dark: oklch(20.8% 0.042 265.755);
   --hover-light: oklch(92.9% 0.013 255.508); */
 
   /* Font families */
   --font-family-sans: var(--font-inter, "Inter", sans-serif);
-  --font-family-heading: var(--font-raleway, "Raleway", sans-serif);
+  --font-family-heading: var(--font-inter, "Inter", sans-serif);
 }
 
 /* Smooth scrolling across the entire document */
 html {
   scroll-behavior: smooth;
+  background: var(--background);
 }
 
 /* Ensure body uses the white background variable */
 body {
   background: var(--background);
   color: var(--color-font);
+  font-family: var(--font-family-sans);
   overflow-x: hidden;
+}
+
+/* Begin Now CTA — left-to-right fill on hover */
+.begin-now-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.begin-now-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background-color: #48845c;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 320ms ease-in-out;
+}
+
+.begin-now-cta:hover::before,
+.begin-now-cta:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.begin-now-cta__label,
+.begin-now-cta__arrow {
+  position: relative;
+  z-index: 1;
+  transition:
+    color 320ms ease-in-out,
+    transform 300ms ease-in-out;
+}
+
+.begin-now-cta:hover .begin-now-cta__label,
+.begin-now-cta:focus-visible .begin-now-cta__label,
+.begin-now-cta:hover .begin-now-cta__arrow,
+.begin-now-cta:focus-visible .begin-now-cta__arrow {
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .begin-now-cta::before,
+  .begin-now-cta__label,
+  .begin-now-cta__arrow {
+    transition: none;
+  }
 }
 
 /* Falling leaves animation styles */

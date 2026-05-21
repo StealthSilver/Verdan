@@ -5,24 +5,12 @@ import { ThemeProvider } from "next-themes";
 import ThemeHeadIcons from "@/components/ui/ThemeHeadIcon";
 import ClientWrapper from "@/components/ui/ClientWrapper";
 import FallingLeaves from "@/components/FallingLeaves";
-import { Raleway, Inter, DM_Sans } from "next/font/google";
-
-const raleway = Raleway({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-raleway",
-});
+import { Inter } from "next/font/google";
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -67,12 +55,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${raleway.variable} ${inter.variable} ${dmSans.variable}`}
+      className={`${inter.variable} font-sans antialiased`}
     >
       <head>
         <ThemeHeadIcons />
       </head>
-      <body>
+      <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system">
           <FallingLeaves />
           <ClientWrapper>{children}</ClientWrapper>

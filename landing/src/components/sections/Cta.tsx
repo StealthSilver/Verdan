@@ -39,10 +39,9 @@ const Cta = () => {
 
   return (
     <section
-      id="cta"
+      id="proof"
       className={cn(
-        "relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36",
-        "font-[family-name:var(--font-dm-sans)]"
+        "relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36"
       )}
     >
       <div className="relative z-[1] mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -93,7 +92,7 @@ const Cta = () => {
             </Link>
 
             <Link
-              href="/#about"
+              href="/#the-need"
               className={cn(
                 "w-full rounded-full border border-black/[0.12] bg-[var(--background)] px-7 py-3.5 text-center text-sm font-semibold text-gray-900 shadow-[0_8px_24px_rgba(0,0,0,0.06)] sm:w-auto sm:px-8 sm:py-4 sm:text-base",
                 "outline-none transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",

@@ -66,8 +66,7 @@ const Features = () => {
     <section
       id="features"
       className={cn(
-        "section-noise relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36",
-        "font-[family-name:var(--font-dm-sans)]"
+        "section-noise relative w-full overflow-hidden bg-[var(--background)] py-20 text-[var(--color-font)] sm:py-24 md:py-28 lg:py-36"
       )}
     >
       <div className="relative z-[1] mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
