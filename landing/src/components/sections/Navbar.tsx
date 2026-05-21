@@ -88,7 +88,7 @@ export default function Navbar() {
           "flex w-full max-w-7xl items-center justify-between gap-3",
           navTransition,
           scrolled &&
-            "rounded-full border border-white/55 bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
+            "rounded-full bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
           !scrolled && "bg-transparent py-1"
         )}
         style={
