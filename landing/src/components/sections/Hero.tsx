@@ -1,7 +1,44 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import FallingLeaves from "@/components/FallingLeaves";
 import HeroDashboard from "@/components/HeroDashboard";
+import { cn } from "@/lib/utils";
+
+/** Step 1 headline — 200ms delay, 700ms duration */
+const STEP1_DELAY = 200;
+/** Step 2 subtext — 400ms after step 1 starts */
+const STEP2_DELAY = STEP1_DELAY + 400;
+/** Step 3 dashboard — 300ms after step 2 starts */
+const STEP3_DELAY = STEP2_DELAY + 300;
+/** Step 4 mobile line — after dashboard (900ms) completes */
+const STEP4_DELAY = STEP3_DELAY + 900;
+
+type AnimationStep = 0 | 1 | 2 | 3 | 4;
 
 const Hero = () => {
+  const [step, setStep] = useState<AnimationStep>(0);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (prefersReducedMotion) {
+      setStep(4);
+      return;
+    }
+
+    const timers = [
+      setTimeout(() => setStep(1), STEP1_DELAY),
+      setTimeout(() => setStep(2), STEP2_DELAY),
+      setTimeout(() => setStep(3), STEP3_DELAY),
+      setTimeout(() => setStep(4), STEP4_DELAY),
+    ];
+
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
   return (
     <section
       id="product"
@@ -10,17 +47,38 @@ const Hero = () => {
       <FallingLeaves className="hero-falling-leaves" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-start text-left">
-        <h1 className="text-[1.75rem] font-semibold leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
-          Plantation Monitoring and Management,
-        </h1>
-        <h2 className="mt-0.5 text-[1.75rem] font-semibold leading-[1.1] sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
-          Easier Than Ever
-        </h2>
+        <div
+          className={cn(
+            step < 1 && "hero-pre-animate",
+            step >= 1 && "hero-animate-fade-slide-up"
+          )}
+        >
+          <h1 className="text-[1.75rem] font-semibold leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
+            Plantation Monitoring and Management,
+          </h1>
+          <h2 className="mt-0.5 text-[1.75rem] font-semibold leading-[1.1] sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
+            Easier Than Ever
+          </h2>
+        </div>
+
         <div className="mt-4 flex w-full flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mt-5">
-          <p className="max-w-2xl text-[16px] font-light leading-snug text-gray-600 lg:text-[18px]">
-            Track plantations with GPS, photos, growth insights, and team coordination
+          <p
+            className={cn(
+              "max-w-2xl text-[14px] font-light leading-snug text-gray-600",
+              step < 2 && "hero-pre-animate",
+              step >= 2 && "hero-animate-fade-slide-up-sm"
+            )}
+          >
+            Track plantations with GPS, photos, growth insights, and team
+            coordination
           </p>
-          <p className="group flex shrink-0 cursor-default items-center gap-2 text-[16px] font-light leading-snug text-gray-600 transition-colors duration-150 hover:text-black lg:text-[18px]">
+          <p
+            className={cn(
+              "group flex shrink-0 cursor-default items-center gap-2 text-[14px] font-light leading-snug text-gray-600 transition-colors duration-150 hover:text-black",
+              step < 4 && "hero-pre-animate",
+              step >= 4 && "hero-animate-fade-slide-up-step4"
+            )}
+          >
             <span className="hero-live-dot" aria-hidden>
               <span className="hero-live-dot__ripple" />
               <span className="hero-live-dot__ripple" />
@@ -44,7 +102,13 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="hero-dashboard-scene relative z-10 mt-11 w-full sm:mt-14 lg:mt-16">
+      <div
+        className={cn(
+          "hero-dashboard-scene relative z-10 mt-11 w-full sm:mt-14 lg:mt-16",
+          step < 3 && "hero-pre-animate",
+          step >= 3 && "hero-animate-fade-slide-topleft"
+        )}
+      >
         <div className="hero-dashboard-elevated mx-auto w-full max-w-7xl px-3 sm:px-5">
           <div className="hero-dashboard-effects" aria-hidden>
             <div className="hero-dashboard-glow" />

@@ -86,7 +86,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-sm text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb] sm:text-base"
+                      className="text-[14px] text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb]"
                     >
                       {item.name}
                     </Link>
@@ -97,7 +97,7 @@ const Footer = () => {
           </div>
 
           <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="text-sm text-[#fdfdfb]/55">
+            <p className="text-[12px] text-[#fdfdfb]/55">
               Greener Tomorrow | Better Tomorrow
             </p>
 
@@ -107,7 +107,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-xs text-[#fdfdfb]/45 transition-colors hover:text-[#fdfdfb]/75"
+                      className="text-[12px] text-[#fdfdfb]/45 transition-colors hover:text-[#fdfdfb]/75"
                     >
                       {item.name}
                     </Link>
@@ -121,12 +121,12 @@ const Footer = () => {
 
       <div className="w-full border-t border-[#fdfdfb]/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-8">
-          <p className="text-center text-xs text-[#fdfdfb]/50 sm:text-left sm:text-sm">
+          <p className="text-center text-[12px] text-[#fdfdfb]/50 sm:text-left">
             © {year} हरित. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-            <span className="text-xs text-[#fdfdfb]/50 sm:text-sm">
+            <span className="text-[12px] text-[#fdfdfb]/50">
               Powered by Serentica
             </span>
             <span className="text-[#fdfdfb]/30" aria-hidden>
@@ -144,7 +144,7 @@ const Footer = () => {
                     aria-label={item.name}
                     className="text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fdfdfb]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121c2b]"
                   >
-                    <Icon className="h-4 w-4" aria-hidden />
+                    <Icon className="h-3 w-3" aria-hidden />
                   </a>
                 );
               })}

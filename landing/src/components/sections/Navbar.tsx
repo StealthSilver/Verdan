@@ -123,7 +123,7 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "relative rounded-full px-3 py-2 text-[13px] font-light text-gray-600 outline-none lg:px-4 lg:text-[15px]",
+                  "relative rounded-full px-3 py-2 text-[14px] font-light text-gray-600 outline-none lg:px-4",
                   navLinkTransition,
                   navLinkGlassHover,
                   "hover:text-black"
