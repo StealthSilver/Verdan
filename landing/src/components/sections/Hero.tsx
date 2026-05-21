@@ -115,6 +115,8 @@ const Hero = () => {
             <div className="hero-dashboard-glow" />
           </div>
           <div className="hero-dashboard-corner-shadows" aria-hidden>
+            <div className="hero-dashboard-side-ambient hero-dashboard-side-ambient--left" />
+            <div className="hero-dashboard-side-ambient hero-dashboard-side-ambient--right" />
             <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--left" />
             <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--right" />
           </div>
