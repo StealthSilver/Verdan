@@ -27,9 +27,9 @@ const PULSING_SPOTS: Marker[] = [
 const Cta = () => {
   return (
     <section
-      id="proof"
+      id="cta"
       className={cn(
-        "relative flex w-full flex-col overflow-hidden bg-[var(--background)]",
+        "relative flex w-full flex-col overflow-hidden scroll-mt-[4.25rem] bg-[var(--background)]",
         "py-16 sm:py-20 md:py-28",
         "min-h-[min(65vh,480px)] sm:min-h-[min(70vh,540px)] md:min-h-[min(75vh,600px)]"
       )}

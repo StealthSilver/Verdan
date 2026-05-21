@@ -5,15 +5,17 @@ import Hero from "@/components/sections/Hero";
 import NeedSection from "@/components/NeedSection";
 import Navbar from "@/components/sections/Navbar";
 import About from "@/components/sections/About";
+import Proof from "@/components/sections/Proof";
 
 export default function Home() {
   return (
     <>
       <Navbar />
       <Hero />
-      {/* <NeedSection />
+      <NeedSection />
       <About />
-      <Features /> */}
+      <Features />
+      <Proof />
       <Cta />
       <Footer />
     </>

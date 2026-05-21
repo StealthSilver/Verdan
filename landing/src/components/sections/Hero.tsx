@@ -41,8 +41,7 @@ const Hero = () => {
 
   return (
     <section
-      id="product"
-      className="relative flex w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem] lg:pb-20"
+      className="relative flex min-h-screen w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem] lg:pb-20"
     >
       <FallingLeaves className="hero-falling-leaves" />
 

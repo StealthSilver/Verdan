@@ -42,6 +42,16 @@ html {
   background: var(--background);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+[id] {
+  scroll-margin-top: 4.25rem;
+}
+
 /* Ensure body uses the white background variable */
 body {
   background: var(--background);
