@@ -11,9 +11,9 @@ export default function Home() {
     <>
       <Navbar />
       <Hero />
-      <NeedSection />
+      {/* <NeedSection />
       <About />
-      <Features />
+      <Features /> */}
       <Cta />
       <Footer />
     </>
