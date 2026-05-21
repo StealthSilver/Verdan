@@ -28,8 +28,8 @@ const detailsBtn =
 const deleteBtn =
   "rounded px-2.5 py-1 text-[10px] font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 active:bg-red-100";
 
-const MOCK_CURRENT_PAGE = 1;
-const MOCK_TOTAL_PAGES = 3;
+const MOCK_CURRENT_PAGE: number = 1;
+const MOCK_TOTAL_PAGES: number = 3;
 const MOCK_PAGE_NUMBERS = [1, 2, 3] as const;
 
 function TablePagination() {
@@ -211,7 +211,7 @@ const HeroDashboard = () => {
       role="img"
       aria-label="Harit plantation dashboard preview with tree records, GPS coordinates, and verification status"
     >
-      <div className="overflow-hidden rounded-xl bg-[#f8fafc] shadow-2xl ring-1 ring-black/[0.06]">
+      <div className="overflow-hidden rounded-xl bg-[#f8fafc] ring-1 ring-black/[0.06]">
         <div className="flex w-full flex-col overflow-hidden bg-white">
             {/* Top navbar */}
             <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-5 py-3">

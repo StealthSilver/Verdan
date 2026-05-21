@@ -355,3 +355,17 @@ body {
 .hero-live-dot__ripple:nth-child(2) {
   animation-delay: 1s;
 }
+
+/* Hero dashboard — Verdan green fade from ~200px below preview upward */
+.hero-dashboard-fade {
+  position: absolute;
+  left: 50%;
+  z-index: 0;
+  width: 100vw;
+  max-width: none;
+  height: min(28rem, 50vh);
+  top: calc(100% + 200px);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  background: linear-gradient(to top, #48845c, transparent);
+}

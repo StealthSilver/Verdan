@@ -40,8 +40,11 @@ const Hero = () => {
           </p>
         </div>
 
-        <div className="mt-11 w-full sm:mt-14 lg:mt-16">
-          <HeroDashboard />
+        <div className="relative mt-11 w-full sm:mt-14 lg:mt-16">
+          <div className="relative z-10">
+            <HeroDashboard />
+          </div>
+          <div className="hero-dashboard-fade" aria-hidden />
         </div>
       </div>
     </section>
