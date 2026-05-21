@@ -4,24 +4,64 @@ import { cn } from "@/lib/utils";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
 import { DottedMap, type Marker } from "@/components/ui/DottedMap";
 
-/** 16 plantation spots spread across continents */
+/** 7 pulsing spots — each has a status drawer (verified or sites active) */
 const PULSING_SPOTS: Marker[] = [
-  { lat: 28.6139, lng: 77.209, size: 0.48, pulse: true },
-  { lat: -23.5505, lng: -46.6333, size: 0.45, pulse: true },
-  { lat: -1.2921, lng: 36.8219, size: 0.44, pulse: true },
-  { lat: -6.2088, lng: 106.8456, size: 0.46, pulse: true },
-  { lat: 51.5074, lng: -0.1278, size: 0.43, pulse: true },
-  { lat: -33.8688, lng: 151.2093, size: 0.47, pulse: true },
-  { lat: 37.7749, lng: -122.4194, size: 0.45, pulse: true },
-  { lat: 35.6762, lng: 139.6503, size: 0.44, pulse: true },
-  { lat: 52.52, lng: 13.405, size: 0.42, pulse: true },
-  { lat: 19.4326, lng: -99.1332, size: 0.46, pulse: true },
-  { lat: 30.0444, lng: 31.2357, size: 0.43, pulse: true },
-  { lat: 49.2827, lng: -123.1207, size: 0.45, pulse: true },
-  { lat: -33.9249, lng: 18.4241, size: 0.44, pulse: true },
-  { lat: 13.7563, lng: 100.5018, size: 0.47, pulse: true },
-  { lat: -34.6037, lng: -58.3816, size: 0.45, pulse: true },
-  { lat: 59.3293, lng: 18.0686, size: 0.42, pulse: true },
+  {
+    lat: 45,
+    lng: -98,
+    size: 0.46,
+    pulse: true,
+    statusKind: "verified",
+    statusLabel: "200k new trees verified",
+  },
+  {
+    lat: -18,
+    lng: -58,
+    size: 0.46,
+    pulse: true,
+    statusKind: "sites",
+    statusLabel: "52 sites active",
+  },
+  {
+    lat: 50,
+    lng: 8,
+    size: 0.46,
+    pulse: true,
+    statusKind: "verified",
+    statusLabel: "175k new trees verified",
+  },
+  {
+    lat: -6,
+    lng: 22,
+    size: 0.46,
+    pulse: true,
+    statusKind: "sites",
+    statusLabel: "48 sites active",
+  },
+  {
+    lat: 22,
+    lng: 78,
+    size: 0.46,
+    pulse: true,
+    statusKind: "verified",
+    statusLabel: "412k new trees verified",
+  },
+  {
+    lat: 36,
+    lng: 103,
+    size: 0.46,
+    pulse: true,
+    statusKind: "sites",
+    statusLabel: "63 sites active",
+  },
+  {
+    lat: -26,
+    lng: 134,
+    size: 0.46,
+    pulse: true,
+    statusKind: "verified",
+    statusLabel: "128k new trees verified",
+  },
 ];
 
 const Cta = () => {

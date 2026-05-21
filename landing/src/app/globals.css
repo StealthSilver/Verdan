@@ -507,6 +507,60 @@ body {
   animation-delay: 1s;
 }
 
+/* CTA map — status drawers above pulsing spots */
+@keyframes cta-status-drawer-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, calc(-100% - 6px));
+  }
+}
+
+.cta-status-drawer {
+  transform: translate(-50%, calc(-100% - 6px));
+  animation: cta-status-drawer-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.cta-status-drawer__card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--verdan-green-rgb), 0.22);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 0.4rem 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-font);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+.cta-status-drawer__caret {
+  display: block;
+  width: 0;
+  height: 0;
+  margin-top: -1px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid rgba(255, 255, 255, 0.94);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.06));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-status-drawer {
+    animation: none;
+  }
+}
+
 /*
  * Hero dashboard scene — subtle glow + elevation (Verdan green).
  */

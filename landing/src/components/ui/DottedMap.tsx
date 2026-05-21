@@ -3,6 +3,8 @@
 import * as React from "react";
 import { createMap } from "svg-dotted-map";
 
+import { Sprout, TrendingUp } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export interface Marker {
@@ -10,6 +12,10 @@ export interface Marker {
   lng: number;
   size?: number;
   pulse?: boolean;
+  /** When set, a status drawer is shown above this pulsing spot */
+  statusLabel?: string;
+  /** Drives the growth icon shown in the status drawer */
+  statusKind?: "verified" | "sites";
 }
 
 type MapMarker<M extends Marker> = Omit<M, "lat" | "lng"> & {
@@ -159,6 +165,53 @@ function getNearbyDotIndices(
   return result;
 }
 
+type DrawerLayout = {
+  id: number;
+  left: number;
+  top: number;
+  label: string;
+  kind: "verified" | "sites";
+};
+
+function StatusGrowthIcon({ kind }: { kind: "verified" | "sites" }) {
+  const className = "h-3.5 w-3.5 shrink-0 text-[var(--verdan-green)]";
+  if (kind === "verified") {
+    return <Sprout className={className} strokeWidth={2} aria-hidden />;
+  }
+  return <TrendingUp className={className} strokeWidth={2} aria-hidden />;
+}
+
+function MapStatusDrawer({
+  label,
+  kind,
+  left,
+  top,
+  delayMs,
+}: {
+  label: string;
+  kind: "verified" | "sites";
+  left: number;
+  top: number;
+  delayMs: number;
+}) {
+  return (
+    <div
+      className="cta-status-drawer pointer-events-none absolute z-20 flex flex-col items-center"
+      style={{
+        left,
+        top,
+        animationDelay: `${delayMs}ms`,
+      }}
+    >
+      <div className="cta-status-drawer__card">
+        <StatusGrowthIcon kind={kind} />
+        <span>{label}</span>
+      </div>
+      <span className="cta-status-drawer__caret" aria-hidden />
+    </div>
+  );
+}
+
 export function DottedMap<M extends Marker = Marker>({
   width = 150,
   height = 75,
@@ -185,6 +238,7 @@ export function DottedMap<M extends Marker = Marker>({
   const pendingPointerRef = React.useRef<{ x: number; y: number } | null>(null);
   const colorsRef = React.useRef({ dot: dotColor, hover: hoverDotColor });
   const transformRef = React.useRef<MapTransform | null>(null);
+  const [drawerLayouts, setDrawerLayouts] = React.useState<DrawerLayout[]>([]);
 
   const mapData = React.useMemo(() => {
     const { points, addMarkers } = createMap({ width, height, mapSamples });
@@ -301,48 +355,6 @@ export function DottedMap<M extends Marker = Marker>({
     ctx.clearRect(0, 0, rect.width, rect.height);
   }, []);
 
-  React.useEffect(() => {
-    colorsRef.current = { dot: dotColor, hover: hoverDotColor };
-    drawBaseLayer();
-  }, [dotColor, hoverDotColor, drawBaseLayer]);
-
-  React.useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    drawBaseLayer();
-
-    const observer = new ResizeObserver(() => {
-      drawBaseLayer();
-      clearHoverLayer();
-    });
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, [drawBaseLayer, clearHoverLayer]);
-
-  React.useEffect(
-    () => () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    },
-    []
-  );
-
-  const scheduleHoverPaint = React.useCallback(
-    (clientX: number, clientY: number) => {
-      pendingPointerRef.current = { x: clientX, y: clientY };
-      if (rafRef.current !== null) return;
-
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        const pending = pendingPointerRef.current;
-        if (!pending) return;
-        drawHoverLayer(pending.x, pending.y);
-      });
-    },
-    [drawHoverLayer]
-  );
-
   const { xStep, yToRowIndex } = React.useMemo(() => {
     const sorted = [...dots].sort((a, b) => a.y - b.y || a.x - b.x);
     const rowMap = new Map<number, number>();
@@ -365,6 +377,94 @@ export function DottedMap<M extends Marker = Marker>({
 
     return { xStep: step, yToRowIndex: rowMap };
   }, [dots]);
+
+  const updateDrawerLayouts = React.useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      setDrawerLayouts([]);
+      return;
+    }
+
+    const transform = getMapTransform(rect, width, height);
+    transformRef.current = transform;
+
+    const layouts: DrawerLayout[] = [];
+
+    processedMarkers.forEach((marker, index) => {
+      const source = markers[index];
+      const statusLabel = source?.statusLabel;
+      if (!statusLabel) return;
+
+      const rowIndex = yToRowIndex.get(marker.y) ?? 0;
+      const offsetX = stagger && rowIndex % 2 === 1 ? xStep / 2 : 0;
+      const { px, py } = viewBoxToCanvas(marker.x + offsetX, marker.y, transform);
+      const r = ((marker as MapMarker<M>).size ?? dotRadius) * transform.scale;
+      const kind =
+        source?.statusKind ??
+        (statusLabel.toLowerCase().includes("verified") ? "verified" : "sites");
+
+      layouts.push({
+        id: index,
+        left: px,
+        top: py - r - 10,
+        label: statusLabel,
+        kind,
+      });
+    });
+
+    setDrawerLayouts(layouts);
+  }, [processedMarkers, markers, width, height, stagger, xStep, yToRowIndex, dotRadius]);
+
+  React.useEffect(() => {
+    colorsRef.current = { dot: dotColor, hover: hoverDotColor };
+    drawBaseLayer();
+  }, [dotColor, hoverDotColor, drawBaseLayer]);
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    drawBaseLayer();
+    updateDrawerLayouts();
+
+    const observer = new ResizeObserver(() => {
+      drawBaseLayer();
+      updateDrawerLayouts();
+      clearHoverLayer();
+    });
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [drawBaseLayer, clearHoverLayer, updateDrawerLayouts]);
+
+  React.useLayoutEffect(() => {
+    updateDrawerLayouts();
+  }, [updateDrawerLayouts]);
+
+  React.useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    },
+    []
+  );
+
+  const scheduleHoverPaint = React.useCallback(
+    (clientX: number, clientY: number) => {
+      pendingPointerRef.current = { x: clientX, y: clientY };
+      if (rafRef.current !== null) return;
+
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const pending = pendingPointerRef.current;
+        if (!pending) return;
+        drawHoverLayer(pending.x, pending.y);
+      });
+    },
+    [drawHoverLayer]
+  );
 
   return (
     <div
@@ -482,6 +582,17 @@ export function DottedMap<M extends Marker = Marker>({
           );
         })}
       </svg>
+
+      {drawerLayouts.map((drawer, index) => (
+        <MapStatusDrawer
+          key={drawer.id}
+          label={drawer.label}
+          kind={drawer.kind}
+          left={drawer.left}
+          top={drawer.top}
+          delayMs={index * 120}
+        />
+      ))}
     </div>
   );
 }

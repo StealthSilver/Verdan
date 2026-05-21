@@ -7,7 +7,8 @@ const LEAF_SVG =
 
 const DASHBOARD_CLIP_SELECTOR = ".hero-dashboard-panel-wrap";
 const FRAME_INTERVAL = 2;
-const SPAWN_INTERVAL = 34;
+const SPAWN_INTERVAL = 110;
+const INITIAL_SPAWN_GAP = 130;
 
 interface Leaf {
   el: HTMLDivElement;
@@ -15,6 +16,7 @@ interface Leaf {
   y: number;
   active: boolean;
   spawnAt: number;
+  lane: number;
   rotation: number;
   rotationSpeed: number;
   xDrift: number;
@@ -33,15 +35,16 @@ class LeafScene {
   nextSpawnAt = 0;
   rafId = 0;
   paused = false;
+  allowSpawnThisTick = true;
   resizeObserver: ResizeObserver | null = null;
   boundRender: () => void;
   boundMeasure: () => void;
   boundOnScroll: () => void;
 
   options = {
-    numLeaves: 12,
+    numLeaves: 6,
     spawnInterval: SPAWN_INTERVAL,
-    windDrift: 0.88,
+    windDrift: 0.62,
   };
 
   constructor(el: HTMLDivElement) {
@@ -69,23 +72,43 @@ class LeafScene {
           leaf.active = false;
           leaf.el.style.visibility = "hidden";
         }
+      } else {
+        this._staggerAllRespawns();
       }
     }
     this.measureBounds();
   };
 
+  /** Avoid a burst of leaves when returning to the hero after scroll */
+  _staggerAllRespawns = (): void => {
+    let slot = this.timer + this.options.spawnInterval;
+    for (const leaf of this.leaves) {
+      leaf.active = false;
+      leaf.spawnAt = slot;
+      leaf.el.style.visibility = "hidden";
+      slot += this.options.spawnInterval + 28;
+    }
+    this.nextSpawnAt = slot;
+  };
+
   _applyLeafMotion = (leaf: Leaf): void => {
-    leaf.rotationSpeed = (Math.random() - 0.5) * 5 + 2.5;
-    leaf.xDrift = Math.random() * 0.75 - 0.62;
-    leaf.ySpeed = Math.random() * 0.85 + 1.65;
+    leaf.rotationSpeed = (Math.random() - 0.5) * 3 + 1.8;
+    leaf.xDrift = Math.random() * 0.45 - 0.35;
+    leaf.ySpeed = Math.random() * 0.45 + 0.95;
     leaf.rotation = Math.random() * 360;
   };
 
-  /** Top-right spawn, drifting left across the hero */
+  /** Spawn in separate lanes so leaves stay visually apart */
   _placeAtTopRight = (leaf: Leaf): void => {
-    const spread = Math.min(this.width * 0.52, 460);
-    leaf.x = this.width - 6 - Math.random() * spread;
-    leaf.y = -(Math.random() * 24 + 4);
+    const lanes = this.options.numLeaves;
+    const spread = Math.min(this.width * 0.55, 480);
+    const laneWidth = spread / lanes;
+    const startX = this.width - 8 - spread;
+    leaf.x =
+      startX +
+      leaf.lane * laneWidth +
+      Math.random() * laneWidth * 0.55;
+    leaf.y = -(Math.random() * 16 + leaf.lane * 14 + 8);
   };
 
   _hideLeaf = (leaf: Leaf): void => {
@@ -102,9 +125,10 @@ class LeafScene {
   };
 
   _scheduleRespawn = (leaf: Leaf): void => {
-    const slot = Math.max(this.timer + 1, this.nextSpawnAt);
-    leaf.spawnAt = slot;
-    this.nextSpawnAt = slot + this.options.spawnInterval;
+    const gap =
+      this.options.spawnInterval + Math.floor(Math.random() * 24) + 12;
+    leaf.spawnAt = Math.max(this.timer + 1, this.nextSpawnAt);
+    this.nextSpawnAt = leaf.spawnAt + gap;
     this._hideLeaf(leaf);
   };
 
@@ -114,7 +138,8 @@ class LeafScene {
 
   _updateLeaf = (leaf: Leaf): void => {
     if (!leaf.active) {
-      if (this.timer >= leaf.spawnAt) {
+      if (this.timer >= leaf.spawnAt && this.allowSpawnThisTick) {
+        this.allowSpawnThisTick = false;
         this._activateLeaf(leaf);
       }
       return;
@@ -138,7 +163,8 @@ class LeafScene {
         x: 0,
         y: 0,
         active: false,
-        spawnAt: i * this.options.spawnInterval,
+        spawnAt: i * INITIAL_SPAWN_GAP,
+        lane: i,
         rotation: 0,
         rotationSpeed: 0,
         xDrift: 0,
@@ -155,7 +181,7 @@ class LeafScene {
       this.world.appendChild(leaf.el);
     }
 
-    this.nextSpawnAt = this.options.numLeaves * this.options.spawnInterval;
+    this.nextSpawnAt = this.options.numLeaves * INITIAL_SPAWN_GAP;
     this.world.className = "leaf-scene";
     this.viewport.appendChild(this.world);
 
@@ -182,6 +208,7 @@ class LeafScene {
     if (this.frame % FRAME_INTERVAL !== 0) return;
 
     this.timer++;
+    this.allowSpawnThisTick = true;
     for (let i = 0; i < this.leaves.length; i++) {
       this._updateLeaf(this.leaves[i]);
     }
