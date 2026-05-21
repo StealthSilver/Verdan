@@ -1,39 +1,47 @@
-"use client";
-
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import HeroDashboard from "@/components/HeroDashboard";
 
 const Hero = () => {
   return (
     <section
       id="product"
-      className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[var(--background)] px-4 pt-20 text-[var(--color-font)] transition-colors duration-500 sm:px-6 sm:pt-24 md:pt-28"
+      className="relative flex min-h-screen w-full flex-col justify-start overflow-hidden bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem] lg:pb-20"
     >
-      <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center text-center">
-        <h1 className="text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl lg:text-7xl">
-          Fastest and most efficient
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-start text-left">
+        <h1 className="text-[1.75rem] font-semibold leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
+          Plantation Monitoring and Management,
         </h1>
-        <h2 className="mt-1 text-3xl font-semibold leading-tight sm:mt-3 sm:text-4xl md:text-5xl lg:text-7xl">
-          way to plant trees
+        <h2 className="mt-0.5 text-[1.75rem] font-semibold leading-[1.1] sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
+          Easier Than Ever
         </h2>
+        <div className="mt-4 flex w-full flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mt-5">
+          <p className="max-w-2xl text-[16px] font-light leading-snug text-gray-600 lg:text-[18px]">
+            Track plantations with GPS, photos, growth insights, and team coordination
+          </p>
+          <p className="group flex shrink-0 cursor-default items-center gap-2 text-[16px] font-light leading-snug text-gray-600 transition-colors duration-150 hover:text-black lg:text-[18px]">
+            <span className="hero-live-dot" aria-hidden>
+              <span className="hero-live-dot__ripple" />
+              <span className="hero-live-dot__ripple" />
+              <span className="hero-live-dot__core" />
+            </span>
+            We built a mobile application
+            <svg
+              viewBox="0 0 10 10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              className="h-[0.85em] w-[0.85em] shrink-0 [&_path:first-child]:opacity-0 [&_path:first-child]:transition-opacity [&_path:first-child]:duration-300 [&_path:first-child]:ease-[cubic-bezier(0.25,1,0.5,1)] [&_path:last-child]:transition-transform [&_path:last-child]:duration-300 [&_path:last-child]:ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:[&_path:first-child]:opacity-100 group-hover:[&_path:last-child]:translate-x-[3px]"
+            >
+              <path d="M0.5 5.5h7" />
+              <path d="M1.5 1.5l4 4-4 4" />
+            </svg>
+          </p>
+        </div>
 
-        <p className="mt-6 max-w-2xl text-base opacity-90 sm:mt-8 sm:text-lg md:text-xl">
-          With Harit, you can record, photograph, and follow the
-        </p>
-        <p className="mt-1 max-w-2xl text-base opacity-90 sm:text-lg md:text-xl">
-          life of every tree — turning data into a forest of impact.
-        </p>
-
-        <div className="flex w-full flex-col items-center justify-center gap-3 px-2 pt-8 sm:w-auto sm:flex-row sm:gap-4 sm:pt-12 md:gap-12">
-          <Link
-            href="https://verdan-beige.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex w-full items-center justify-center rounded-full border border-black bg-white px-3 py-2.5 text-xs font-semibold text-gray-900 shadow-glow transition-all duration-200 hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-black/40 sm:w-auto sm:px-5 sm:py-2.5 sm:text-sm"
-          >
-            Get Started
-            <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:h-4 sm:w-4" />
-          </Link>
+        <div className="mt-11 w-full sm:mt-14 lg:mt-16">
+          <HeroDashboard />
         </div>
       </div>
     </section>

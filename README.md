@@ -1,4 +1,4 @@
-# 🌳 Verdan - Greener Tomorrow
+# Verdan - Greener Tomorrow
 
 <div align="center">
   <img src="./landing/public/verdan_dark.svg" alt="Verdan Logo" width="150" height="150">
