@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ThemeHeadIcons from "@/components/ui/ThemeHeadIcon";
 import ClientWrapper from "@/components/ui/ClientWrapper";
-import FallingLeaves from "@/components/FallingLeaves";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -62,7 +61,6 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         <ThemeProvider attribute="class" defaultTheme="system">
-          <FallingLeaves />
           <ClientWrapper>{children}</ClientWrapper>
         </ThemeProvider>
       </body>

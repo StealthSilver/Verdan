@@ -2,11 +2,15 @@
 
 import { useEffect, useRef } from "react";
 
+const LEAF_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 2C10 2 5 8 5 12C5 15.3 7.2 18 10 18C12.8 18 15 15.3 15 12C15 8 10 2 10 2Z' fill='%2348845c'/%3E%3Cpath d='M10 18C11.1 18 12 17.1 12 16C12 15.9 11.9 15.8 11.8 15.7C10.6 16.2 9.4 16.2 8.2 15.7C8.1 15.8 8 15.9 8 16C8 17.1 8.9 18 10 18Z' fill='%233d7149'/%3E%3C/svg%3E";
+
 interface Leaf {
   el: HTMLDivElement;
   x: number;
   y: number;
   z: number;
+  size: number;
   rotation: {
     axis: "X" | "Y" | "Z";
     value: number;
@@ -15,11 +19,6 @@ interface Leaf {
   };
   xSpeedVariation: number;
   ySpeed: number;
-  path: {
-    type: number;
-    start: number;
-  };
-  image: number;
 }
 
 interface WindConfig {
@@ -36,13 +35,16 @@ class LeafScene {
   leaves: Leaf[] = [];
   width: number;
   height: number;
-  timer: number = 0;
+  timer = 0;
+  rafId = 0;
+  resizeObserver: ResizeObserver | null = null;
+  boundRender: () => void;
 
   options = {
-    numLeaves: 20,
+    numLeaves: 22,
     wind: {
-      magnitude: 1.2,
-      maxSpeed: 12,
+      magnitude: 0.8,
+      maxSpeed: 6.5,
       duration: 300,
       start: 0,
       speed: () => 0,
@@ -52,14 +54,15 @@ class LeafScene {
   constructor(el: HTMLDivElement) {
     this.viewport = el;
     this.world = document.createElement("div");
-    this.width = this.viewport.offsetWidth;
-    this.height = this.viewport.offsetHeight;
+    this.width = el.offsetWidth;
+    this.height = el.offsetHeight;
+    this.boundRender = this.render.bind(this);
   }
 
   _resetLeaf = (leaf: Leaf): Leaf => {
     leaf.x = this.width * 2 - Math.random() * this.width * 1.75;
     leaf.y = -10;
-    leaf.z = Math.random() * 200;
+    leaf.z = Math.random() * 160;
 
     if (leaf.x > this.width) {
       leaf.x = this.width + 10;
@@ -70,7 +73,7 @@ class LeafScene {
       leaf.y = Math.random() * this.height;
     }
 
-    leaf.rotation.speed = Math.random() * 10;
+    leaf.rotation.speed = Math.random() * 2.2 + 0.4;
     const randomAxis = Math.random();
 
     if (randomAxis > 0.5) {
@@ -81,11 +84,11 @@ class LeafScene {
     } else {
       leaf.rotation.axis = "Z";
       leaf.rotation.x = Math.random() * 360 - 180;
-      leaf.rotation.speed = Math.random() * 3;
+      leaf.rotation.speed = Math.random() * 1.2 + 0.3;
     }
 
-    leaf.xSpeedVariation = Math.random() * 0.8 - 0.4;
-    leaf.ySpeed = Math.random() + 1.5;
+    leaf.xSpeedVariation = Math.random() * 0.28 - 0.14;
+    leaf.ySpeed = Math.random() * 0.35 + 0.22;
 
     return leaf;
   };
@@ -107,7 +110,6 @@ class LeafScene {
     }
 
     leaf.el.style.transform = t;
-    leaf.el.style.webkitTransform = t;
 
     if (leaf.x < -10 || leaf.y > this.height + 10) {
       this._resetLeaf(leaf);
@@ -119,32 +121,35 @@ class LeafScene {
       this.timer === 0 ||
       this.timer > this.options.wind.start + this.options.wind.duration
     ) {
-      this.options.wind.magnitude = Math.random() * this.options.wind.maxSpeed;
+      this.options.wind.magnitude =
+        Math.random() * this.options.wind.maxSpeed * 0.45 + 0.15;
       this.options.wind.duration =
-        this.options.wind.magnitude * 50 + (Math.random() * 20 - 10);
+        this.options.wind.magnitude * 80 + (Math.random() * 30 - 15);
       this.options.wind.start = this.timer;
 
       const screenHeight = this.height;
+      const magnitude = this.options.wind.magnitude;
+      const duration = this.options.wind.duration;
 
-      this.options.wind.speed = ((magnitude, duration) => {
-        return (t: number, y: number) => {
-          const a =
-            (magnitude / 2) * ((screenHeight - (2 * y) / 3) / screenHeight);
-          return (
-            a * Math.sin(((2 * Math.PI) / duration) * t + (3 * Math.PI) / 2) + a
-          );
-        };
-      })(this.options.wind.magnitude, this.options.wind.duration);
+      this.options.wind.speed = (t: number, y: number) => {
+        const a =
+          (magnitude / 2) * ((screenHeight - (2 * y) / 3) / screenHeight);
+        return (
+          a * Math.sin(((2 * Math.PI) / duration) * t + (3 * Math.PI) / 2) + a
+        );
+      };
     }
   };
 
   init = (): void => {
     for (let i = 0; i < this.options.numLeaves; i++) {
+      const size = 14 + Math.random() * 10;
       const leaf: Leaf = {
         el: document.createElement("div"),
         x: 0,
         y: 0,
         z: 0,
+        size,
         rotation: {
           axis: "X",
           value: 0,
@@ -153,12 +158,12 @@ class LeafScene {
         },
         xSpeedVariation: 0,
         ySpeed: 0,
-        path: {
-          type: 1,
-          start: 0,
-        },
-        image: 1,
       };
+
+      leaf.el.style.width = `${size}px`;
+      leaf.el.style.height = `${size}px`;
+      leaf.el.style.backgroundImage = `url("${LEAF_SVG}")`;
+      leaf.el.style.opacity = `${0.45 + Math.random() * 0.4}`;
 
       this._resetLeaf(leaf);
       this.leaves.push(leaf);
@@ -167,14 +172,13 @@ class LeafScene {
 
     this.world.className = "leaf-scene";
     this.viewport.appendChild(this.world);
-
-    this.world.style.webkitPerspective = "400px";
     this.world.style.perspective = "400px";
 
-    window.addEventListener("resize", () => {
+    this.resizeObserver = new ResizeObserver(() => {
       this.width = this.viewport.offsetWidth;
       this.height = this.viewport.offsetHeight;
     });
+    this.resizeObserver.observe(this.viewport);
   };
 
   render = (): void => {
@@ -182,27 +186,48 @@ class LeafScene {
     for (let i = 0; i < this.leaves.length; i++) {
       this._updateLeaf(this.leaves[i]);
     }
-
     this.timer++;
+    this.rafId = requestAnimationFrame(this.boundRender);
+  };
 
-    requestAnimationFrame(this.render);
+  destroy = (): void => {
+    cancelAnimationFrame(this.rafId);
+    this.resizeObserver?.disconnect();
+    this.world.remove();
+    this.leaves = [];
   };
 }
 
-export default function FallingLeaves() {
+type FallingLeavesProps = {
+  className?: string;
+};
+
+export default function FallingLeaves({ className = "" }: FallingLeavesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const leafScene = new LeafScene(containerRef.current);
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    const leafScene = new LeafScene(container);
     leafScene.init();
     leafScene.render();
 
     return () => {
-      // Cleanup if needed
+      leafScene.destroy();
     };
   }, []);
 
-  return <div ref={containerRef} className="falling-leaves" />;
+  return (
+    <div
+      ref={containerRef}
+      className={`falling-leaves ${className}`.trim()}
+      aria-hidden
+    />
+  );
 }
