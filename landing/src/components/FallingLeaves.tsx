@@ -11,6 +11,10 @@ interface Leaf {
   y: number;
   z: number;
   size: number;
+  index: number;
+  active: boolean;
+  hasDropped: boolean;
+  spawnAt: number;
   rotation: {
     axis: "X" | "Y" | "Z";
     value: number;
@@ -41,7 +45,11 @@ class LeafScene {
   boundRender: () => void;
 
   options = {
-    numLeaves: 22,
+    numLeaves: 26,
+    /** Frames between each leaf's first drop (spreads the initial wave) */
+    initialStagger: 20,
+    respawnDelayMin: 8,
+    respawnDelayMax: 72,
     wind: {
       magnitude: 0.8,
       maxSpeed: 6.5,
@@ -59,21 +67,8 @@ class LeafScene {
     this.boundRender = this.render.bind(this);
   }
 
-  _resetLeaf = (leaf: Leaf): Leaf => {
-    leaf.x = this.width * 2 - Math.random() * this.width * 1.75;
-    leaf.y = -10;
-    leaf.z = Math.random() * 160;
-
-    if (leaf.x > this.width) {
-      leaf.x = this.width + 10;
-      leaf.y = (Math.random() * this.height) / 2;
-    }
-
-    if (this.timer === 0) {
-      leaf.y = Math.random() * this.height;
-    }
-
-    leaf.rotation.speed = Math.random() * 2.2 + 0.4;
+  _applyLeafMotion = (leaf: Leaf): void => {
+    leaf.rotation.speed = Math.random() * 5 + 1.2;
     const randomAxis = Math.random();
 
     if (randomAxis > 0.5) {
@@ -84,16 +79,73 @@ class LeafScene {
     } else {
       leaf.rotation.axis = "Z";
       leaf.rotation.x = Math.random() * 360 - 180;
-      leaf.rotation.speed = Math.random() * 1.2 + 0.3;
+      leaf.rotation.speed = Math.random() * 2.5 + 0.8;
     }
 
-    leaf.xSpeedVariation = Math.random() * 0.28 - 0.14;
-    leaf.ySpeed = Math.random() * 0.35 + 0.22;
+    leaf.xSpeedVariation = Math.random() * 0.45 - 0.38;
+    leaf.ySpeed = Math.random() * 0.75 + 0.95;
+    leaf.z = Math.random() * 160;
+  };
 
-    return leaf;
+  /** Top-right entry for respawns */
+  _placeAtTopRight = (leaf: Leaf): void => {
+    const rightSpread = Math.min(this.width * 0.42, 360);
+    leaf.x = this.width - Math.random() * rightSpread;
+    leaf.y = -(Math.random() * 48 + 6);
+  };
+
+  /** Spread leaves along the fall path on first load so the screen is never empty */
+  _placeInitial = (leaf: Leaf): void => {
+    const t = leaf.index / this.options.numLeaves;
+    leaf.x = this.width * 0.58 + Math.random() * (this.width * 0.38);
+    leaf.y = t * (this.height + 80) - 24;
+  };
+
+  _hideLeaf = (leaf: Leaf): void => {
+    leaf.active = false;
+    leaf.el.style.visibility = "hidden";
+  };
+
+  _activateLeaf = (leaf: Leaf): void => {
+    this._applyLeafMotion(leaf);
+
+    if (!leaf.hasDropped) {
+      this._placeInitial(leaf);
+      leaf.hasDropped = true;
+    } else {
+      this._placeAtTopRight(leaf);
+    }
+
+    leaf.active = true;
+    leaf.el.style.visibility = "visible";
+    this._applyTransform(leaf);
+  };
+
+  _scheduleRespawn = (leaf: Leaf): void => {
+    const delay =
+      this.options.respawnDelayMin +
+      Math.random() *
+        (this.options.respawnDelayMax - this.options.respawnDelayMin);
+    leaf.spawnAt = this.timer + Math.floor(delay);
+    this._hideLeaf(leaf);
+  };
+
+  _applyTransform = (leaf: Leaf): void => {
+    let t = `translateX(${leaf.x}px) translateY(${leaf.y}px) translateZ(${leaf.z}px) rotate${leaf.rotation.axis}(${leaf.rotation.value}deg)`;
+    if (leaf.rotation.axis !== "X") {
+      t += ` rotateX(${leaf.rotation.x}deg)`;
+    }
+    leaf.el.style.transform = t;
   };
 
   _updateLeaf = (leaf: Leaf): void => {
+    if (!leaf.active) {
+      if (this.timer >= leaf.spawnAt) {
+        this._activateLeaf(leaf);
+      }
+      return;
+    }
+
     const leafWindSpeed = this.options.wind.speed(
       this.timer - this.options.wind.start,
       leaf.y
@@ -104,15 +156,10 @@ class LeafScene {
     leaf.y += leaf.ySpeed;
     leaf.rotation.value += leaf.rotation.speed;
 
-    let t = `translateX(${leaf.x}px) translateY(${leaf.y}px) translateZ(${leaf.z}px) rotate${leaf.rotation.axis}(${leaf.rotation.value}deg)`;
-    if (leaf.rotation.axis !== "X") {
-      t += ` rotateX(${leaf.rotation.x}deg)`;
-    }
-
-    leaf.el.style.transform = t;
+    this._applyTransform(leaf);
 
     if (leaf.x < -10 || leaf.y > this.height + 10) {
-      this._resetLeaf(leaf);
+      this._scheduleRespawn(leaf);
     }
   };
 
@@ -122,9 +169,9 @@ class LeafScene {
       this.timer > this.options.wind.start + this.options.wind.duration
     ) {
       this.options.wind.magnitude =
-        Math.random() * this.options.wind.maxSpeed * 0.45 + 0.15;
+        Math.random() * this.options.wind.maxSpeed * 0.55 + 0.35;
       this.options.wind.duration =
-        this.options.wind.magnitude * 80 + (Math.random() * 30 - 15);
+        this.options.wind.magnitude * 55 + (Math.random() * 20 - 10);
       this.options.wind.start = this.timer;
 
       const screenHeight = this.height;
@@ -143,13 +190,17 @@ class LeafScene {
 
   init = (): void => {
     for (let i = 0; i < this.options.numLeaves; i++) {
-      const size = 14 + Math.random() * 10;
+      const size = 15 + Math.random() * 9;
       const leaf: Leaf = {
         el: document.createElement("div"),
         x: 0,
         y: 0,
         z: 0,
         size,
+        index: i,
+        active: false,
+        hasDropped: false,
+        spawnAt: Math.floor(i * this.options.initialStagger + Math.random() * 10),
         rotation: {
           axis: "X",
           value: 0,
@@ -163,9 +214,9 @@ class LeafScene {
       leaf.el.style.width = `${size}px`;
       leaf.el.style.height = `${size}px`;
       leaf.el.style.backgroundImage = `url("${LEAF_SVG}")`;
-      leaf.el.style.opacity = `${0.45 + Math.random() * 0.4}`;
+      leaf.el.style.opacity = `${0.78 + Math.random() * 0.22}`;
+      leaf.el.style.visibility = "hidden";
 
-      this._resetLeaf(leaf);
       this.leaves.push(leaf);
       this.world.appendChild(leaf.el);
     }

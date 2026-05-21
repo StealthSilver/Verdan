@@ -98,13 +98,8 @@ body {
   }
 }
 
-/* Falling leaves — hero only (headline through dashboard) */
-.hero-falling-leaves-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.hero-falling-leaves.falling-leaves {
+/* Falling leaves — full hero section, top-right spawn */
+#product > .hero-falling-leaves.falling-leaves {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -138,6 +133,7 @@ body {
   background-repeat: no-repeat;
   background-size: 100%;
   will-change: transform;
+  filter: drop-shadow(0 1px 3px rgba(72, 132, 92, 0.35));
 }
 
 /* —— Glass / motion utilities (redesigned sections) —— */

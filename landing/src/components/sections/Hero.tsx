@@ -7,9 +7,9 @@ const Hero = () => {
       id="product"
       className="relative flex w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem] lg:pb-20"
     >
-      <div className="hero-falling-leaves-wrap">
-        <FallingLeaves className="hero-falling-leaves" />
-        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-start text-left">
+      <FallingLeaves className="hero-falling-leaves" />
+
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-start text-left">
         <h1 className="text-[1.75rem] font-semibold leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
           Plantation Monitoring and Management,
         </h1>
@@ -45,15 +45,14 @@ const Hero = () => {
       </div>
 
       <div className="hero-dashboard-scene relative z-10 mt-11 w-full sm:mt-14 lg:mt-16">
-          <div className="hero-dashboard-effects" aria-hidden>
-            <div className="hero-dashboard-bg" />
-            <div className="hero-dashboard-glow" />
-            <div className="hero-dashboard-ground" />
-          </div>
+        <div className="hero-dashboard-effects" aria-hidden>
+          <div className="hero-dashboard-bg" />
+          <div className="hero-dashboard-glow" />
+          <div className="hero-dashboard-ground" />
+        </div>
         <div className="hero-dashboard-elevated mx-auto w-full max-w-7xl px-3 sm:px-5">
           <HeroDashboard />
         </div>
-      </div>
       </div>
     </section>
   );
