@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { BeginNowButton } from "@/components/ui/BeginNowButton";
 
 const navItems = [
   { name: "The Need", href: "#the-need" },
@@ -22,34 +23,6 @@ const navLinkTransition =
 
 const navLinkGlassHover =
   "border border-transparent hover:border-white/55 hover:bg-white/25 hover:shadow-[0_2px_6px_rgba(0,0,0,0.11)] hover:backdrop-blur-xl hover:backdrop-saturate-[180%] hover:[-webkit-backdrop-filter:blur(20px)_saturate(180%)]";
-
-const beginNowCtaClassName =
-  "begin-now-cta group flex items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-[8px] border border-[rgb(74,137,92)]/35 bg-white/15 text-sm font-normal uppercase leading-none tracking-wide text-black shadow-[0_2px_6px_rgba(0,0,0,0.11)] backdrop-blur-md outline-none transition-[border-color] duration-[320ms] ease-in-out hover:border-[#48845c] focus-visible:ring-2 focus-visible:ring-[#48845c]/45";
-
-function BeginNowArrow() {
-  return (
-    <svg
-      viewBox="0 0 10 10"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className={cn(
-        "begin-now-cta__arrow h-[0.85em] w-[0.85em] shrink-0",
-        "[&_path:first-child]:opacity-0",
-        "[&_path:first-child]:transition-opacity [&_path:first-child]:duration-300 [&_path:first-child]:ease-[cubic-bezier(0.25,1,0.5,1)]",
-        "[&_path:last-child]:transition-transform [&_path:last-child]:duration-300 [&_path:last-child]:ease-[cubic-bezier(0.25,1,0.5,1)]",
-        "group-hover:[&_path:first-child]:opacity-100 group-focus-visible:[&_path:first-child]:opacity-100",
-        "group-hover:[&_path:last-child]:translate-x-[3px] group-focus-visible:[&_path:last-child]:translate-x-[3px]"
-      )}
-    >
-      <path d="M0.5 5.5h7" />
-      <path d="M1.5 1.5l4 4-4 4" />
-    </svg>
-  );
-}
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -136,16 +109,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="https://verdan-beige.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(beginNowCtaClassName, "px-5 py-3")}
-            style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
-          >
-            <span className="begin-now-cta__label">Begin Now</span>
-            <BeginNowArrow />
-          </Link>
+          <BeginNowButton />
         </div>
 
         <button
@@ -188,20 +152,10 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
-            <Link
-              href="https://verdan-beige.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <BeginNowButton
+              className="mt-4 w-full px-6 py-4"
               onClick={() => setIsOpen(false)}
-              className={cn(
-                beginNowCtaClassName,
-                "mt-4 w-full px-6 py-4"
-              )}
-              style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
-            >
-              <span className="begin-now-cta__label">Begin Now</span>
-              <BeginNowArrow />
-            </Link>
+            />
           </div>
         </div>
       </div>
