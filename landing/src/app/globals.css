@@ -362,57 +362,19 @@ body {
  * Hero dashboard scene — subtle glow + elevation (Verdan green).
  */
 .hero-dashboard-scene {
-  --hero-gradient-tail: 5rem;
   position: relative;
   width: 100%;
-  /* Short band just below the dashboard */
-  padding-bottom: var(--hero-gradient-tail);
 }
 
-/* Full-bleed strip under the dashboard only */
 .hero-dashboard-effects {
-  --hero-gradient-lift: 4rem;
   position: absolute;
   z-index: 0;
   left: 50%;
   bottom: 0;
   width: 100vw;
-  height: calc(var(--hero-gradient-tail) + var(--hero-gradient-lift));
+  height: 55%;
   margin-left: -50vw;
   pointer-events: none;
-}
-
-.hero-dashboard-bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      62% 95% at 50% 100%,
-      rgba(var(--verdan-green-rgb), 0.36) 0%,
-      rgba(var(--verdan-green-rgb), 0.08) 55%,
-      rgba(var(--verdan-green-rgb), 0) 78%
-    ),
-    linear-gradient(
-      to top,
-      rgba(var(--verdan-green-rgb), 0.5) 0%,
-      rgba(var(--verdan-green-rgb), 0.28) 38%,
-      rgba(var(--verdan-green-rgb), 0.1) 68%,
-      transparent 100%
-    );
-}
-
-/* Blend into dashboard edge — keep most of the strip visibly green */
-.hero-dashboard-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    transparent 0%,
-    transparent 55%,
-    rgba(253, 253, 251, 0.12) 82%,
-    var(--background) 100%
-  );
 }
 
 .hero-dashboard-glow {
@@ -429,40 +391,6 @@ body {
     rgba(var(--verdan-green-rgb), 0) 78%
   );
   filter: blur(40px);
-}
-
-.hero-dashboard-glow::before {
-  display: none;
-}
-
-.hero-dashboard-ground {
-  position: absolute;
-  left: 50%;
-  top: var(--hero-gradient-lift);
-  width: min(86%, 880px);
-  height: 2.5rem;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(
-    ellipse 52% 100% at 50% 50%,
-    rgba(var(--verdan-green-rgb), 0.4) 0%,
-    rgba(var(--verdan-green-rgb), 0.14) 44%,
-    transparent 74%
-  );
-  filter: blur(22px);
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 12%,
-    #000 88%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 12%,
-    #000 88%,
-    transparent 100%
-  );
 }
 
 .hero-dashboard-elevated {

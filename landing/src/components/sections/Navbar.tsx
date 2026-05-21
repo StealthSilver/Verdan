@@ -111,7 +111,7 @@ export default function Navbar() {
             unoptimized
             className="h-6 w-6 sm:h-8 sm:w-8"
           />
-          <span className="text-2xl font-medium tracking-tight text-black sm:text-3xl">
+          <span className="text-2xl font-bold tracking-tight text-black sm:text-3xl">
             हरित
           </span>
         </Link>

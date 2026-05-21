@@ -45,12 +45,10 @@ const Hero = () => {
       </div>
 
       <div className="hero-dashboard-scene relative z-10 mt-11 w-full sm:mt-14 lg:mt-16">
-        <div className="hero-dashboard-effects" aria-hidden>
-          <div className="hero-dashboard-bg" />
-          <div className="hero-dashboard-glow" />
-          <div className="hero-dashboard-ground" />
-        </div>
         <div className="hero-dashboard-elevated mx-auto w-full max-w-7xl px-3 sm:px-5">
+          <div className="hero-dashboard-effects" aria-hidden>
+            <div className="hero-dashboard-glow" />
+          </div>
           <HeroDashboard />
         </div>
       </div>
