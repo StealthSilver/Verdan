@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Github, Twitter } from "lucide-react";
+import {
+  FaGlobe,
+  FaInstagram,
+  FaLinkedin,
+  FaXTwitter,
+} from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -12,25 +17,30 @@ const navLinks = [
 ];
 
 const legalLinks = [
-  {
-    name: "Privacy Policy",
-    href: "https://verdan-main.vercel.app/privacy-policy",
-    external: true,
-  },
-  { name: "Terms of Service", href: "#", external: false },
-  { name: "Cookie Policy", href: "#", external: false },
+  { name: "Terms and Conditions", href: "#" },
+  { name: "Privacy Policy", href: "/privacy-policy" },
 ];
 
-const socialLinks = [
+const serenticaSocialLinks = [
   {
-    name: "Twitter",
-    href: "https://x.com/silver_srs",
-    icon: Twitter,
+    name: "Website",
+    href: "https://www.serenticaglobal.com/",
+    icon: FaGlobe,
   },
   {
-    name: "GitHub",
-    href: "https://github.com/StealthSilver/Verdan",
-    icon: Github,
+    name: "Instagram",
+    href: "https://www.instagram.com/serenticaglobal/",
+    icon: FaInstagram,
+  },
+  {
+    name: "X",
+    href: "https://x.com/SerenticaGlobal",
+    icon: FaXTwitter,
+  },
+  {
+    name: "LinkedIn",
+    href: "https://www.linkedin.com/company/serenticaglobal/",
+    icon: FaLinkedin,
   },
 ];
 
@@ -41,8 +51,8 @@ const Footer = () => {
     <footer
       id="contact"
       className={cn(
-        "relative w-full border-t border-black/[0.08] bg-[var(--background)] text-[var(--color-font)]",
-        "shadow-[0_-12px_40px_rgba(0,0,0,0.06)]"
+        "relative w-full border-t border-[#fdfdfb]/10 bg-[#121c2b] text-[#fdfdfb]",
+        "shadow-[0_-12px_40px_rgba(0,0,0,0.2)]"
       )}
     >
       <div
@@ -50,12 +60,12 @@ const Footer = () => {
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[rgb(74,137,92)]/25"
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:justify-between lg:gap-16 lg:text-left">
-          <div className="max-w-md lg:mx-0">
+      <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+        <div className="flex w-full flex-col gap-8">
+          <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <Link
               href="/"
-              className="inline-flex items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+              className="inline-flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
               aria-label="Harit home"
             >
               <Image
@@ -65,27 +75,18 @@ const Footer = () => {
                 height={44}
                 className="h-10 w-10 sm:h-11 sm:w-11"
               />
-              <span className="text-3xl font-bold text-[rgb(74,137,92)] sm:text-4xl">
+              <span className="text-3xl font-bold text-[#fdfdfb] sm:text-4xl">
                 हरित
               </span>
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-[var(--color-font)]/70 sm:text-base">
-              Record, photograph, and follow every tree—turning field data into
-              lasting impact.
-            </p>
-          </div>
 
-          <div className="flex flex-wrap justify-center gap-12 sm:gap-16 lg:justify-end">
-            <nav aria-label="On this page" className="min-w-[8rem] text-left">
-              <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
-                Navigate
-              </p>
-              <ul className="space-y-3">
+            <nav aria-label="On this page" className="w-full lg:ml-auto lg:w-auto">
+              <ul className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3 sm:gap-x-8">
                 {navLinks.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-sm text-[var(--color-font)]/60 transition-colors hover:text-[rgb(74,137,92)] hover:opacity-100 sm:text-base"
+                      className="text-sm text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb] sm:text-base"
                     >
                       {item.name}
                     </Link>
@@ -93,57 +94,62 @@ const Footer = () => {
                 ))}
               </ul>
             </nav>
+          </div>
 
-            <nav aria-label="Legal" className="min-w-[10rem] text-left">
-              <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
-                Legal
-              </p>
-              <ul className="space-y-3">
+          <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="text-sm text-[#fdfdfb]/55">
+              Greener Tomorrow | Better Tomorrow
+            </p>
+
+            <nav aria-label="Legal">
+              <ul className="flex flex-wrap items-center justify-end gap-x-4 sm:gap-x-5">
                 {legalLinks.map((item) => (
                   <li key={item.name}>
-                    <a
+                    <Link
                       href={item.href}
-                      {...(item.external
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                      className="text-sm text-[var(--color-font)]/60 transition-colors hover:text-[rgb(74,137,92)] hover:opacity-100 sm:text-base"
+                      className="text-xs text-[#fdfdfb]/45 transition-colors hover:text-[#fdfdfb]/75"
                     >
                       {item.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
             </nav>
           </div>
-
-          <div className="flex flex-shrink-0 items-center justify-center gap-3 lg:justify-end">
-            {socialLinks.map((item) => {
-              const Icon = item.icon;
-              return (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={item.name}
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full border border-white/55 bg-white/25 text-[var(--color-font)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.08)] outline-none transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)",
-                    "hover:-translate-y-0.5 hover:border-[rgb(74,137,92)]/35 hover:text-[rgb(74,137,92)] hover:shadow-[0_10px_28px_rgba(74,137,92,0.2)]",
-                    "focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/40"
-                  )}
-                  style={{ WebkitBackdropFilter: "blur(12px)" }}
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
-                </a>
-              );
-            })}
-          </div>
         </div>
+      </div>
 
-        <div className="mt-12 border-t border-[rgba(255,255,255,0.08)] pt-8 text-center sm:mt-14 sm:pt-9">
-          <p className="text-xs text-[var(--color-font)]/50 sm:text-sm">
-            © {year} हरित
+      <div className="w-full border-t border-[#fdfdfb]/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-8">
+          <p className="text-center text-xs text-[#fdfdfb]/50 sm:text-left sm:text-sm">
+            © {year} हरित. All rights reserved.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+            <span className="text-xs text-[#fdfdfb]/50 sm:text-sm">
+              Powered by Serentica
+            </span>
+            <span className="text-[#fdfdfb]/30" aria-hidden>
+              |
+            </span>
+            <div className="flex items-center gap-2">
+              {serenticaSocialLinks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.name}
+                    className="text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fdfdfb]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121c2b]"
+                  >
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </footer>

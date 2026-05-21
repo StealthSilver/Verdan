@@ -14,7 +14,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
-    default: `Harit - Greener tomorrow`,
+    default: `Harit - Greener Tomorrow | Better Tomorrow`,
     template: `%s | ${SITE.name}`,
   },
   description: SITE.description,
