@@ -222,15 +222,19 @@ body {
   animation-name: leafFallAlt;
 }
 
-/* Falling leaves — full hero section, top-right spawn */
+/* Falling leaves — first viewport only, behind dashboard */
 #product > .hero-falling-leaves.falling-leaves {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: -4vh;
+  left: 4%;
+  right: 0;
+  width: auto;
+  height: 114vh;
+  max-height: 114vh;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  contain: layout paint;
 }
 
 .leaf-scene {
@@ -239,7 +243,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  transform-style: preserve-3d;
+  contain: layout style;
 }
 
 .leaf-scene div {
@@ -248,16 +252,9 @@ body {
   left: 0;
   width: 20px;
   height: 20px;
-  background-size: 100%;
-  transform-style: preserve-3d;
-  backface-visibility: visible;
-}
-
-.leaf-scene div {
   background-repeat: no-repeat;
   background-size: 100%;
-  will-change: transform;
-  filter: drop-shadow(0 1px 3px rgba(72, 132, 92, 0.35));
+  contain: layout style paint;
 }
 
 /* —— Glass / motion utilities (redesigned sections) —— */
@@ -454,6 +451,9 @@ body {
     animation: none;
     opacity: 0;
   }
+  #product > .hero-falling-leaves.falling-leaves {
+    display: none;
+  }
 }
 
 /* Hero "live" status indicator */
@@ -521,7 +521,7 @@ body {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: min(92%, 940px);
+  width: min(92%, 1040px);
   height: 100%;
   transform: translateX(-50%);
   background: radial-gradient(
@@ -551,7 +551,7 @@ body {
     rgba(var(--verdan-green-rgb), 0.34) 40%,
     rgba(var(--verdan-green-rgb), 0.2) 56%,
     rgba(var(--verdan-green-rgb), 0.1) 70%,
-    rgba(var(--verdan-green-rgb), 0.04) 100%,
+    rgba(var(--verdan-green-rgb), 0.0) 100%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(to top, #000 0%, #000 100%, transparent 100%);
@@ -576,7 +576,7 @@ body {
 .hero-dashboard-corner-shadow {
   position: absolute;
   bottom: -6rem;
-  width: min(44%, 440px);
+  width: min(44%, 500px);
   height: 6.75rem;
   pointer-events: none;
 }
@@ -620,7 +620,7 @@ body {
   z-index: -1;
   left: 50%;
   bottom: -1.25rem;
-  width: min(86%, 900px);
+  width: min(86%, 1010px);
   height: 3.25rem;
   transform: translateX(-50%);
   pointer-events: none;

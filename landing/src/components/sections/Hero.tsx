@@ -110,7 +110,7 @@ const Hero = () => {
         )}
       >
         <div className="hero-dashboard-page-gradient" aria-hidden />
-        <div className="hero-dashboard-elevated relative z-[1] mx-auto w-full max-w-7xl overflow-visible px-3 sm:px-5">
+        <div className="hero-dashboard-elevated relative z-[1] mx-auto w-full max-w-[85rem] overflow-visible px-3 sm:px-5">
           <div className="hero-dashboard-effects" aria-hidden>
             <div className="hero-dashboard-glow" />
           </div>
