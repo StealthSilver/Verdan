@@ -109,11 +109,18 @@ const Hero = () => {
           step >= 3 && "hero-animate-fade-slide-topleft"
         )}
       >
-        <div className="hero-dashboard-elevated mx-auto w-full max-w-7xl px-3 sm:px-5">
+        <div className="hero-dashboard-page-gradient" aria-hidden />
+        <div className="hero-dashboard-elevated relative z-[1] mx-auto w-full max-w-7xl overflow-visible px-3 sm:px-5">
           <div className="hero-dashboard-effects" aria-hidden>
             <div className="hero-dashboard-glow" />
           </div>
-          <HeroDashboard />
+          <div className="hero-dashboard-corner-shadows" aria-hidden>
+            <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--left" />
+            <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--right" />
+          </div>
+          <div className="relative z-[1]">
+            <HeroDashboard />
+          </div>
         </div>
       </div>
     </section>

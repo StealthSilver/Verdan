@@ -24,7 +24,7 @@ const navLinkGlassHover =
   "border border-transparent hover:border-white/55 hover:bg-white/25 hover:shadow-[0_2px_6px_rgba(0,0,0,0.11)] hover:backdrop-blur-xl hover:backdrop-saturate-[180%] hover:[-webkit-backdrop-filter:blur(20px)_saturate(180%)]";
 
 const beginNowCtaClassName =
-  "begin-now-cta group flex items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-full border border-[rgb(74,137,92)]/35 bg-white/15 text-sm font-normal uppercase leading-none tracking-wide text-black shadow-[0_2px_6px_rgba(0,0,0,0.11)] backdrop-blur-md outline-none transition-[border-color] duration-[320ms] ease-in-out hover:border-[#48845c] focus-visible:ring-2 focus-visible:ring-[#48845c]/45";
+  "begin-now-cta group flex items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-[8px] border border-[rgb(74,137,92)]/35 bg-white/15 text-sm font-normal uppercase leading-none tracking-wide text-black shadow-[0_2px_6px_rgba(0,0,0,0.11)] backdrop-blur-md outline-none transition-[border-color] duration-[320ms] ease-in-out hover:border-[#48845c] focus-visible:ring-2 focus-visible:ring-[#48845c]/45";
 
 function BeginNowArrow() {
   return (
@@ -88,7 +88,7 @@ export default function Navbar() {
           "flex w-full max-w-7xl items-center justify-between gap-3",
           navTransition,
           scrolled &&
-            "rounded-full bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
+            "rounded-[8px] bg-white/25 px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%] sm:px-5 sm:py-2.5",
           !scrolled && "bg-transparent py-1"
         )}
         style={
@@ -123,7 +123,7 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "relative rounded-full px-3 py-2 text-[14px] font-light text-gray-600 outline-none lg:px-4",
+                  "relative rounded-[8px] px-3 py-2 text-[14px] font-light text-gray-600 outline-none lg:px-4",
                   navLinkTransition,
                   navLinkGlassHover,
                   "hover:text-black"
@@ -179,7 +179,7 @@ export default function Navbar() {
                 href={item.href}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "w-full rounded-full py-3 text-center text-[15px] font-light text-gray-600 outline-none",
+                  "w-full rounded-[8px] py-3 text-center text-[15px] font-light text-gray-600 outline-none",
                   navLinkTransition,
                   navLinkGlassHover,
                   "hover:text-black focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"

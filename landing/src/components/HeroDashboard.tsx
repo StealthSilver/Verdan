@@ -211,7 +211,7 @@ const HeroDashboard = () => {
       role="img"
       aria-label="Harit plantation dashboard preview with tree records, GPS coordinates, and verification status"
     >
-      <div className="hero-dashboard-panel overflow-hidden rounded-xl bg-[#f8fafc]">
+      <div className="hero-dashboard-panel overflow-hidden rounded-[8px] bg-[#f8fafc]">
         <div className="flex w-full flex-col overflow-hidden bg-white">
             {/* Top navbar */}
             <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-5 py-3">

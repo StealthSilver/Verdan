@@ -503,6 +503,7 @@ body {
 .hero-dashboard-scene {
   position: relative;
   width: 100%;
+  overflow: visible;
 }
 
 .hero-dashboard-effects {
@@ -532,9 +533,80 @@ body {
   filter: blur(40px);
 }
 
+/* Verdan green — page background behind dashboard, bottom → top */
+.hero-dashboard-page-gradient {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 0;
+  bottom: -5.5rem;
+  width: 100vw;
+  margin-left: -50vw;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(var(--verdan-green-rgb), 0.78) 0%,
+    rgba(var(--verdan-green-rgb), 0.65) 10%,
+    rgba(var(--verdan-green-rgb), 0.5) 24%,
+    rgba(var(--verdan-green-rgb), 0.34) 40%,
+    rgba(var(--verdan-green-rgb), 0.2) 56%,
+    rgba(var(--verdan-green-rgb), 0.1) 70%,
+    rgba(var(--verdan-green-rgb), 0.04) 76%,
+    transparent 76%
+  );
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 76%, transparent 76%);
+  mask-image: linear-gradient(to top, #000 0%, #000 76%, transparent 76%);
+  filter: blur(18px);
+}
+
 .hero-dashboard-elevated {
   position: relative;
-  z-index: 2;
+  overflow: visible;
+}
+
+/* Bottom corner cast shadows — panel standing on a surface */
+.hero-dashboard-corner-shadows {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.hero-dashboard-corner-shadow {
+  position: absolute;
+  bottom: -2rem;
+  width: min(36%, 360px);
+  height: 5rem;
+  pointer-events: none;
+}
+
+.hero-dashboard-corner-shadow--left {
+  left: -0.5rem;
+  background: radial-gradient(
+    ellipse 90% 80% at 18% 0%,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.32) 30%,
+    rgba(0, 0, 0, 0.14) 52%,
+    transparent 74%
+  );
+  transform: perspective(280px) rotateX(74deg) rotateZ(-4deg);
+  transform-origin: 22% 0%;
+  filter: blur(10px);
+}
+
+.hero-dashboard-corner-shadow--right {
+  right: -0.5rem;
+  background: radial-gradient(
+    ellipse 90% 80% at 82% 0%,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.32) 30%,
+    rgba(0, 0, 0, 0.14) 52%,
+    transparent 74%
+  );
+  transform: perspective(280px) rotateX(74deg) rotateZ(4deg);
+  transform-origin: 78% 0%;
+  filter: blur(10px);
 }
 
 /* Contact shadow directly under the card */
