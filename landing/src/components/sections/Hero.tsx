@@ -115,12 +115,12 @@ const Hero = () => {
             <div className="hero-dashboard-glow" />
           </div>
           <div className="hero-dashboard-corner-shadows" aria-hidden>
-            <div className="hero-dashboard-side-ambient hero-dashboard-side-ambient--left" />
-            <div className="hero-dashboard-side-ambient hero-dashboard-side-ambient--right" />
+            <div className="hero-dashboard-floor-shadow" />
             <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--left" />
             <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--right" />
           </div>
-          <div className="relative z-[1]">
+          <div className="hero-dashboard-panel-wrap relative z-[1]">
+            <div className="hero-dashboard-rim-light" aria-hidden />
             <HeroDashboard />
           </div>
         </div>

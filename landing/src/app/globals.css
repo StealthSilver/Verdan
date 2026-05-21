@@ -573,45 +573,6 @@ body {
   overflow: visible;
 }
 
-/* Larger grey ambient shadows — sit above the corner casts */
-.hero-dashboard-side-ambient {
-  position: absolute;
-  bottom: -2.5rem;
-  width: min(58%, 580px);
-  height: 11.5rem;
-  pointer-events: none;
-}
-
-.hero-dashboard-side-ambient--left {
-  left: -2.25rem;
-  background: radial-gradient(
-    ellipse 125% 100% at 16% 0%,
-    rgba(72, 72, 72, 0.28) 0%,
-    rgba(88, 88, 88, 0.16) 28%,
-    rgba(100, 100, 100, 0.08) 48%,
-    rgba(110, 110, 110, 0.03) 68%,
-    transparent 88%
-  );
-  transform: perspective(300px) rotateX(72deg) rotateZ(-3deg) translateY(0.15rem);
-  transform-origin: 20% 0%;
-  filter: blur(32px);
-}
-
-.hero-dashboard-side-ambient--right {
-  right: -2.25rem;
-  background: radial-gradient(
-    ellipse 125% 100% at 84% 0%,
-    rgba(72, 72, 72, 0.28) 0%,
-    rgba(88, 88, 88, 0.16) 28%,
-    rgba(100, 100, 100, 0.08) 48%,
-    rgba(110, 110, 110, 0.03) 68%,
-    transparent 88%
-  );
-  transform: perspective(300px) rotateX(72deg) rotateZ(3deg) translateY(0.15rem);
-  transform-origin: 80% 0%;
-  filter: blur(32px);
-}
-
 .hero-dashboard-corner-shadow {
   position: absolute;
   bottom: -6rem;
