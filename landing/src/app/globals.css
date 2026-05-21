@@ -551,11 +551,11 @@ body {
     rgba(var(--verdan-green-rgb), 0.34) 40%,
     rgba(var(--verdan-green-rgb), 0.2) 56%,
     rgba(var(--verdan-green-rgb), 0.1) 70%,
-    rgba(var(--verdan-green-rgb), 0.04) 76%,
-    transparent 76%
+    rgba(var(--verdan-green-rgb), 0.04) 100%,
+    transparent 100%
   );
-  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 76%, transparent 76%);
-  mask-image: linear-gradient(to top, #000 0%, #000 76%, transparent 76%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 100%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 100%, transparent 100%);
   filter: blur(18px);
 }
 
@@ -575,38 +575,42 @@ body {
 
 .hero-dashboard-corner-shadow {
   position: absolute;
-  bottom: -2rem;
-  width: min(36%, 360px);
-  height: 5rem;
+  bottom: -5rem;
+  width: min(44%, 440px);
+  height: 6.75rem;
   pointer-events: none;
 }
 
 .hero-dashboard-corner-shadow--left {
-  left: -0.5rem;
+  left: -0.75rem;
   background: radial-gradient(
-    ellipse 90% 80% at 18% 0%,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.32) 30%,
-    rgba(0, 0, 0, 0.14) 52%,
-    transparent 74%
+    ellipse 115% 100% at 18% 0%,
+    rgba(0, 0, 0, 0.44) 0%,
+    rgba(0, 0, 0, 0.26) 22%,
+    rgba(0, 0, 0, 0.14) 42%,
+    rgba(0, 0, 0, 0.06) 62%,
+    rgba(0, 0, 0, 0.02) 78%,
+    transparent 92%
   );
-  transform: perspective(280px) rotateX(74deg) rotateZ(-4deg);
+  transform: perspective(280px) rotateX(74deg) rotateZ(-4deg) translateY(0.35rem);
   transform-origin: 22% 0%;
-  filter: blur(10px);
+  filter: blur(18px);
 }
 
 .hero-dashboard-corner-shadow--right {
-  right: -0.5rem;
+  right: -0.75rem;
   background: radial-gradient(
-    ellipse 90% 80% at 82% 0%,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.32) 30%,
-    rgba(0, 0, 0, 0.14) 52%,
-    transparent 74%
+    ellipse 115% 100% at 82% 0%,
+    rgba(0, 0, 0, 0.44) 0%,
+    rgba(0, 0, 0, 0.26) 22%,
+    rgba(0, 0, 0, 0.14) 42%,
+    rgba(0, 0, 0, 0.06) 62%,
+    rgba(0, 0, 0, 0.02) 78%,
+    transparent 92%
   );
-  transform: perspective(280px) rotateX(74deg) rotateZ(4deg);
+  transform: perspective(280px) rotateX(74deg) rotateZ(4deg) translateY(0.35rem);
   transform-origin: 78% 0%;
-  filter: blur(10px);
+  filter: blur(18px);
 }
 
 /* Contact shadow directly under the card */
