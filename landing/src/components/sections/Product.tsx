@@ -2,30 +2,35 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowUpRight,
   Camera,
   Check,
   CheckCircle2,
-  FileCheck2,
-  LineChart,
+  Download,
   MapPin,
-  ScanLine,
   Signal,
   Sprout,
+  TrendingUp,
   Upload,
+  Users,
 } from "lucide-react";
 import { DashboardNavbar } from "@/components/HeroDashboard";
 import { cn } from "@/lib/utils";
-import { beginNowCtaClassName } from "@/components/ui/BeginNowButton";
+import { BeginNowButton } from "@/components/ui/BeginNowButton";
 import { PageHeadline } from "@/components/ui/PageHeadline";
-import { landingInSectionGap, landingSectionPad } from "@/lib/site-layout";
+import {
+  landingAfterHeadline,
+  landingInSectionGap,
+  landingInlineGap,
+  landingSectionPad,
+  landingSectionPx,
+  landingStackGap,
+} from "@/lib/site-layout";
 import {
   typeBody,
   typeBullet,
   typeCardTitle,
-  typeCaptionMedium,
   typeEyebrow,
   typeLedeMax,
   typeSectionIntro,
@@ -806,7 +811,10 @@ function ProductBlock({
   const { ref, inView } = useInView(0.12);
 
   return (
-    <div ref={ref} className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div
+      ref={ref}
+      className={cn("grid items-center lg:grid-cols-2", landingInlineGap)}
+    >
       <div className={cn("flex flex-col gap-4", reverse && "lg:order-2")}>
         <BlockIndex index={index} eyebrow={header.eyebrow} />
         <BlockHeader title={header.title} desc={header.desc} bullets={header.bullets} />
@@ -849,68 +857,35 @@ function FloatChip({
 
 type WorkflowStep = {
   n: string;
-  eyebrow: string;
   title: string;
-  desc: string;
   icon: React.ReactNode;
-  meta: { label: string; value: string }[];
 };
 
 const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     n: "01",
-    eyebrow: "Onboard",
     title: "Set up your site",
-    desc: "Draw your plantation boundary, invite your field team, and define the species and goals you're tracking.",
-    icon: <Sprout size={18} strokeWidth={1.6} />,
-    meta: [
-      { label: "Setup time", value: "< 10 min" },
-      { label: "Team roles", value: "Admin · Field · Auditor" },
-    ],
+    icon: <MapPin size={18} strokeWidth={1.75} />,
   },
   {
     n: "02",
-    eyebrow: "Capture",
-    title: "Register trees from the field",
-    desc: "Field teams use the mobile app to capture each tree — GPS, photo, species — even fully offline.",
-    icon: <MapPin size={18} strokeWidth={1.6} />,
-    meta: [
-      { label: "Per-tree data", value: "GPS · Photo · Species" },
-      { label: "Connectivity", value: "Offline-ready" },
-    ],
+    title: "Add your team",
+    icon: <Users size={18} strokeWidth={1.75} />,
   },
   {
     n: "03",
-    eyebrow: "Verify",
-    title: "Auto-verify & audit",
-    desc: "Submissions are checked against site boundaries and duplicates, then routed to auditors with a full trail.",
-    icon: <ScanLine size={18} strokeWidth={1.6} />,
-    meta: [
-      { label: "Checks", value: "Geo-fence · Dedupe" },
-      { label: "Trail", value: "Immutable log" },
-    ],
+    title: "Start adding the plants",
+    icon: <Sprout size={18} strokeWidth={1.75} />,
   },
   {
     n: "04",
-    eyebrow: "Monitor",
-    title: "Track growth & survival",
-    desc: "Live dashboards show survival rate, growth trends, and field activity across every site in real time.",
-    icon: <LineChart size={18} strokeWidth={1.6} />,
-    meta: [
-      { label: "Refresh", value: "Real-time" },
-      { label: "Insights", value: "Survival · Growth · Health" },
-    ],
+    title: "Track growth and survival",
+    icon: <TrendingUp size={18} strokeWidth={1.75} />,
   },
   {
     n: "05",
-    eyebrow: "Report",
-    title: "Export verified impact",
-    desc: "Generate ESG, CSR and carbon-ready reports from verified plantation data — sharable in one click.",
-    icon: <FileCheck2 size={18} strokeWidth={1.6} />,
-    meta: [
-      { label: "Formats", value: "ESG · CSR · Carbon" },
-      { label: "Delivery", value: "PDF · API" },
-    ],
+    title: "Export data",
+    icon: <Download size={18} strokeWidth={1.75} />,
   },
 ];
 
@@ -923,63 +898,23 @@ function WorkflowStepCard({
   index: number;
   inView: boolean;
 }) {
-  const delay = 120 + index * 110;
+  const delay = 80 + index * 60;
 
   return (
     <div
       className={cn(
-        "group relative flex h-full flex-col gap-5 overflow-hidden glass-panel-strong !rounded-[8px] p-6 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
+        "flex h-full min-h-[7.5rem] flex-col justify-between glass-panel-strong !rounded-[8px] p-5 transition-all duration-700",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
       )}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(500px 240px at 50% 0%, rgba(var(--verdan-green-rgb),0.10), transparent 60%)",
-        }}
-      />
-      <div className="relative flex items-center justify-between">
-        <div className={cn("flex items-center gap-2.5", typeEyebrow)}>
-          <span className="font-mono">{step.n}</span>
-          <span>{step.eyebrow}</span>
-        </div>
-        <span
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px]"
-          style={{
-            background: "rgba(var(--verdan-green-rgb), 0.08)",
-            color: "var(--verdan-green)",
-          }}
-        >
+      <span className={cn("font-mono", typeEyebrow)}>{step.n}</span>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <h4 className={cn("min-w-0 flex-1 leading-snug", typeCardTitle)}>{step.title}</h4>
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-[rgba(var(--verdan-green-rgb),0.08)] text-[var(--verdan-green)]">
           {step.icon}
         </span>
       </div>
-      <div className="relative flex flex-col gap-3">
-        <h4 className={typeCardTitle}>{step.title}</h4>
-        <p className={typeBody}>
-          {step.desc}
-        </p>
-      </div>
-      <div className="relative mt-auto grid grid-cols-2 gap-2 border-t border-[rgba(14,14,14,0.08)] pt-4">
-        {step.meta.map((m) => (
-          <div key={m.label} className="flex flex-col gap-0.5">
-            <span className={typeCaptionMedium}>{m.label}</span>
-            <span className="text-sm font-light text-[var(--color-font)]/85">
-              {m.value}
-            </span>
-          </div>
-        ))}
-      </div>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, var(--verdan-green), transparent)",
-        }}
-      />
     </div>
   );
 }
@@ -1013,27 +948,16 @@ function HowItWorksBlock() {
             headIn && "hero-animate-fade-slide-up-sm",
           )}
         >
-          Verdan turns every plantation into a transparent, measurable workflow. Set up
+          Harit turns every plantation into a transparent, measurable workflow. Set up
           your site, capture trees from the field, and watch verified impact unfold in
           real time.
         </p>
       </div>
 
-      <div ref={gridRef} className="relative">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 right-0 top-1/2 hidden h-px -translate-y-1/2 lg:block"
-          style={{
-            background: `linear-gradient(90deg, transparent, rgba(${VERDAN_RGB},0.35), rgba(${VERDAN_RGB},0.35), transparent)`,
-            opacity: gridIn ? 1 : 0,
-            transition: "opacity 900ms ease-out 200ms",
-          }}
-        />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div ref={gridRef} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {WORKFLOW_STEPS.map((s, i) => (
             <WorkflowStepCard key={s.n} step={s} index={i} inView={gridIn} />
           ))}
-        </div>
       </div>
 
       <div
@@ -1041,36 +965,17 @@ function HowItWorksBlock() {
           "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-700 sm:flex-row sm:items-center sm:justify-between sm:p-8",
           gridIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         )}
-        style={{ transitionDelay: "780ms" }}
+        style={{ transitionDelay: "480ms" }}
       >
         <div className="flex flex-col gap-1.5">
           <span className={typeEyebrow}>Get started</span>
           <h4 className={typeTitle}>Start monitoring your plantation today.</h4>
           <p className={cn("max-w-xl", typeBody)}>
-            Onboard your first site in under ten minutes — no infrastructure, no
+            Onboard your first site in under ten minutes. No extra infrastructure or
             hardware, just your team and the app.
           </p>
         </div>
-        <Link
-          href="#cta"
-          className={cn(beginNowCtaClassName, "shrink-0 px-5 py-3")}
-          style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
-        >
-          <span className="begin-now-cta__label">Begin monitoring</span>
-          <svg
-            viewBox="0 0 10 10"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-            className="begin-now-cta__arrow h-[0.85em] w-[0.85em] shrink-0"
-          >
-            <path d="M0.5 5.5h7" />
-            <path d="M1.5 1.5l4 4-4 4" />
-          </svg>
-        </Link>
+        <BeginNowButton label="Begin monitoring" className="shrink-0" />
       </div>
     </div>
   );
@@ -1097,20 +1002,12 @@ export default function Product() {
       id="product"
       ref={sectionRef}
       className={cn(
-        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        "section-noise relative w-full overflow-hidden text-[var(--color-font)]",
+        landingSectionPx,
         landingSectionPad,
       )}
       style={{ background: "var(--background)" }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage: `radial-gradient(900px 500px at 12% 8%, rgba(${VERDAN_RGB},0.08), transparent 60%),
-                            radial-gradient(700px 420px at 88% 72%, rgba(${VERDAN_RGB},0.05), transparent 60%)`,
-        }}
-      />
-
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
@@ -1136,7 +1033,7 @@ export default function Product() {
           </p>
         </div>
 
-        <div className="mt-20 flex flex-col gap-24 lg:mt-24 lg:gap-32">
+        <div className={cn("flex flex-col", landingAfterHeadline, landingStackGap)}>
           <ProductBlock
             index={1}
             heroPanel
@@ -1169,7 +1066,7 @@ export default function Product() {
             visual={(inView) => <MapMock inView={inView} />}
           />
 
-          <div ref={mobRef} className="flex flex-col gap-10">
+          <div ref={mobRef} className="flex flex-col gap-8 md:gap-10">
             <BlockIndex index={3} eyebrow="Mobile app" />
             <div className="flex flex-col gap-4">
               <h3 className={cn("max-w-2xl", typeTitle)}>Built for field teams.</h3>

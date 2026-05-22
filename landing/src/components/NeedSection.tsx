@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
-import { landingSectionPad } from "@/lib/site-layout";
+import {
+  landingAfterHeadline,
+  landingClosing,
+  landingNeedTopPad,
+  landingPanelStack,
+  landingSectionPad,
+  landingSectionPx,
+  landingStackAfterLabel,
+  landingStackBeforeGrid,
+  landingStackMajor,
+} from "@/lib/site-layout";
 import {
   typeBody,
   typeBodyStrong,
@@ -62,19 +72,14 @@ function useInView<T extends HTMLElement>(threshold = 0.2) {
   return { ref, inView };
 }
 
-function ActBadge({ n }: { n: string }) {
+function SectionIndex({ index, eyebrow }: { index: number; eyebrow: string }) {
+  const num = String(index).padStart(2, "0");
   return (
-    <span
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white"
-      style={{ background: "var(--verdan-green)" }}
-    >
-      {n}
-    </span>
+    <div className={cn("flex items-center gap-2.5", typeEyebrow)}>
+      <span className="font-mono">{num}</span>
+      <span>{eyebrow}</span>
+    </div>
   );
-}
-
-function ActTitle({ children }: { children: ReactNode }) {
-  return <h3 className={typeEyebrow}>{children}</h3>;
 }
 
 function StatTile({
@@ -166,9 +171,10 @@ export default function NeedSection() {
       id="the-need"
       ref={sectionRef}
       className={cn(
-        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        "section-noise relative w-full overflow-hidden text-[var(--color-font)]",
+        landingSectionPx,
         landingSectionPad,
-        "pt-20 md:pt-24 lg:pt-20",
+        landingNeedTopPad,
       )}
       style={{ background: "var(--background)" }}
     >
@@ -195,16 +201,17 @@ export default function NeedSection() {
         </div>
 
         {/* Act 1 — Accountability crisis */}
-        <div ref={statsRef} className="mt-20 md:mt-24">
-          <div className="flex items-center gap-3">
-            <ActBadge n="01" />
-            <ActTitle>The plantation accountability crisis</ActTitle>
-          </div>
+        <div ref={statsRef} className={landingAfterHeadline}>
+          <SectionIndex
+            index={1}
+            eyebrow="The plantation accountability crisis"
+          />
           <p
             className={cn(
-              "mt-4 max-w-2xl",
+              "max-w-2xl",
+              landingStackAfterLabel,
               typeBodyStrong,
-              statsIn && "hero-animate-fade-slide-up-sm"
+              statsIn && "hero-animate-fade-slide-up-sm",
             )}
           >
             A global reforestation integrity study reviewed{" "}
@@ -216,7 +223,7 @@ export default function NeedSection() {
 
           <div
             className={cn(
-              "reveal-stagger mt-10 grid gap-4 md:grid-cols-3",
+              cn("reveal-stagger grid gap-4 md:grid-cols-3", landingStackBeforeGrid),
               statsIn && "is-visible"
             )}
           >
@@ -243,7 +250,10 @@ export default function NeedSection() {
 
           <div
             className={cn(
-              "glass-panel-strong mt-8 !rounded-[8px] overflow-hidden p-6 md:p-8",
+              cn(
+                "glass-panel-strong !rounded-[8px] overflow-hidden p-6 md:p-8",
+                landingPanelStack,
+              ),
               statsIn && "hero-animate-fade-slide-up-sm"
             )}
             style={{
@@ -328,13 +338,18 @@ export default function NeedSection() {
         </div>
 
         {/* Act 2 — Renewable contradiction */}
-        <div ref={ironyRef} className="mt-24 md:mt-28">
-          <div className="flex items-center gap-3">
-            <ActBadge n="02" />
-            <ActTitle>Renewable energy&apos;s hidden contradiction</ActTitle>
-          </div>
+        <div ref={ironyRef} className={landingStackMajor}>
+          <SectionIndex
+            index={2}
+            eyebrow="Renewable energy&apos;s hidden contradiction"
+          />
 
-          <div className="mt-6 grid gap-8 md:grid-cols-12 md:gap-6">
+          <div
+            className={cn(
+              "grid gap-8 md:grid-cols-12 md:gap-6",
+              landingStackAfterLabel,
+            )}
+          >
             <div
               className={cn(
                 "md:col-span-5",
@@ -346,7 +361,7 @@ export default function NeedSection() {
                 <span className="text-[var(--color-font)]">clean energy</span>,
                 ecosystems are being cleared at industrial scale.
               </h4>
-              <p className={cn("mt-5", typeBody)}>
+              <p className={cn(landingStackAfterLabel, typeBody)}>
                 The world talks about net-zero while quietly removing the natural
                 carbon sinks that make net-zero possible.
               </p>
@@ -389,15 +404,15 @@ export default function NeedSection() {
         </div>
 
         {/* Act 3 — Easy to plant. Hard to prove. */}
-        <div ref={gapRef} className="mt-24 md:mt-28">
-          <div className="flex items-center gap-3">
-            <ActBadge n="03" />
-            <ActTitle>Planting is easy. Proving survival is hard.</ActTitle>
-          </div>
+        <div ref={gapRef} className={landingStackMajor}>
+          <SectionIndex
+            index={3}
+            eyebrow="Planting is easy. Proving survival is hard."
+          />
 
           <div
             className={cn(
-              "reveal-stagger mt-8 grid gap-5 md:grid-cols-2",
+              cn("reveal-stagger grid gap-5 md:grid-cols-2", landingStackBeforeGrid),
               gapIn && "is-visible"
             )}
           >
@@ -471,7 +486,7 @@ export default function NeedSection() {
 
           <p
             className={cn(
-              "mt-14 md:mt-16",
+              landingClosing,
               typeLeadCentered,
               gapIn && "hero-animate-fade-slide-up-sm"
             )}

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Verdan (हरित)",
+  title: "Privacy Policy - Harit (हरित)",
   description:
-    "Privacy Policy for Verdan (हरित) - Tree Planting and Environmental Conservation Platform. Learn how we collect, use, and protect your data.",
+    "Privacy Policy for Harit (हरित) - Tree Planting and Environmental Conservation Platform. Learn how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPolicy() {
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
           Privacy Policy
         </h1>
         <p className="text-xl text-green-600 dark:text-green-400 mb-8">
-          Verdan (हरित) - Tree Planting & Environmental Conservation Platform
+          Harit (हरित) - Tree Planting & Environmental Conservation Platform
         </p>
 
         <div className="prose prose-lg dark:prose-invert max-w-none">
@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
               1. Introduction
             </h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Welcome to Verdan (हरित). We are committed to protecting your
+              Welcome to Harit (हरित). We are committed to protecting your
               privacy and ensuring the security of your personal information.
               This Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use our mobile application
@@ -51,13 +51,13 @@ export default function PrivacyPolicy() {
               &ldquo;Service&rdquo;).
             </p>
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Verdan is a tree planting and environmental conservation platform
+              Harit is a tree planting and environmental conservation platform
               that helps teams and organizations plant, track, and monitor trees
               across multiple sites with features including photo documentation,
               GPS tracking, growth analytics, and QR code identification.
             </p>
             <p className="text-gray-700 dark:text-gray-300">
-              By downloading, installing, or using Verdan, you agree to the
+              By downloading, installing, or using Harit, you agree to the
               collection and use of information in accordance with this policy.
               If you do not agree with this policy, please do not use our
               Service.
@@ -409,10 +409,10 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
               <p className="text-gray-700 dark:text-gray-300">
-                <strong>Application Name:</strong> Verdan (हरित)
+                <strong>Application Name:</strong> Harit (हरित)
               </p>
               <p className="text-gray-700 dark:text-gray-300 mt-2">
-                <strong>Developer:</strong> Verdan Team
+                <strong>Developer:</strong> Harit Team
               </p>
               <p className="text-gray-700 dark:text-gray-300 mt-2">
                 <strong>Email:</strong> rajatsaraswat0409@gmail.com
@@ -607,14 +607,14 @@ export default function PrivacyPolicy() {
 
           <div className="mt-12 p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">
-              <strong>Summary:</strong> Verdan (हरित) is committed to
+              <strong>Summary:</strong> Harit (हरित) is committed to
               environmental conservation and your privacy. We collect only the
               data necessary to provide our tree planting tracking service,
               protect it with industry-standard security measures, and never
               sell your personal information.
             </p>
             <p className="text-gray-700 dark:text-gray-300 text-sm">
-              By using Verdan, you acknowledge that you have read, understood,
+              By using Harit, you acknowledge that you have read, understood,
               and agree to this Privacy Policy. Thank you for being part of our
               mission to make the world greener! 🌳
             </p>
@@ -624,7 +624,7 @@ export default function PrivacyPolicy() {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            © 2026 Verdan (हरित). All rights reserved.
+            © 2026 Harit (हरित). All rights reserved.
           </p>
           <Link
             href="/"

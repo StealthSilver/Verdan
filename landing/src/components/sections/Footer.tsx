@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import { sectionHref, siteNavItems } from "@/lib/site-nav";
+import { landingSectionPx } from "@/lib/site-layout";
 import { typeUi, typeUiMedium } from "@/lib/typography";
 
 const legalLinks = [
@@ -54,7 +55,12 @@ const Footer = () => {
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/20"
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+      <div
+        className={cn(
+          "relative mx-auto max-w-7xl py-14 md:py-16 lg:py-20",
+          landingSectionPx,
+        )}
+      >
         <div className="flex w-full flex-col gap-8">
           <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <Link
@@ -115,7 +121,12 @@ const Footer = () => {
       </div>
 
       <div className="w-full border-t border-white/15">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-8">
+        <div
+          className={cn(
+            "mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 py-5 sm:flex-row sm:items-center",
+            landingSectionPx,
+          )}
+        >
           <p className={cn("text-center sm:text-left", typeUi, "text-white/80")}>
             © {year} हरित. All rights reserved.
           </p>

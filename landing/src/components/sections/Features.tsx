@@ -4,7 +4,11 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Check, MapPin, Sprout, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
-import { landingSectionPad } from "@/lib/site-layout";
+import {
+  landingAfterHeadline,
+  landingSectionPad,
+  landingSectionPx,
+} from "@/lib/site-layout";
 import {
   typeBody,
   typeBodyOnDark,
@@ -2193,7 +2197,8 @@ export default function Features() {
       id="features"
       ref={sectionRef}
       className={cn(
-        "section-noise relative w-full overflow-hidden px-6 md:px-12 lg:px-20",
+        "section-noise relative w-full overflow-hidden",
+        landingSectionPx,
         landingSectionPad,
       )}
       style={{ background: "var(--background)" }}
@@ -2223,7 +2228,10 @@ export default function Features() {
 
         <div
           ref={gridRef}
-          className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2 md:items-stretch"
+          className={cn(
+            "grid grid-cols-1 gap-4 md:grid-cols-2 md:items-stretch",
+            landingAfterHeadline,
+          )}
         >
           {/* Full width: plantation dashboard */}
           <div className="md:col-span-2">

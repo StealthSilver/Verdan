@@ -5,7 +5,13 @@ import FallingLeaves from "@/components/FallingLeaves";
 import { HeroDashboardScene } from "@/components/HeroDashboardScene";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
-import { landingHeroBottomPad } from "@/lib/site-layout";
+import {
+  landingHeroBottomPad,
+  landingHeroDashboardGap,
+  landingHeroSubtextGap,
+  landingHeroTopPad,
+  landingSectionPx,
+} from "@/lib/site-layout";
 import { typeHeroSubtext } from "@/lib/typography";
 
 /** Step 1 headline — 200ms delay, 700ms duration */
@@ -45,7 +51,9 @@ const Hero = () => {
   return (
     <section
       className={cn(
-        "relative flex min-h-screen w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem]",
+        "relative flex min-h-screen w-full flex-col justify-start bg-[var(--background)] text-[var(--color-font)] transition-colors duration-500",
+        landingSectionPx,
+        landingHeroTopPad,
         landingHeroBottomPad,
       )}
     >
@@ -64,7 +72,12 @@ const Hero = () => {
           />
         </div>
 
-        <div className="mt-4 flex w-full flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mt-5">
+        <div
+          className={cn(
+            "flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
+            landingHeroSubtextGap,
+          )}
+        >
           <p
             className={cn(
               "max-w-2xl",
@@ -109,7 +122,7 @@ const Hero = () => {
 
       <HeroDashboardScene
         className={cn(
-          "mt-11 sm:mt-14 lg:mt-16",
+          landingHeroDashboardGap,
           step < 3 && "hero-pre-animate",
           step >= 3 && "hero-animate-fade-slide-topleft",
         )}

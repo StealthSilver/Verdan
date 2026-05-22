@@ -34,9 +34,11 @@ function BeginNowArrow() {
 export function BeginNowButton({
   className,
   onClick,
+  label = "Begin Now",
 }: {
   className?: string;
   onClick?: () => void;
+  label?: string;
 }) {
   return (
     <Link
@@ -47,7 +49,7 @@ export function BeginNowButton({
       className={cn(beginNowCtaClassName, "px-5 py-3", className)}
       style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
     >
-      <span className="begin-now-cta__label">Begin Now</span>
+      <span className="begin-now-cta__label">{label}</span>
       <BeginNowArrow />
     </Link>
   );

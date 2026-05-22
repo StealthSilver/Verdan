@@ -17,7 +17,12 @@ import { JourneyDotTrack } from "@/components/sections/JourneyDotTrack";
 import { ReportVerificationFeed } from "@/components/sections/ReportVerificationFeed";
 import { QuarterMonitoringStack } from "@/components/QuarterMonitoringStack";
 import { PageHeadline } from "@/components/ui/PageHeadline";
-import { landingSectionPad } from "@/lib/site-layout";
+import {
+  landingAfterHeadline,
+  landingPanelStack,
+  landingSectionPad,
+  landingSectionPx,
+} from "@/lib/site-layout";
 import {
   typeBody,
   typeCaption,
@@ -444,7 +449,8 @@ export default function Proof() {
       id="proof"
       ref={sectionRef}
       className={cn(
-        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        "section-noise relative w-full overflow-hidden text-[var(--color-font)]",
+        landingSectionPx,
         landingSectionPad,
       )}
       style={{ background: "var(--background)" }}
@@ -474,23 +480,23 @@ export default function Proof() {
           </p>
         </div>
 
-        <div className="mt-16">
+        <div className={landingAfterHeadline}>
           <MetricsStrip />
         </div>
 
-        <div className="mt-6">
+        <div className={landingPanelStack}>
           <SurvivalBlock />
         </div>
 
-        <div className="mt-6">
+        <div className={landingPanelStack}>
           <ReportsBlock />
         </div>
 
-        <div className="mt-6">
+        <div className={landingPanelStack}>
           <JourneyBlock />
         </div>
 
-        <div className="mt-6">
+        <div className={landingPanelStack}>
           <AccountabilityBlock />
         </div>
       </div>

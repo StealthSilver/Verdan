@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
 import { DottedMap, type Marker } from "@/components/ui/DottedMap";
-import { landingSectionPad } from "@/lib/site-layout";
+import {
+  landingCtaHeadlineGap,
+  landingSectionPad,
+  landingSectionPx,
+} from "@/lib/site-layout";
 
 /** 7 pulsing spots — each has a status drawer (verified or sites active) */
 const PULSING_SPOTS: Marker[] = [
@@ -72,20 +76,17 @@ const Cta = () => {
       id="cta"
       className={cn(
         "relative flex w-full flex-col overflow-hidden bg-[var(--background)]",
+        landingSectionPx,
         landingSectionPad,
         "min-h-[min(65vh,480px)] sm:min-h-[min(70vh,540px)] md:min-h-[min(75vh,600px)]",
       )}
     >
-      <div
-        className={cn(
-          "mx-auto flex w-full max-w-7xl flex-col items-center px-6 md:px-12 lg:px-20"
-        )}
-      >
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center">
         <PageHeadline
           line1="Scale Your"
           line2="Environmental Impact"
           align="center"
-          className="mb-8 sm:mb-10 md:mb-12"
+          className={landingCtaHeadlineGap}
         />
 
         <div
