@@ -29,14 +29,14 @@ function buildMarkers() {
 }
 
 export const VERDAN_GLOBE_CONFIG: COBEOptions = {
-  devicePixelRatio: 2,
+  devicePixelRatio: 1.5,
   width: 600,
   height: 600,
   phi: 0,
   theta: 0.2,
   dark: 0,
   diffuse: 1.2,
-  mapSamples: 16000,
+  mapSamples: 10000,
   mapBrightness: 6,
   baseColor: [0.97, 0.99, 0.96],
   markerColor: VERDAN_RGB,
@@ -55,18 +55,22 @@ export function Globe({
   className?: string;
   config?: COBEOptions;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerStart = useRef(0);
   const phiOffset = useRef(0);
   const phi = useRef(0);
+  const runningRef = useRef(false);
+  const animationIdRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const container = containerRef.current;
     if (!canvas) return;
 
     let width = canvas.offsetWidth;
-    let animationId = 0;
+    const dpr = Math.min(config.devicePixelRatio ?? 1.5, 2);
 
     const onResize = () => {
       width = canvas.offsetWidth;
@@ -76,8 +80,8 @@ export function Globe({
 
     const globe = createGlobe(canvas, {
       ...config,
-      width: width * 2,
-      height: width * 2,
+      width: width * dpr,
+      height: width * dpr,
       markers: buildMarkers(),
     });
 
@@ -86,21 +90,44 @@ export function Globe({
     }, 0);
 
     const animate = () => {
+      if (!runningRef.current) return;
       if (pointerInteracting.current === null) {
         phi.current += 0.005;
       }
       globe.update({
         phi: phi.current + phiOffset.current,
-        width: width * 2,
-        height: width * 2,
+        width: width * dpr,
+        height: width * dpr,
       });
-      animationId = requestAnimationFrame(animate);
+      animationIdRef.current = requestAnimationFrame(animate);
     };
-    animate();
+
+    const start = () => {
+      if (runningRef.current) return;
+      runningRef.current = true;
+      animate();
+    };
+
+    const stop = () => {
+      runningRef.current = false;
+      cancelAnimationFrame(animationIdRef.current);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.05, rootMargin: "120px" },
+    );
+
+    if (container) observer.observe(container);
+    else start();
 
     return () => {
+      observer.disconnect();
       window.clearTimeout(fadeTimer);
-      cancelAnimationFrame(animationId);
+      stop();
       globe.destroy();
       window.removeEventListener("resize", onResize);
     };
@@ -123,6 +150,7 @@ export function Globe({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative mx-auto aspect-square w-full max-w-[min(100%,280px)]",
         className,

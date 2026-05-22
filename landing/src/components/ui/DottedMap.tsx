@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { createMap } from "svg-dotted-map";
-
+import DottedMapLib from "dotted-map";
+import { useTheme } from "next-themes";
 import { Sprout, TrendingUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -18,12 +18,12 @@ export interface Marker {
   statusKind?: "verified" | "sites";
 }
 
-type MapMarker<M extends Marker> = Omit<M, "lat" | "lng"> & {
-  x: number;
-  y: number;
-};
+const VIEW_W = 800;
+const VIEW_H = 400;
+/** Legacy svg-dotted-map view width; marker sizes in CTA are tuned for this scale */
+const LEGACY_VIEW_W = 200;
 
-type Dot = { x: number; y: number };
+type MapMarker<M extends Marker> = M & { x: number; y: number };
 
 type MapTransform = {
   renderW: number;
@@ -35,18 +35,11 @@ type MapTransform = {
 
 export interface DottedMapProps<M extends Marker = Marker>
   extends React.HTMLAttributes<HTMLDivElement> {
-  width?: number;
-  height?: number;
-  mapSamples?: number;
   markers?: M[];
   dotColor?: string;
-  hoverDotColor?: string;
   markerColor?: string;
   dotRadius?: number;
-  hoverRadius?: number;
-  stagger?: boolean;
   pulse?: boolean;
-
   renderMarkerOverlay?: (args: {
     marker: MapMarker<M>;
     index: number;
@@ -56,11 +49,10 @@ export interface DottedMapProps<M extends Marker = Marker>
   }) => React.ReactNode;
 }
 
-function resolveColor(color: string, el: HTMLElement): string {
-  const trimmed = color.trim();
-  if (!trimmed.startsWith("var(")) return trimmed;
-  const prop = trimmed.slice(4, -1).trim();
-  return getComputedStyle(el).getPropertyValue(prop).trim() || trimmed;
+function projectPoint(lat: number, lng: number) {
+  const x = (lng + 180) * (VIEW_W / 360);
+  const y = (90 - lat) * (VIEW_H / 180);
+  return { x, y };
 }
 
 function getMapTransform(
@@ -92,77 +84,6 @@ function getMapTransform(
 
 function viewBoxToCanvas(x: number, y: number, t: MapTransform) {
   return { px: t.offsetX + x * t.scale, py: t.offsetY + y * t.scale };
-}
-
-function canvasToViewBox(px: number, py: number, t: MapTransform) {
-  return { x: (px - t.offsetX) / t.scale, y: (py - t.offsetY) / t.scale };
-}
-
-function buildStaggerMeta(points: { x: number; y: number }[], stagger: boolean) {
-  const sorted = [...points].sort((a, b) => a.y - b.y || a.x - b.x);
-  const yToRowIndex = new Map<number, number>();
-  let xStep = 1;
-  let prevY = Number.NaN;
-  let prevXInRow = Number.NaN;
-
-  for (const p of sorted) {
-    if (p.y !== prevY) {
-      prevY = p.y;
-      prevXInRow = Number.NaN;
-      if (!yToRowIndex.has(p.y)) yToRowIndex.set(p.y, yToRowIndex.size);
-    }
-    if (!Number.isNaN(prevXInRow)) {
-      const delta = p.x - prevXInRow;
-      if (delta > 0) xStep = xStep === 1 ? delta : Math.min(xStep, delta);
-    }
-    prevXInRow = p.x;
-  }
-
-  const dots: Dot[] = points.map((point) => {
-    const rowIndex = yToRowIndex.get(point.y) ?? 0;
-    const offsetX = stagger && rowIndex % 2 === 1 ? xStep / 2 : 0;
-    return { x: point.x + offsetX, y: point.y };
-  });
-
-  return { dots, xStep };
-}
-
-function buildSpatialGrid(dots: Dot[], cellSize: number) {
-  const grid = new Map<string, number[]>();
-  for (let i = 0; i < dots.length; i++) {
-    const key = `${Math.floor(dots[i].x / cellSize)},${Math.floor(dots[i].y / cellSize)}`;
-    const bucket = grid.get(key);
-    if (bucket) bucket.push(i);
-    else grid.set(key, [i]);
-  }
-  return grid;
-}
-
-function getNearbyDotIndices(
-  hx: number,
-  hy: number,
-  dots: Dot[],
-  grid: Map<string, number[]>,
-  cellSize: number,
-  radiusSq: number
-): number[] {
-  const cx = Math.floor(hx / cellSize);
-  const cy = Math.floor(hy / cellSize);
-  const result: number[] = [];
-
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      const bucket = grid.get(`${cx + dx},${cy + dy}`);
-      if (!bucket) continue;
-      for (const i of bucket) {
-        const dot = dots[i];
-        const distSq = (dot.x - hx) ** 2 + (dot.y - hy) ** 2;
-        if (distSq <= radiusSq) result.push(i);
-      }
-    }
-  }
-
-  return result;
 }
 
 type DrawerLayout = {
@@ -213,170 +134,52 @@ function MapStatusDrawer({
 }
 
 export function DottedMap<M extends Marker = Marker>({
-  width = 150,
-  height = 75,
-  mapSamples = 5000,
   markers = [],
-  dotColor = "currentColor",
-  hoverDotColor = "var(--verdan-green)",
+  dotColor,
   markerColor = "#FF6900",
-  dotRadius = 0.2,
-  hoverRadius = 11,
-  stagger = true,
+  dotRadius = 0.22,
   pulse = false,
   renderMarkerOverlay,
   className,
   style,
-  onMouseMove,
-  onMouseLeave,
   ...divProps
 }: DottedMapProps<M>) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const baseCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const hoverCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const rafRef = React.useRef<number | null>(null);
-  const pendingPointerRef = React.useRef<{ x: number; y: number } | null>(null);
-  const colorsRef = React.useRef({ dot: dotColor, hover: hoverDotColor });
-  const transformRef = React.useRef<MapTransform | null>(null);
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
   const [drawerLayouts, setDrawerLayouts] = React.useState<DrawerLayout[]>([]);
 
-  const mapData = React.useMemo(() => {
-    const { points, addMarkers } = createMap({ width, height, mapSamples });
-    const { dots } = buildStaggerMeta(points, stagger);
-    const grid = buildSpatialGrid(dots, hoverRadius);
-    return {
-      dots,
-      processedMarkers: addMarkers(markers),
-      grid,
-    };
-  }, [width, height, mapSamples, markers, stagger, hoverRadius]);
+  const markerScale = VIEW_W / LEGACY_VIEW_W;
 
-  const { dots, processedMarkers, grid } = mapData;
-  const hoverRadiusSq = hoverRadius * hoverRadius;
-
-  const syncCanvasSize = React.useCallback(
-    (canvas: HTMLCanvasElement, rect: DOMRect) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = Math.floor(rect.width * dpr);
-      const h = Math.floor(rect.height * dpr);
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        canvas.style.width = `${rect.width}px`;
-        canvas.style.height = `${rect.height}px`;
-      }
-      return dpr;
-    },
-    []
-  );
-
-  const drawBaseLayer = React.useCallback(() => {
-    const container = containerRef.current;
-    const canvas = baseCanvasRef.current;
-    if (!container || !canvas) return;
-
-    const rect = container.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const dpr = syncCanvasSize(canvas, rect);
-    const transform = getMapTransform(rect, width, height);
-    transformRef.current = transform;
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = resolveColor(colorsRef.current.dot, container);
-
-    const radiusPx = dotRadius * transform.scale;
-
-    for (const dot of dots) {
-      const { px, py } = viewBoxToCanvas(dot.x, dot.y, transform);
-      ctx.beginPath();
-      ctx.arc(px, py, radiusPx, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }, [dots, dotRadius, width, height, syncCanvasSize]);
-
-  const drawHoverLayer = React.useCallback(
-    (clientX: number, clientY: number) => {
-      const container = containerRef.current;
-      const canvas = hoverCanvasRef.current;
-      const transform = transformRef.current;
-      if (!container || !canvas || !transform) return;
-
-      const rect = container.getBoundingClientRect();
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const dpr = syncCanvasSize(canvas, rect);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, rect.width, rect.height);
-
-      const localX = clientX - rect.left;
-      const localY = clientY - rect.top;
-      const { x: hx, y: hy } = canvasToViewBox(localX, localY, transform);
-
-      const nearby = getNearbyDotIndices(
-        hx,
-        hy,
-        dots,
-        grid,
-        hoverRadius,
-        hoverRadiusSq
-      );
-
-      if (nearby.length === 0) return;
-
-      ctx.fillStyle = resolveColor(colorsRef.current.hover, container);
-      const radiusPx = dotRadius * transform.scale;
-
-      for (const i of nearby) {
-        const dot = dots[i];
-        const { px, py } = viewBoxToCanvas(dot.x, dot.y, transform);
-        ctx.beginPath();
-        ctx.arc(px, py, radiusPx, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    },
-    [dots, grid, dotRadius, hoverRadius, hoverRadiusSq, syncCanvasSize]
-  );
-
-  const clearHoverLayer = React.useCallback(() => {
-    const canvas = hoverCanvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-    const rect = container.getBoundingClientRect();
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
+  React.useEffect(() => {
+    setMounted(true);
   }, []);
 
-  const { xStep, yToRowIndex } = React.useMemo(() => {
-    const sorted = [...dots].sort((a, b) => a.y - b.y || a.x - b.x);
-    const rowMap = new Map<number, number>();
-    let step = 1;
-    let prevY = Number.NaN;
-    let prevXInRow = Number.NaN;
+  const processedMarkers = React.useMemo(
+    () =>
+      markers.map((marker) => {
+        const { x, y } = projectPoint(marker.lat, marker.lng);
+        return { ...marker, x, y };
+      }),
+    [markers]
+  );
 
-    for (const p of sorted) {
-      if (p.y !== prevY) {
-        prevY = p.y;
-        prevXInRow = Number.NaN;
-        if (!rowMap.has(p.y)) rowMap.set(p.y, rowMap.size);
-      }
-      if (!Number.isNaN(prevXInRow)) {
-        const delta = p.x - prevXInRow;
-        if (delta > 0) step = step === 1 ? delta : Math.min(step, delta);
-      }
-      prevXInRow = p.x;
-    }
+  const svgMap = React.useMemo(() => {
+    const map = new DottedMapLib({ height: 100, grid: "diagonal" });
+    // Theme from next-themes is undefined on the server but may be set before
+    // hydration on the client — use a stable default until mounted.
+    const activeTheme = mounted ? (resolvedTheme ?? theme) : "light";
+    const fallbackColor =
+      activeTheme === "dark" ? "#FFFFFF40" : "#00000040";
+    const color = dotColor ?? fallbackColor;
 
-    return { xStep: step, yToRowIndex: rowMap };
-  }, [dots]);
+    return map.getSVG({
+      radius: dotRadius,
+      color,
+      shape: "circle",
+      backgroundColor: "transparent",
+    });
+  }, [dotColor, dotRadius, theme, resolvedTheme, mounted]);
 
   const updateDrawerLayouts = React.useCallback(() => {
     const container = containerRef.current;
@@ -388,9 +191,7 @@ export function DottedMap<M extends Marker = Marker>({
       return;
     }
 
-    const transform = getMapTransform(rect, width, height);
-    transformRef.current = transform;
-
+    const transform = getMapTransform(rect, VIEW_W, VIEW_H);
     const layouts: DrawerLayout[] = [];
 
     processedMarkers.forEach((marker, index) => {
@@ -398,10 +199,8 @@ export function DottedMap<M extends Marker = Marker>({
       const statusLabel = source?.statusLabel;
       if (!statusLabel) return;
 
-      const rowIndex = yToRowIndex.get(marker.y) ?? 0;
-      const offsetX = stagger && rowIndex % 2 === 1 ? xStep / 2 : 0;
-      const { px, py } = viewBoxToCanvas(marker.x + offsetX, marker.y, transform);
-      const r = ((marker as MapMarker<M>).size ?? dotRadius) * transform.scale;
+      const { px, py } = viewBoxToCanvas(marker.x, marker.y, transform);
+      const r = (marker.size ?? dotRadius) * markerScale * transform.scale;
       const kind =
         source?.statusKind ??
         (statusLabel.toLowerCase().includes("verified") ? "verified" : "sites");
@@ -416,108 +215,61 @@ export function DottedMap<M extends Marker = Marker>({
     });
 
     setDrawerLayouts(layouts);
-  }, [processedMarkers, markers, width, height, stagger, xStep, yToRowIndex, dotRadius]);
-
-  React.useEffect(() => {
-    colorsRef.current = { dot: dotColor, hover: hoverDotColor };
-    drawBaseLayer();
-  }, [dotColor, hoverDotColor, drawBaseLayer]);
-
-  React.useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    drawBaseLayer();
-    updateDrawerLayouts();
-
-    const observer = new ResizeObserver(() => {
-      drawBaseLayer();
-      updateDrawerLayouts();
-      clearHoverLayer();
-    });
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, [drawBaseLayer, clearHoverLayer, updateDrawerLayouts]);
+  }, [processedMarkers, markers, dotRadius, markerScale]);
 
   React.useLayoutEffect(() => {
     updateDrawerLayouts();
   }, [updateDrawerLayouts]);
 
-  React.useEffect(
-    () => () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    },
-    []
-  );
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const scheduleHoverPaint = React.useCallback(
-    (clientX: number, clientY: number) => {
-      pendingPointerRef.current = { x: clientX, y: clientY };
-      if (rafRef.current !== null) return;
-
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        const pending = pendingPointerRef.current;
-        if (!pending) return;
-        drawHoverLayer(pending.x, pending.y);
-      });
-    },
-    [drawHoverLayer]
-  );
+    const observer = new ResizeObserver(updateDrawerLayouts);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [updateDrawerLayouts]);
 
   return (
     <div
       ref={containerRef}
-      className={cn("relative h-full w-full", className)}
+      className={cn("relative aspect-[2/1] h-full w-full font-sans", className)}
       style={style}
-      onMouseMove={(e) => {
-        onMouseMove?.(e);
-        scheduleHoverPaint(e.clientX, e.clientY);
-      }}
-      onMouseLeave={(e) => {
-        pendingPointerRef.current = null;
-        if (rafRef.current !== null) {
-          cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
-        clearHoverLayer();
-        onMouseLeave?.(e);
-      }}
       {...divProps}
     >
-      <canvas
-        ref={baseCanvasRef}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      />
-      <canvas
-        ref={hoverCanvasRef}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      />
+      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG data URL from dotted-map */}
+      {mounted ? (
+        <img
+          src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
+          alt=""
+          draggable={false}
+          aria-hidden
+          className="pointer-events-none h-full w-full select-none [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]"
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="pointer-events-none h-full w-full select-none [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]"
+        />
+      )}
 
       <svg
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none"
       >
         {processedMarkers.map((marker, index) => {
-          const rowIndex = yToRowIndex.get(marker.y) ?? 0;
-          const offsetX = stagger && rowIndex % 2 === 1 ? xStep / 2 : 0;
-          const x = marker.x + offsetX;
-          const y = marker.y;
-          const r = marker.size ?? dotRadius;
+          const { x, y } = marker;
+          const r = (marker.size ?? dotRadius) * markerScale;
           const shouldPulse = pulse
             ? marker.pulse !== false
             : marker.pulse === true;
           const pulseTo = r * 2.8;
           const pulseOffset = `${((index * 0.41) % 1.4).toFixed(2)}s`;
           const pulseOffsetInner = `${((index * 0.41 + 0.7) % 1.4).toFixed(2)}s`;
-
           return (
-            <g key={`${marker.x}-${marker.y}-${index}`}>
+            <g key={`${marker.lat}-${marker.lng}-${index}`}>
               <circle cx={x} cy={y} r={r} fill={markerColor} />
               {shouldPulse ? (
                 <g>
@@ -572,7 +324,7 @@ export function DottedMap<M extends Marker = Marker>({
                 </g>
               ) : null}
               {renderMarkerOverlay?.({
-                marker: { ...marker, x, y },
+                marker,
                 index,
                 x,
                 y,

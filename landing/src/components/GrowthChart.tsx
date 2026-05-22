@@ -161,7 +161,7 @@ export function GrowthChart({ animate = false }: { animate?: boolean }) {
   const primaryTree = TREES.find((t) => t.area)!;
 
   return (
-    <div className="relative mx-auto w-full max-w-[min(100%,360px)] px-1 py-3">
+    <div className="relative mx-auto w-full max-w-[min(100%,480px)] px-1 py-3">
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         <ComposedChart
           data={CHART_DATA}

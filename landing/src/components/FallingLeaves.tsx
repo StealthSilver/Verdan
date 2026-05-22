@@ -72,12 +72,15 @@ class LeafScene {
     if (pastHero !== this.paused) {
       this.paused = pastHero;
       if (pastHero) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = 0;
         for (const leaf of this.leaves) {
           leaf.active = false;
           leaf.el.style.visibility = "hidden";
         }
       } else {
         this._staggerAllRespawns();
+        this.render();
       }
     }
     this.measureBounds();
@@ -209,17 +212,17 @@ class LeafScene {
   };
 
   render = (): void => {
-    this.rafId = requestAnimationFrame(this.boundRender);
-
     if (this.paused) return;
 
     this.frame++;
-    if (this.frame % FRAME_INTERVAL !== 0) return;
-
-    this.timer++;
-    for (let i = 0; i < this.leaves.length; i++) {
-      this._updateLeaf(this.leaves[i]);
+    if (this.frame % FRAME_INTERVAL === 0) {
+      this.timer++;
+      for (let i = 0; i < this.leaves.length; i++) {
+        this._updateLeaf(this.leaves[i]);
+      }
     }
+
+    this.rafId = requestAnimationFrame(this.boundRender);
   };
 
   destroy = (): void => {

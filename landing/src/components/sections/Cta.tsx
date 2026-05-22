@@ -93,15 +93,10 @@ const Cta = () => {
           )}
         >
         <DottedMap
-          width={200}
-          height={100}
-          mapSamples={4000}
           markers={PULSING_SPOTS}
           dotColor="rgba(14, 14, 14, 0.45)"
-          hoverDotColor="var(--verdan-green)"
           markerColor="var(--verdan-green)"
-          dotRadius={0.28}
-          hoverRadius={12}
+          dotRadius={0.22}
           pulse
           className="h-full w-full"
         />

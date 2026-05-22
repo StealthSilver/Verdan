@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
 
 const navItems = [
-  { name: "The Need", href: "#the-need" },
+  { name: "Need", href: "#the-need" },
   { name: "Product", href: "#product" },
   { name: "Features", href: "#features" },
   { name: "Proof", href: "#proof" },
