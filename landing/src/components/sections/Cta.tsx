@@ -71,13 +71,13 @@ const Cta = () => {
       id="cta"
       className={cn(
         "relative flex w-full flex-col overflow-hidden scroll-mt-[4.25rem] bg-[var(--background)]",
-        "py-16 sm:py-20 md:py-28",
+        "pt-8 pb-16 sm:pt-10 sm:pb-20 md:pt-12 md:pb-24",
         "min-h-[min(65vh,480px)] sm:min-h-[min(70vh,540px)] md:min-h-[min(75vh,600px)]"
       )}
     >
       <div
         className={cn(
-          "mx-auto mt-12 flex w-[90%] max-w-5xl flex-col items-center sm:mt-16 md:mt-20"
+          "mx-auto flex w-[90%] max-w-5xl flex-col items-center"
         )}
       >
         <PageHeadline

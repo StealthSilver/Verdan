@@ -446,7 +446,7 @@ export default function Proof() {
     <section
       id="proof"
       ref={sectionRef}
-      className="section-noise relative w-full scroll-mt-[4.25rem] overflow-hidden px-6 py-32 text-[var(--color-font)] md:px-12 lg:px-20"
+      className="section-noise relative w-full scroll-mt-[4.25rem] overflow-hidden px-6 pt-32 pb-16 text-[var(--color-font)] md:px-12 md:pb-20 lg:px-20"
       style={{ background: "var(--background)" }}
     >
       <div

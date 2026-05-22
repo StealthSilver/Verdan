@@ -163,6 +163,53 @@ const TABLE_ROWS = [
   },
 ] as const;
 
+export function DashboardNavbar({
+  small = false,
+  showAdmin = true,
+}: {
+  small?: boolean;
+  showAdmin?: boolean;
+}) {
+  return (
+    <header
+      className={cn(
+        "flex shrink-0 items-center justify-between border-b border-gray-200 bg-white",
+        small ? "px-3 py-2" : "px-5 py-3",
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <Image
+          src="/icon.svg"
+          alt=""
+          width={30}
+          height={30}
+          unoptimized
+          className={cn("shrink-0", small ? "h-5 w-5" : "h-6 w-6")}
+        />
+        <span
+          className={cn("font-bold text-gray-900", small ? "text-xs" : "text-sm")}
+        >
+          हरित
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <BellIcon small={small} />
+        <AdminAvatar small={small} />
+        {showAdmin && (
+          <span
+            className={cn(
+              "font-medium text-gray-700",
+              small ? "text-[10px]" : "text-xs",
+            )}
+          >
+            Admin
+          </span>
+        )}
+      </div>
+    </header>
+  );
+}
+
 function BellIcon({ small = false }: { small?: boolean }) {
   return (
     <button
@@ -255,46 +302,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
         )}
       >
         <div className="flex w-full flex-col overflow-hidden bg-white">
-            {/* Top navbar */}
-            <header
-              className={cn(
-                "flex shrink-0 items-center justify-between border-b border-gray-200 bg-white",
-                small ? "px-3 py-2" : "px-5 py-3",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Image
-                  src="/icon.svg"
-                  alt=""
-                  width={30}
-                  height={30}
-                  unoptimized
-                  className={cn("shrink-0", small ? "h-5 w-5" : "h-6 w-6")}
-                />
-                <span
-                  className={cn(
-                    "font-bold text-gray-900",
-                    small ? "text-xs" : "text-sm",
-                  )}
-                >
-                  हरित
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <BellIcon small={small} />
-                <AdminAvatar small={small} />
-                {fullContent && (
-                  <span
-                    className={cn(
-                      "font-medium text-gray-700",
-                      small ? "text-[10px]" : "text-xs",
-                    )}
-                  >
-                    Admin
-                  </span>
-                )}
-              </div>
-            </header>
+            <DashboardNavbar small={small} showAdmin={fullContent} />
 
             {/* Main content */}
             <div

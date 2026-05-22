@@ -32,7 +32,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <NeedSection />
-      {/* <Product /> */}
+      <Product />
       <Features />
       <Proof />
       <Cta />
