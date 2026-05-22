@@ -409,6 +409,26 @@ body {
   }
 }
 
+@keyframes site-mgmt-box-pulse {
+  0%,
+  68%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 2px 6px rgba(72, 132, 92, 0.08));
+  }
+  14%,
+  26% {
+    transform: translateY(-8px);
+    filter: drop-shadow(0 14px 28px rgba(72, 132, 92, 0.38));
+  }
+}
+
+.feature-site-mgmt-box {
+  animation: site-mgmt-box-pulse 3.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+}
+
 .motion-feature-pulse {
   animation: feature-shimmer 3.5s ease-in-out infinite;
 }
@@ -446,6 +466,11 @@ body {
   }
   .motion-feature-sheen {
     animation: none !important;
+  }
+  .feature-site-mgmt-box {
+    animation: none !important;
+    transform: none !important;
+    filter: drop-shadow(0 2px 6px rgba(72, 132, 92, 0.1)) !important;
   }
   .hero-live-dot__ripple {
     animation: none !important;
