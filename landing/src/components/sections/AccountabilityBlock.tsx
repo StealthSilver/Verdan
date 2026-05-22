@@ -150,7 +150,9 @@ export default function AccountabilityBlock() {
       <div className="grid items-center gap-6 md:grid-cols-12">
         <div className="p-7 md:col-span-5 md:p-9">
           <p className={typeEyebrowLight}>The bigger picture</p>
-          <h3 className={cn("mt-3", typeCallout)}>Built for environmental accountability.</h3>
+          <h3 className={cn("mt-3", typeCallout, "text-white")}>
+            Built for environmental accountability.
+          </h3>
           <p className={cn("mt-4 max-w-md", typeBodyOnDark)}>
             Harit transforms tree plantation from a one-time activity into
             measurable environmental infrastructure.

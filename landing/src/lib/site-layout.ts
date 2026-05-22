@@ -30,6 +30,9 @@ export const landingNeedSectionPad = `${landingScrollMt} ${landingNeedTopPad} ${
 /** Below fixed navbar */
 export const landingHeroTopPad = "pt-[4.25rem] sm:pt-[16.25rem]";
 
+/** Below fixed navbar — inner pages (legal, etc.) */
+export const landingPageTopPad = "pt-[4.25rem]";
+
 /** Section headline block → first major block */
 export const landingAfterHeadline = "mt-16 md:mt-20";
 
