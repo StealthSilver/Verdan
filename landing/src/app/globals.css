@@ -315,6 +315,10 @@ body {
   color: transparent;
 }
 
+.text-alert {
+  color: #c0432e;
+}
+
 .reveal-stagger > * {
   opacity: 0;
   transform: translateY(14px);

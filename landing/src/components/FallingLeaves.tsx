@@ -7,10 +7,12 @@ const LEAF_SVG =
 
 const DASHBOARD_CLIP_SELECTOR = ".hero-dashboard-panel-wrap";
 const FRAME_INTERVAL = 1;
-const SPAWN_BATCH_SIZE = 2;
-const SPAWN_WAVE_GAP = 10;
+// One leaf per wave so they're spread out instead of bunched
+const SPAWN_BATCH_SIZE = 1;
+// Smaller gap between waves keeps the stream continuous
+const SPAWN_WAVE_GAP = 4;
 const RESPAWN_DELAY_MIN = 1;
-const RESPAWN_DELAY_MAX = 4;
+const RESPAWN_DELAY_MAX = 3;
 
 interface Leaf {
   el: HTMLDivElement;
@@ -45,7 +47,8 @@ class LeafScene {
     numLeaves: 25,
     spawnBatchSize: SPAWN_BATCH_SIZE,
     spawnWaveGap: SPAWN_WAVE_GAP,
-    windDrift: 4.1,
+    // Slightly stronger wind so leaves drift faster horizontally
+    windDrift: 3.2,
   };
 
   constructor(el: HTMLDivElement) {
@@ -86,9 +89,8 @@ class LeafScene {
   _scheduleSpawnWave = (leafIndex: number, baseDelay = 0): number =>
     this._spawnWaveIndex(leafIndex) * this.options.spawnWaveGap +
     baseDelay +
-    Math.floor(Math.random() * 4);
+    Math.floor(Math.random() * 2); // tighter jitter for more uniform spacing
 
-  /** Respawn in waves so several leaves fall together after scroll */
   _staggerAllRespawns = (): void => {
     const base = this.timer + this.options.spawnWaveGap;
     for (let i = 0; i < this.leaves.length; i++) {
@@ -101,15 +103,16 @@ class LeafScene {
 
   _applyLeafMotion = (leaf: Leaf): void => {
     leaf.rotationSpeed = (Math.random() - 0.5) * 4.5 + 3.2;
-    leaf.xDrift = Math.random() * 0.9 - 0.25;
-    leaf.ySpeed = Math.random() * 1.35 + 1.55;
+    leaf.xDrift = Math.random() * 0.4 - 0.25;
+    // Faster vertical fall: was 1.35–2.9, now 2.2–4.0
+    leaf.ySpeed = Math.random() * 1.8 + 2.2;
     leaf.rotation = Math.random() * 360;
   };
 
-  /** Spawn in separate lanes so leaves stay visually apart */
   _placeAtTopRight = (leaf: Leaf): void => {
     const lanes = this.options.numLeaves;
-    const spread = Math.min(this.width * 0.55, 480);
+    // Wider spread: 80% of width, up to 720px (was 55% / 480px)
+    const spread = Math.min(this.width * 0.8, 720);
     const laneWidth = spread / lanes;
     const startX = this.width - 8 - spread;
     leaf.x =
