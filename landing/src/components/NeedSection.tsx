@@ -6,9 +6,8 @@ import { PageHeadline } from "@/components/ui/PageHeadline";
 import {
   landingAfterHeadline,
   landingClosing,
-  landingNeedTopPad,
+  landingNeedSectionPad,
   landingPanelStack,
-  landingSectionPad,
   landingSectionPx,
   landingStackAfterLabel,
   landingStackBeforeGrid,
@@ -173,8 +172,7 @@ export default function NeedSection() {
       className={cn(
         "section-noise relative w-full overflow-hidden text-[var(--color-font)]",
         landingSectionPx,
-        landingSectionPad,
-        landingNeedTopPad,
+        landingNeedSectionPad,
       )}
       style={{ background: "var(--background)" }}
     >

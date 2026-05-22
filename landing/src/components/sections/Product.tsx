@@ -484,6 +484,14 @@ const PHONE_MAP_PINS = [
   { x: 76, y: 48 },
 ] as const;
 
+function PhoneStatusBar() {
+  return (
+    <div className="flex h-6 shrink-0 items-end justify-center bg-white pb-1 pt-1">
+      <div className="h-1 w-10 rounded-full bg-gray-200/90" aria-hidden />
+    </div>
+  );
+}
+
 function PhoneAppHeader({
   title,
   subtitle,
@@ -493,7 +501,7 @@ function PhoneAppHeader({
 }) {
   return (
     <div className="shrink-0 border-b border-gray-200 bg-white">
-      <div className="flex items-center justify-between px-3 py-2">
+      <div className="flex items-center justify-between px-3.5 pb-2 pt-1">
         <div className="flex items-center gap-1.5">
           <Image
             src="/icon.svg"
@@ -505,17 +513,24 @@ function PhoneAppHeader({
           />
           <span className="text-[10px] font-bold text-gray-900">हरित</span>
         </div>
-        <span className="rounded-full bg-green-100 px-2 py-px text-[8px] font-medium text-[#2d6a4f]">
+        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[8px] font-medium text-[#2d6a4f]">
           Field
         </span>
       </div>
-      <div className="border-t border-gray-100 px-3 pb-2 pt-1.5">
-        {subtitle ? <p className="text-[9px] text-gray-500">{subtitle}</p> : null}
+      <div className="space-y-0.5 border-t border-gray-100 px-3.5 pb-2.5 pt-2">
+        {subtitle ? <p className="text-[9px] leading-snug text-gray-500">{subtitle}</p> : null}
         <h2 className="text-[12px] font-bold leading-snug text-gray-900">{title}</h2>
       </div>
     </div>
   );
 }
+
+/** Shared horizontal padding for phone screen body content */
+const phoneScreenPadX = "px-3.5";
+
+/** Phone body: fills frame, no internal scroll */
+const phoneScreenBody =
+  "min-h-0 flex-1 overflow-hidden overscroll-none bg-[#f8fafc]";
 
 function PhoneCard({
   children,
@@ -538,11 +553,11 @@ function PhoneCard({
 
 function PhoneFieldRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-gray-100 px-2.5 py-2 last:border-b-0">
+    <div className="border-b border-gray-100 px-3 py-2.5 last:border-b-0">
       <div className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
         {label}
       </div>
-      <div className="mt-0.5 text-[10px] font-medium text-gray-900">{value}</div>
+      <div className="mt-1 text-[10px] font-medium leading-snug text-gray-900">{value}</div>
     </div>
   );
 }
@@ -579,7 +594,7 @@ function PhoneFrame({
         }}
       >
         <div className="absolute left-1/2 top-[13px] z-10 h-[17px] w-[72px] -translate-x-1/2 rounded-full bg-black" />
-        <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[28px] border border-gray-200/60 bg-white">
+        <div className="relative flex h-full w-full flex-col overflow-hidden overscroll-none rounded-[28px] border border-gray-200/60 bg-white">
           {children}
         </div>
       </div>
@@ -589,33 +604,36 @@ function PhoneFrame({
 
 function PhoneScreenRegister() {
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      <PhoneStatusBar />
       <PhoneAppHeader title="Register Tree" subtitle="New field entry" />
-      <div className="min-h-0 flex-1 overflow-hidden bg-[#f8fafc] px-3 py-2.5">
-        <PhoneCard className="mb-2">
+      <div
+        className={cn(phoneScreenBody, phoneScreenPadX, "space-y-2 pb-2.5 pt-2.5")}
+      >
+        <PhoneCard>
           <div
-            className="relative flex h-[100px] items-center justify-center"
+            className="relative flex h-[84px] items-center justify-center"
             style={{
               background:
                 "radial-gradient(ellipse at 50% 40%, #eef3ea 0%, #dde6dc 100%)",
             }}
           >
             <Camera size={20} className="text-[#48845c]" strokeWidth={1.75} />
-            <span className="absolute bottom-2 left-2 rounded border border-gray-200 bg-white px-2 py-0.5 text-[8px] font-medium text-gray-700">
+            <span className="absolute bottom-2.5 left-2.5 rounded border border-gray-200 bg-white px-2 py-0.5 text-[8px] font-medium text-gray-700">
               Live capture
             </span>
           </div>
         </PhoneCard>
         <PhoneCard>
           <PhoneFieldRow label="Species" value="Neem (Azadirachta)" />
-          <PhoneFieldRow label="Site" value="North Range · Block 04" />
-          <PhoneFieldRow label="GPS" value="22.572°N · 88.363°E" />
+          <PhoneFieldRow label="Site" value="North Range, Block 04" />
+          <PhoneFieldRow label="GPS" value="22.572°N, 88.363°E" />
         </PhoneCard>
       </div>
-      <div className="shrink-0 border-t border-gray-200 bg-white px-3 py-2.5">
+      <div className={cn("shrink-0 border-t border-gray-200 bg-white py-3", phoneScreenPadX)}>
         <button
           type="button"
-          className="flex w-full items-center justify-center gap-1.5 rounded bg-[#48845c] py-2 text-[10px] font-medium text-white transition-colors hover:bg-[#3d7149]"
+          className="flex w-full items-center justify-center gap-1.5 rounded-md bg-[#48845c] py-2.5 text-[10px] font-medium text-white transition-colors hover:bg-[#3d7149]"
         >
           <Check size={11} strokeWidth={2.5} aria-hidden />
           Save &amp; sync
@@ -627,8 +645,9 @@ function PhoneScreenRegister() {
 
 function PhoneScreenMap() {
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <PhoneAppHeader title="Site map" subtitle="North Range · Block 04" />
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      <PhoneStatusBar />
+      <PhoneAppHeader title="Site map" subtitle="North Range, Block 04" />
       <div className="relative min-h-0 flex-1 bg-[var(--background)]">
         <svg viewBox="0 0 220 280" className="absolute inset-0 h-full w-full" aria-hidden>
           <defs>
@@ -670,24 +689,24 @@ function PhoneScreenMap() {
             style={{ left: `${p.x}%`, top: `${p.y}%` }}
           />
         ))}
-        <div className="absolute left-2.5 right-2.5 top-2">
-          <div className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[9px] text-gray-700 shadow-sm">
+        <div className="absolute inset-x-3.5 top-3">
+          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[9px] leading-snug text-gray-700 shadow-sm">
             <span className="font-semibold text-[#48845c]">3 sites</span> near you
           </div>
         </div>
-        <div className="absolute bottom-2.5 left-2.5 right-2.5">
+        <div className="absolute inset-x-3.5 bottom-3">
           <PhoneCard className="shadow-sm">
-            <div className="px-2.5 py-2">
+            <div className="space-y-2 px-3 py-2.5">
               <div className="text-[8px] font-medium uppercase tracking-wide text-gray-500">
                 Today&apos;s route
               </div>
-              <div className="mt-0.5 text-[11px] font-bold text-gray-900">
-                East Block · 42 stops
+              <div className="text-[11px] font-bold leading-snug text-gray-900">
+                East Block, 42 stops
               </div>
-              <div className="mt-2 h-1 overflow-hidden rounded-full bg-gray-100">
+              <div className="h-1 overflow-hidden rounded-full bg-gray-100">
                 <div className="h-full w-[62%] rounded-full bg-[#48845c]" />
               </div>
-              <div className="mt-1 text-[9px] text-gray-500">26 of 42 verified</div>
+              <div className="text-[9px] text-gray-500">26 of 42 verified</div>
             </div>
           </PhoneCard>
         </div>
@@ -698,17 +717,20 @@ function PhoneScreenMap() {
 
 function PhoneScreenProfile() {
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <PhoneAppHeader title="Neem · Block 04" subtitle="Tree #VRD-04821" />
-      <div className="min-h-0 flex-1 space-y-2 overflow-hidden bg-[#f8fafc] px-3 py-2.5">
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      <PhoneStatusBar />
+      <PhoneAppHeader title="Neem, Block 04" subtitle="Tree #VRD-04821" />
+      <div
+        className={cn(phoneScreenBody, phoneScreenPadX, "space-y-2 pb-2.5 pt-2.5")}
+      >
         <PhoneCard>
-          <div className="flex items-center justify-between border-b border-gray-100 px-2.5 py-2">
+          <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2">
             <span className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
               Growth
             </span>
             <span className="text-[9px] font-medium text-[#48845c]">+12% this month</span>
           </div>
-          <svg viewBox="0 0 180 52" className="w-full px-2 pb-2 pt-1" aria-hidden>
+          <svg viewBox="0 0 180 52" className="w-full px-2.5 pb-2.5 pt-2" aria-hidden>
             <path
               d="M 4 44 Q 30 36 50 32 T 100 18 T 176 6"
               fill="none"
@@ -722,7 +744,7 @@ function PhoneScreenProfile() {
             />
           </svg>
         </PhoneCard>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-2">
           {[
             { label: "Height", value: "2.1m" },
             { label: "Health", value: "98%" },
@@ -730,19 +752,19 @@ function PhoneScreenProfile() {
           ].map((s) => (
             <div
               key={s.label}
-              className="rounded-lg border border-black/5 bg-white/90 p-2 text-center"
+              className="rounded-lg border border-black/5 bg-white p-2.5 text-center"
             >
               <div className="text-[8px] font-medium uppercase tracking-wide text-gray-500">
                 {s.label}
               </div>
-              <div className="mt-0.5 text-[11px] font-light tabular-nums text-gray-900">
+              <div className="mt-1 text-[11px] font-light tabular-nums text-gray-900">
                 {s.value}
               </div>
             </div>
           ))}
         </div>
         <PhoneCard>
-          <div className="px-2.5 py-2">
+          <div className="px-3 py-2.5">
             <div className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
               Timeline
             </div>
@@ -754,7 +776,7 @@ function PhoneScreenProfile() {
               ].map(([k, v]) => (
                 <li
                   key={k}
-                  className="flex items-center gap-2 text-[10px] text-gray-800"
+                  className="flex items-center gap-2 text-[10px] leading-snug text-gray-800"
                 >
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#48845c]" />
                   <span className="flex-1 font-medium">{k}</span>
@@ -765,7 +787,12 @@ function PhoneScreenProfile() {
           </div>
         </PhoneCard>
       </div>
-      <div className="flex shrink-0 items-center justify-between border-t border-gray-200 bg-white px-3 py-2 text-[9px] text-gray-500">
+      <div
+        className={cn(
+          "flex shrink-0 items-center justify-between border-t border-gray-200 bg-white py-2.5 text-[9px] text-gray-500",
+          phoneScreenPadX,
+        )}
+      >
         <span className="flex items-center gap-1 font-medium text-[#48845c]">
           <CheckCircle2 size={10} strokeWidth={2} aria-hidden />
           Synced
@@ -858,6 +885,7 @@ function FloatChip({
 type WorkflowStep = {
   n: string;
   title: string;
+  desc: string;
   icon: React.ReactNode;
 };
 
@@ -865,26 +893,31 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     n: "01",
     title: "Set up your site",
+    desc: "Draw your plantation boundary on the map and define each site you plan to monitor with Harit.",
     icon: <MapPin size={18} strokeWidth={1.75} />,
   },
   {
     n: "02",
     title: "Add your team",
+    desc: "Invite administrators, field workers, and reviewers with clear roles so everyone knows what to do.",
     icon: <Users size={18} strokeWidth={1.75} />,
   },
   {
     n: "03",
     title: "Start adding the plants",
+    desc: "Record each tree from the mobile app with GPS, photos, and species details, even when you are offline.",
     icon: <Sprout size={18} strokeWidth={1.75} />,
   },
   {
     n: "04",
     title: "Track growth and survival",
+    desc: "Watch survival rates, growth trends, and field activity update live across every site in one dashboard.",
     icon: <TrendingUp size={18} strokeWidth={1.75} />,
   },
   {
     n: "05",
     title: "Export data",
+    desc: "Generate verified reports for ESG, CSR, and compliance and share them with stakeholders in a few clicks.",
     icon: <Download size={18} strokeWidth={1.75} />,
   },
 ];
@@ -903,17 +936,20 @@ function WorkflowStepCard({
   return (
     <div
       className={cn(
-        "flex h-full min-h-[7.5rem] flex-col justify-between glass-panel-strong !rounded-[8px] p-5 transition-all duration-700",
+        "flex h-full flex-col gap-3 glass-panel-strong !rounded-[8px] p-5 transition-all duration-700",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
       )}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      <span className={cn("font-mono", typeEyebrow)}>{step.n}</span>
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <h4 className={cn("min-w-0 flex-1 leading-snug", typeCardTitle)}>{step.title}</h4>
+      <div className="flex items-center justify-between gap-3">
+        <span className={cn("font-mono", typeEyebrow)}>{step.n}</span>
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-[rgba(var(--verdan-green-rgb),0.08)] text-[var(--verdan-green)]">
           {step.icon}
         </span>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <h4 className={typeCardTitle}>{step.title}</h4>
+        <p className={typeBody}>{step.desc}</p>
       </div>
     </div>
   );
@@ -1076,7 +1112,7 @@ export default function Product() {
               </p>
             </div>
 
-            <div className="relative flex w-full items-center justify-center pt-6">
+            <div className="relative flex w-full items-center justify-center pt-8 md:pt-10">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-1/2 h-[80%] -translate-y-1/2 rounded-full opacity-40"

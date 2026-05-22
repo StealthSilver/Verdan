@@ -6,13 +6,12 @@ const LEAF_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 2C10 2 5 8 5 12C5 15.3 7.2 18 10 18C12.8 18 15 15.3 15 12C15 8 10 2 10 2Z' fill='%2348845c'/%3E%3Cpath d='M10 18C11.1 18 12 17.1 12 16C12 15.9 11.9 15.8 11.8 15.7C10.6 16.2 9.4 16.2 8.2 15.7C8.1 15.8 8 15.9 8 16C8 17.1 8.9 18 10 18Z' fill='%233d7149'/%3E%3C/svg%3E";
 
 const DASHBOARD_CLIP_SELECTOR = ".hero-dashboard-panel-wrap";
-const FRAME_INTERVAL = 1;
-// One leaf per wave so they're spread out instead of bunched
-const SPAWN_BATCH_SIZE = 1;
-// Smaller gap between waves keeps the stream continuous
-const SPAWN_WAVE_GAP = 4;
-const RESPAWN_DELAY_MIN = 1;
-const RESPAWN_DELAY_MAX = 3;
+
+/** Deterministic 0..1 from leaf index (stable per lane, no Math.random per frame). */
+function hash01(index: number, salt: number): number {
+  const x = Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
 
 interface Leaf {
   el: HTMLDivElement;
@@ -25,6 +24,7 @@ interface Leaf {
   rotationSpeed: number;
   xDrift: number;
   ySpeed: number;
+  windBias: number;
 }
 
 class LeafScene {
@@ -38,17 +38,18 @@ class LeafScene {
   frame = 0;
   rafId = 0;
   paused = false;
+  /** Next frame index when a leaf may enter (evenly spaced queue). */
+  spawnQueueTail = 0;
   resizeObserver: ResizeObserver | null = null;
   boundRender: () => void;
   boundMeasure: () => void;
   boundOnScroll: () => void;
 
   options = {
-    numLeaves: 25,
-    spawnBatchSize: SPAWN_BATCH_SIZE,
-    spawnWaveGap: SPAWN_WAVE_GAP,
-    // Slightly stronger wind so leaves drift faster horizontally
-    windDrift: 3.2,
+    numLeaves: 28,
+    windDrift: 3.1,
+    /** Filled in measureBounds from viewport height ÷ leaf count */
+    spawnSpacing: 10,
   };
 
   constructor(el: HTMLDivElement) {
@@ -59,12 +60,29 @@ class LeafScene {
     this.boundOnScroll = this.onScroll.bind(this);
   }
 
+  _updateSpawnSpacing = (): void => {
+    const avgFallSpeed = 3.05;
+    const fallDistance = Math.max(this.clipY + 48, 320);
+    const fallFrames = Math.ceil(fallDistance / avgFallSpeed);
+    this.options.spawnSpacing = Math.max(
+      7,
+      Math.round(fallFrames / this.options.numLeaves),
+    );
+  };
+
+  _enqueueSpawn = (): number => {
+    const at = Math.max(this.timer, this.spawnQueueTail);
+    this.spawnQueueTail = at + this.options.spawnSpacing;
+    return at;
+  };
+
   measureBounds = (): void => {
     this.width = this.viewport.offsetWidth;
     const vhCap = window.innerHeight * 1.14;
     this.height = Math.min(this.viewport.offsetHeight, vhCap);
     const containerRect = this.viewport.getBoundingClientRect();
     this.clipY = window.innerHeight * 0.85 - containerRect.top;
+    this._updateSpawnSpacing();
   };
 
   onScroll = (): void => {
@@ -86,43 +104,35 @@ class LeafScene {
     this.measureBounds();
   };
 
-  _spawnWaveIndex = (leafIndex: number): number =>
-    Math.floor(leafIndex / this.options.spawnBatchSize);
-
-  _scheduleSpawnWave = (leafIndex: number, baseDelay = 0): number =>
-    this._spawnWaveIndex(leafIndex) * this.options.spawnWaveGap +
-    baseDelay +
-    Math.floor(Math.random() * 2); // tighter jitter for more uniform spacing
-
   _staggerAllRespawns = (): void => {
-    const base = this.timer + this.options.spawnWaveGap;
+    this.spawnQueueTail = this.timer;
     for (let i = 0; i < this.leaves.length; i++) {
       const leaf = this.leaves[i];
       leaf.active = false;
-      leaf.spawnAt = base + this._scheduleSpawnWave(i, 0);
+      leaf.spawnAt = this._enqueueSpawn();
       leaf.el.style.visibility = "hidden";
     }
   };
 
   _applyLeafMotion = (leaf: Leaf): void => {
-    leaf.rotationSpeed = (Math.random() - 0.5) * 4.5 + 3.2;
-    leaf.xDrift = Math.random() * 0.4 - 0.25;
-    // Faster vertical fall: was 1.35–2.9, now 2.2–4.0
-    leaf.ySpeed = Math.random() * 1.8 + 2.2;
-    leaf.rotation = Math.random() * 360;
+    const i = leaf.lane;
+    leaf.rotationSpeed = (hash01(i, 1) - 0.5) * 4.2 + 3.1;
+    leaf.xDrift = hash01(i, 2) * 0.35 - 0.17;
+    leaf.ySpeed = 2.15 + hash01(i, 3) * 1.95;
+    leaf.windBias = (hash01(i, 4) - 0.5) * 1.4;
+    leaf.rotation = hash01(i, 5) * 360;
   };
 
-  _placeAtTopRight = (leaf: Leaf): void => {
-    const lanes = this.options.numLeaves;
-    // Wider spread: 80% of width, up to 720px (was 55% / 480px)
-    const spread = Math.min(this.width * 0.8, 720);
-    const laneWidth = spread / lanes;
-    const startX = this.width - 8 - spread;
-    leaf.x =
-      startX +
-      leaf.lane * laneWidth +
-      Math.random() * laneWidth * 0.25;
-    leaf.y = -(Math.random() * 32 + 8);
+  _placeAtSpawn = (leaf: Leaf): void => {
+    const n = this.options.numLeaves;
+    const spread = Math.min(this.width * 0.9, 860);
+    const zoneLeft = Math.max(8, this.width - spread);
+    const laneT = (leaf.lane + hash01(leaf.lane, 6) * 0.72) / n;
+    leaf.x = zoneLeft + laneT * spread;
+
+    const verticalBand = Math.min(160, this.clipY * 0.22);
+    const phase = (leaf.lane + 0.5) / n;
+    leaf.y = -10 - phase * verticalBand - hash01(leaf.lane, 7) * 18;
   };
 
   _hideLeaf = (leaf: Leaf): void => {
@@ -132,17 +142,14 @@ class LeafScene {
 
   _activateLeaf = (leaf: Leaf): void => {
     this._applyLeafMotion(leaf);
-    this._placeAtTopRight(leaf);
+    this._placeAtSpawn(leaf);
     leaf.active = true;
     leaf.el.style.visibility = "visible";
     this._applyTransform(leaf);
   };
 
   _scheduleRespawn = (leaf: Leaf): void => {
-    const delay =
-      RESPAWN_DELAY_MIN +
-      Math.floor(Math.random() * (RESPAWN_DELAY_MAX - RESPAWN_DELAY_MIN + 1));
-    leaf.spawnAt = this.timer + delay;
+    leaf.spawnAt = this._enqueueSpawn();
     this._hideLeaf(leaf);
   };
 
@@ -158,7 +165,7 @@ class LeafScene {
       return;
     }
 
-    leaf.x -= this.options.windDrift + leaf.xDrift;
+    leaf.x -= this.options.windDrift + leaf.windBias + leaf.xDrift;
     leaf.y += leaf.ySpeed;
     leaf.rotation += leaf.rotationSpeed;
     this._applyTransform(leaf);
@@ -169,25 +176,27 @@ class LeafScene {
   };
 
   init = (): void => {
+    this.spawnQueueTail = 0;
     for (let i = 0; i < this.options.numLeaves; i++) {
-      const size = 14 + Math.random() * 8;
+      const size = 14 + hash01(i, 8) * 8;
       const leaf: Leaf = {
         el: document.createElement("div"),
         x: 0,
         y: 0,
         active: false,
-        spawnAt: this._scheduleSpawnWave(i),
+        spawnAt: this._enqueueSpawn(),
         lane: i,
         rotation: 0,
         rotationSpeed: 0,
         xDrift: 0,
         ySpeed: 0,
+        windBias: 0,
       };
 
       leaf.el.style.width = `${size}px`;
       leaf.el.style.height = `${size}px`;
       leaf.el.style.backgroundImage = `url("${LEAF_SVG}")`;
-      leaf.el.style.opacity = `${0.72 + Math.random() * 0.2}`;
+      leaf.el.style.opacity = `${0.72 + hash01(i, 9) * 0.2}`;
       leaf.el.style.visibility = "hidden";
 
       this.leaves.push(leaf);
@@ -215,11 +224,9 @@ class LeafScene {
     if (this.paused) return;
 
     this.frame++;
-    if (this.frame % FRAME_INTERVAL === 0) {
-      this.timer++;
-      for (let i = 0; i < this.leaves.length; i++) {
-        this._updateLeaf(this.leaves[i]);
-      }
+    this.timer++;
+    for (let i = 0; i < this.leaves.length; i++) {
+      this._updateLeaf(this.leaves[i]);
     }
 
     this.rafId = requestAnimationFrame(this.boundRender);
@@ -247,7 +254,7 @@ export default function FallingLeaves({ className = "" }: FallingLeavesProps) {
     if (!container) return;
 
     const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
+      "(prefers-reduced-motion: reduce)",
     ).matches;
     if (prefersReducedMotion) return;
 

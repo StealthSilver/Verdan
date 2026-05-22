@@ -7,8 +7,8 @@ import {
   FaXTwitter,
 } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
-import { sectionHref, siteNavItems } from "@/lib/site-nav";
-import { landingSectionPx } from "@/lib/site-layout";
+import { footerNavItems, sectionHref } from "@/lib/site-nav";
+import { landingSectionPx, landingSectionTop } from "@/lib/site-layout";
 import { typeUi, typeUiMedium } from "@/lib/typography";
 
 const legalLinks = [
@@ -48,6 +48,7 @@ const Footer = () => {
       className={cn(
         "relative w-full scroll-mt-[4.25rem] border-t border-white/15 bg-[var(--verdan-green)] text-white",
         "shadow-[0_-12px_40px_rgba(0,0,0,0.12)]",
+        landingSectionTop,
       )}
     >
       <div
@@ -83,7 +84,7 @@ const Footer = () => {
 
             <nav aria-label="On this page" className="w-full lg:ml-auto lg:w-auto">
               <ul className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3 sm:gap-x-8">
-                {siteNavItems.map((item) => (
+                {footerNavItems.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={sectionHref(item.sectionId)}

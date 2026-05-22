@@ -232,8 +232,8 @@ body {
   animation-name: leafFallAlt;
 }
 
-/* Falling leaves — first viewport only, behind dashboard */
-#product > .hero-falling-leaves.falling-leaves {
+/* Falling leaves — hero viewport, behind dashboard */
+.hero-falling-leaves.falling-leaves {
   position: absolute;
   top: -4vh;
   left: 4%;
@@ -594,7 +594,7 @@ body {
     animation: none;
     opacity: 0;
   }
-  #product > .hero-falling-leaves.falling-leaves {
+  .hero-falling-leaves.falling-leaves {
     display: none;
   }
 }

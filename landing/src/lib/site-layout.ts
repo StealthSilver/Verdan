@@ -1,9 +1,9 @@
 /**
- * Landing page spacing — mobile-first, bottom-padding between sections
- * so gaps never double-stack (top + bottom).
+ * Landing page spacing — each section gets top + bottom padding.
+ * Gap between sections = previous bottom + next top (no double-stack on one element).
  *
- * Between sections (mobile / md / lg):
- * - 56px / 64px / 112px — via `landingSectionGap` only
+ * Between sections (mobile / md / lg), approximate total:
+ * - ~96px / ~112px / ~144px
  */
 
 export const landingScrollMt = "scroll-mt-[4.25rem]";
@@ -11,15 +11,21 @@ export const landingScrollMt = "scroll-mt-[4.25rem]";
 /** Shared horizontal gutters */
 export const landingSectionPx = "px-6 md:px-12 lg:px-20";
 
-/** Gap below each page section (and below hero) */
-export const landingSectionGap = "pb-14 md:pb-16 lg:pb-28";
+/** Space above each page section */
+export const landingSectionTop = "pt-6 md:pt-8 lg:pt-10";
 
-export const landingSectionPad = `${landingScrollMt} ${landingSectionGap}`;
+/** Space below each page section (and below hero) */
+export const landingSectionGap = "pb-18 md:pb-22 lg:pb-32";
+
+export const landingSectionPad = `${landingScrollMt} ${landingSectionTop} ${landingSectionGap}`;
 
 export const landingHeroBottomPad = landingSectionGap;
 
 /** Extra space above Need headline (first section after hero) */
-export const landingNeedTopPad = "pt-12 md:pt-14 lg:pt-16";
+export const landingNeedTopPad = "pt-12 md:pt-16 lg:pt-20";
+
+/** Need section: scroll margin + extra top + standard bottom */
+export const landingNeedSectionPad = `${landingScrollMt} ${landingNeedTopPad} ${landingSectionGap}`;
 
 /** Below fixed navbar */
 export const landingHeroTopPad = "pt-[4.25rem] sm:pt-[16.25rem]";
