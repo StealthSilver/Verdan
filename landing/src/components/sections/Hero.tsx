@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import FallingLeaves from "@/components/FallingLeaves";
 import HeroDashboard from "@/components/HeroDashboard";
 import { cn } from "@/lib/utils";
+import { PageHeadline } from "@/components/ui/PageHeadline";
 
 /** Step 1 headline — 200ms delay, 700ms duration */
 const STEP1_DELAY = 200;
@@ -52,12 +53,10 @@ const Hero = () => {
             step >= 1 && "hero-animate-fade-slide-up"
           )}
         >
-          <h1 className="text-[1.75rem] font-semibold leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
-            Plantation Monitoring and Management,
-          </h1>
-          <h2 className="mt-0.5 text-[1.75rem] font-semibold leading-[1.1] sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]">
-            Easier Than Ever
-          </h2>
+          <PageHeadline
+            line1="Plantation Monitoring and Management,"
+            line2="Easier Than Ever"
+          />
         </div>
 
         <div className="mt-4 flex w-full flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mt-5">

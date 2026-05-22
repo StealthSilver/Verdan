@@ -6,9 +6,11 @@ const LEAF_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 2C10 2 5 8 5 12C5 15.3 7.2 18 10 18C12.8 18 15 15.3 15 12C15 8 10 2 10 2Z' fill='%2348845c'/%3E%3Cpath d='M10 18C11.1 18 12 17.1 12 16C12 15.9 11.9 15.8 11.8 15.7C10.6 16.2 9.4 16.2 8.2 15.7C8.1 15.8 8 15.9 8 16C8 17.1 8.9 18 10 18Z' fill='%233d7149'/%3E%3C/svg%3E";
 
 const DASHBOARD_CLIP_SELECTOR = ".hero-dashboard-panel-wrap";
-const FRAME_INTERVAL = 2;
-const SPAWN_INTERVAL = 110;
-const INITIAL_SPAWN_GAP = 130;
+const FRAME_INTERVAL = 1;
+const SPAWN_BATCH_SIZE = 2;
+const SPAWN_WAVE_GAP = 10;
+const RESPAWN_DELAY_MIN = 1;
+const RESPAWN_DELAY_MAX = 4;
 
 interface Leaf {
   el: HTMLDivElement;
@@ -32,19 +34,18 @@ class LeafScene {
   clipY = 0;
   timer = 0;
   frame = 0;
-  nextSpawnAt = 0;
   rafId = 0;
   paused = false;
-  allowSpawnThisTick = true;
   resizeObserver: ResizeObserver | null = null;
   boundRender: () => void;
   boundMeasure: () => void;
   boundOnScroll: () => void;
 
   options = {
-    numLeaves: 6,
-    spawnInterval: SPAWN_INTERVAL,
-    windDrift: 0.62,
+    numLeaves: 25,
+    spawnBatchSize: SPAWN_BATCH_SIZE,
+    spawnWaveGap: SPAWN_WAVE_GAP,
+    windDrift: 4.1,
   };
 
   constructor(el: HTMLDivElement) {
@@ -79,22 +80,29 @@ class LeafScene {
     this.measureBounds();
   };
 
-  /** Avoid a burst of leaves when returning to the hero after scroll */
+  _spawnWaveIndex = (leafIndex: number): number =>
+    Math.floor(leafIndex / this.options.spawnBatchSize);
+
+  _scheduleSpawnWave = (leafIndex: number, baseDelay = 0): number =>
+    this._spawnWaveIndex(leafIndex) * this.options.spawnWaveGap +
+    baseDelay +
+    Math.floor(Math.random() * 4);
+
+  /** Respawn in waves so several leaves fall together after scroll */
   _staggerAllRespawns = (): void => {
-    let slot = this.timer + this.options.spawnInterval;
-    for (const leaf of this.leaves) {
+    const base = this.timer + this.options.spawnWaveGap;
+    for (let i = 0; i < this.leaves.length; i++) {
+      const leaf = this.leaves[i];
       leaf.active = false;
-      leaf.spawnAt = slot;
+      leaf.spawnAt = base + this._scheduleSpawnWave(i, 0);
       leaf.el.style.visibility = "hidden";
-      slot += this.options.spawnInterval + 28;
     }
-    this.nextSpawnAt = slot;
   };
 
   _applyLeafMotion = (leaf: Leaf): void => {
-    leaf.rotationSpeed = (Math.random() - 0.5) * 3 + 1.8;
-    leaf.xDrift = Math.random() * 0.45 - 0.35;
-    leaf.ySpeed = Math.random() * 0.45 + 0.95;
+    leaf.rotationSpeed = (Math.random() - 0.5) * 4.5 + 3.2;
+    leaf.xDrift = Math.random() * 0.9 - 0.25;
+    leaf.ySpeed = Math.random() * 1.35 + 1.55;
     leaf.rotation = Math.random() * 360;
   };
 
@@ -107,8 +115,8 @@ class LeafScene {
     leaf.x =
       startX +
       leaf.lane * laneWidth +
-      Math.random() * laneWidth * 0.55;
-    leaf.y = -(Math.random() * 16 + leaf.lane * 14 + 8);
+      Math.random() * laneWidth * 0.25;
+    leaf.y = -(Math.random() * 32 + 8);
   };
 
   _hideLeaf = (leaf: Leaf): void => {
@@ -125,10 +133,10 @@ class LeafScene {
   };
 
   _scheduleRespawn = (leaf: Leaf): void => {
-    const gap =
-      this.options.spawnInterval + Math.floor(Math.random() * 24) + 12;
-    leaf.spawnAt = Math.max(this.timer + 1, this.nextSpawnAt);
-    this.nextSpawnAt = leaf.spawnAt + gap;
+    const delay =
+      RESPAWN_DELAY_MIN +
+      Math.floor(Math.random() * (RESPAWN_DELAY_MAX - RESPAWN_DELAY_MIN + 1));
+    leaf.spawnAt = this.timer + delay;
     this._hideLeaf(leaf);
   };
 
@@ -138,8 +146,7 @@ class LeafScene {
 
   _updateLeaf = (leaf: Leaf): void => {
     if (!leaf.active) {
-      if (this.timer >= leaf.spawnAt && this.allowSpawnThisTick) {
-        this.allowSpawnThisTick = false;
+      if (this.timer >= leaf.spawnAt) {
         this._activateLeaf(leaf);
       }
       return;
@@ -163,7 +170,7 @@ class LeafScene {
         x: 0,
         y: 0,
         active: false,
-        spawnAt: i * INITIAL_SPAWN_GAP,
+        spawnAt: this._scheduleSpawnWave(i),
         lane: i,
         rotation: 0,
         rotationSpeed: 0,
@@ -181,7 +188,6 @@ class LeafScene {
       this.world.appendChild(leaf.el);
     }
 
-    this.nextSpawnAt = this.options.numLeaves * INITIAL_SPAWN_GAP;
     this.world.className = "leaf-scene";
     this.viewport.appendChild(this.world);
 
@@ -208,7 +214,6 @@ class LeafScene {
     if (this.frame % FRAME_INTERVAL !== 0) return;
 
     this.timer++;
-    this.allowSpawnThisTick = true;
     for (let i = 0; i < this.leaves.length; i++) {
       this._updateLeaf(this.leaves[i]);
     }

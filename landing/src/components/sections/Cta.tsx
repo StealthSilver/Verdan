@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { PageHeadline } from "@/components/ui/PageHeadline";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
 import { DottedMap, type Marker } from "@/components/ui/DottedMap";
 
@@ -79,15 +80,12 @@ const Cta = () => {
           "mx-auto mt-12 flex w-[90%] max-w-5xl flex-col items-center sm:mt-16 md:mt-20"
         )}
       >
-        <h2
-          className={cn(
-            "text-center text-[1.75rem] font-semibold leading-[1.1]",
-            "sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]",
-            "mb-8 sm:mb-10 md:mb-12"
-          )}
-        >
-         Scale Your Environmental Impact
-        </h2>
+        <PageHeadline
+          line1="Scale Your"
+          line2="Environmental Impact"
+          align="center"
+          className="mb-8 sm:mb-10 md:mb-12"
+        />
 
         <div
           className={cn(
