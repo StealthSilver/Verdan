@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  MapPin,
   Users,
   Smartphone,
   FileBarChart,
@@ -801,13 +800,6 @@ export default function Features() {
                   desc="Every planted tree is mapped with precise coordinates and live location records."
                   className="!pt-2 md:!pt-3"
                 />
-                <div className="flex items-center gap-2 px-6 pb-6 text-[11px] font-light text-[var(--color-font)]/55 md:px-7">
-                  <MapPin
-                    className="h-3.5 w-3.5"
-                    style={{ color: "var(--verdan-green)" }}
-                  />
-                  <span>2,418 sites mapped this month</span>
-                </div>
               </div>
             </BentoCard>
           </div>

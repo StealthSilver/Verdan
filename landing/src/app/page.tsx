@@ -13,9 +13,9 @@ export default function Home() {
       <Navbar />
       <Hero />
       <NeedSection />
-      <Product />
+      {/* <Product /> */}
       <Features />
-      <Proof />
+      {/* <Proof /> */}
       <Cta />
       <Footer />
     </>

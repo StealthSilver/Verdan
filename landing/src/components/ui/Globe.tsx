@@ -4,11 +4,15 @@ import { useEffect, useRef } from "react";
 import createGlobe, { type COBEOptions } from "cobe";
 
 import {
-  GLOBE_GROUND_MARKERS,
   GLOBE_SATELLITE_MARKERS,
   GLOBE_SATELLITE_SIZE,
-  VERDAN_RGB,
 } from "@/lib/globeMarkers";
+
+const VERDAN_RGB: [number, number, number] = [
+  72 / 255,
+  132 / 255,
+  92 / 255,
+];
 import { cn } from "@/lib/utils";
 
 const MOVEMENT_DAMPING = 1400;
@@ -16,19 +20,12 @@ const MOVEMENT_DAMPING = 1400;
 const SATELLITE_ANCHOR_COLOR: [number, number, number] = [0.92, 0.97, 0.94];
 
 function buildMarkers() {
-  return [
-    ...GLOBE_GROUND_MARKERS.map((m) => ({
-      location: m.location,
-      size: m.size,
-      color: m.color,
-    })),
-    ...GLOBE_SATELLITE_MARKERS.map((m) => ({
-      location: m.location,
-      size: GLOBE_SATELLITE_SIZE,
-      id: m.id,
-      color: SATELLITE_ANCHOR_COLOR,
-    })),
-  ];
+  return GLOBE_SATELLITE_MARKERS.map((m) => ({
+    location: m.location,
+    size: GLOBE_SATELLITE_SIZE,
+    id: m.id,
+    color: SATELLITE_ANCHOR_COLOR,
+  }));
 }
 
 export const VERDAN_GLOBE_CONFIG: COBEOptions = {
