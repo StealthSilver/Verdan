@@ -886,15 +886,145 @@ body {
   }
 }
 
-@keyframes proofParticle {
-  0%,
-  100% {
-    transform: translate(0, 0);
-    opacity: 0.4;
+/* Proof — quarter monitoring stacked charts */
+.quarter-chart-hatch {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(14, 14, 14, 0.055) 4px,
+    rgba(14, 14, 14, 0.055) 5px
+  );
+  background-color: rgba(14, 14, 14, 0.02);
+}
+
+/* Proof — lifecycle journey dot line + traveling pulse */
+.journey-timeline {
+  --journey-icon-count: 6;
+  --journey-segments: 5;
+  --journey-cycle-s: 4.92s;
+  --journey-step-s: calc(var(--journey-cycle-s) / var(--journey-segments));
+}
+
+.journey-dot-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 27px;
+  z-index: 0;
+  height: 8px;
+  pointer-events: none;
+}
+
+.journey-dot-line {
+  position: absolute;
+  top: 50%;
+  height: 8px;
+  transform: translateY(-50%);
+  background-repeat: repeat-x;
+  background-position: left center;
+}
+
+.journey-dot-line--base {
+  left: 6%;
+  right: 6%;
+  background-image: radial-gradient(
+    circle,
+    rgba(14, 14, 14, 0.2) 1px,
+    transparent 1px
+  );
+  background-size: 7px 100%;
+}
+
+.journey-dot-line--pulse {
+  width: 9%;
+  opacity: 0;
+  left: calc(6% - 4.5%);
+  background-image: radial-gradient(
+    circle,
+    var(--verdan-green) 1.25px,
+    transparent 1.25px
+  );
+  background-size: 7px 100%;
+  filter: drop-shadow(0 0 4px rgba(var(--verdan-green-rgb), 0.85))
+    drop-shadow(0 0 12px rgba(var(--verdan-green-rgb), 0.5));
+}
+
+.journey-dot-line--pulse.is-running {
+  opacity: 1;
+  animation: journey-pulse-travel var(--journey-cycle-s) linear infinite;
+}
+
+@keyframes journey-pulse-travel {
+  from {
+    left: calc(6% - 4.5%);
   }
-  50% {
-    transform: translate(6px, -10px);
-    opacity: 1;
+  to {
+    left: calc(94% - 4.5%);
+  }
+}
+
+.journey-step-icon-wrap {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-step-icon-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: #fff;
+  z-index: 0;
+}
+
+.journey-step-icon {
+  position: relative;
+  z-index: 1;
+  border-color: rgba(var(--verdan-green-rgb), 0.32);
+  background: #fff;
+  box-shadow: 0 0 0 5px #fff;
+}
+
+.journey-step-icon--animating {
+  animation: journey-icon-glow var(--journey-cycle-s) linear infinite;
+  animation-delay: calc(var(--journey-step) * var(--journey-step-s));
+}
+
+@keyframes journey-icon-glow {
+  0%,
+  2% {
+    border-color: rgba(var(--verdan-green-rgb), 0.32);
+    box-shadow: 0 0 0 5px #fff;
+  }
+  6%,
+  16% {
+    border-color: var(--verdan-green);
+    box-shadow:
+      0 0 0 5px #fff,
+      0 0 0 11px rgba(var(--verdan-green-rgb), 0.28),
+      0 0 24px rgba(var(--verdan-green-rgb), 0.82),
+      0 0 44px rgba(var(--verdan-green-rgb), 0.42);
+  }
+  20%,
+  100% {
+    border-color: rgba(var(--verdan-green-rgb), 0.32);
+    box-shadow: 0 0 0 5px #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-dot-line--pulse.is-running {
+    animation: none;
+    left: calc(50% - 4.5%);
+    opacity: 0.45;
+  }
+
+  .journey-step-icon--animating {
+    animation: none;
   }
 }
 

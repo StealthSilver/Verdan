@@ -51,13 +51,13 @@ const Footer = () => {
     <footer
       id="contact"
       className={cn(
-        "relative w-full border-t border-[#fdfdfb]/10 bg-[#121c2b] text-[#fdfdfb]",
-        "shadow-[0_-12px_40px_rgba(0,0,0,0.2)]"
+        "relative w-full border-t border-white/15 bg-[var(--verdan-green)] text-white",
+        "shadow-[0_-12px_40px_rgba(0,0,0,0.12)]"
       )}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[rgb(74,137,92)]/25"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/20"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
@@ -65,7 +65,7 @@ const Footer = () => {
           <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <Link
               href="/"
-              className="inline-flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"
+              className="inline-flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/50"
               aria-label="Harit home"
             >
               <Image
@@ -73,9 +73,10 @@ const Footer = () => {
                 alt=""
                 width={44}
                 height={44}
-                className="h-10 w-10 sm:h-11 sm:w-11"
+                unoptimized
+                className="h-10 w-10 brightness-0 invert sm:h-11 sm:w-11"
               />
-              <span className="text-3xl font-bold text-[#fdfdfb] sm:text-4xl">
+              <span className="text-3xl font-bold text-white sm:text-4xl">
                 हरित
               </span>
             </Link>
@@ -86,7 +87,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-[14px] text-[#fdfdfb]/85 transition-colors hover:text-[#fdfdfb]"
+                      className="text-[14px] font-medium text-white/90 transition-colors hover:text-white"
                     >
                       {item.name}
                     </Link>
@@ -97,7 +98,7 @@ const Footer = () => {
           </div>
 
           <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="text-[14px] text-[#fdfdfb]/40">
+            <p className="text-[14px] text-white/80">
               Greener Tomorrow | Better Tomorrow
             </p>
 
@@ -107,7 +108,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-[14px] text-[#fdfdfb]/40 transition-colors hover:text-[#fdfdfb]/65"
+                      className="text-[14px] text-white/75 transition-colors hover:text-white"
                     >
                       {item.name}
                     </Link>
@@ -119,17 +120,17 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="w-full border-t border-[#fdfdfb]/10">
+      <div className="w-full border-t border-white/15">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-8">
-          <p className="text-center text-[14px] text-[#fdfdfb]/40 sm:text-left">
+          <p className="text-center text-[14px] text-white/80 sm:text-left">
             © {year} हरित. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-            <span className="text-[14px] text-[#fdfdfb]/40">
+            <span className="text-[14px] text-white/80">
               Powered by Serentica
             </span>
-            <span className="text-[#fdfdfb]/30" aria-hidden>
+            <span className="text-white/50" aria-hidden>
               |
             </span>
             <div className="flex items-center gap-2">
@@ -142,7 +143,7 @@ const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={item.name}
-                    className="text-[#fdfdfb]/60 transition-colors hover:text-[#fdfdfb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fdfdfb]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121c2b]"
+                    className="text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--verdan-green)]"
                   >
                     <Icon className="h-3 w-3" aria-hidden />
                   </a>

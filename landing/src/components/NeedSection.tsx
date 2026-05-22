@@ -424,10 +424,8 @@ export default function NeedSection() {
             </div>
 
             <div
-              className="relative overflow-hidden rounded-[8px] p-7 text-white"
+              className="relative overflow-hidden rounded-[8px] bg-[var(--verdan-green)] p-7 text-white"
               style={{
-                background:
-                  "linear-gradient(140deg, var(--verdan-green) 0%, #2f5d3e 100%)",
                 boxShadow:
                   "0 30px 80px -30px rgba(var(--verdan-green-rgb), 0.55)",
               }}
