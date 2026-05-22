@@ -74,7 +74,7 @@ const Hero = () => {
 
         <div
           className={cn(
-            "flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
+            "flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
             landingHeroSubtextGap,
           )}
         >

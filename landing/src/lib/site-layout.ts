@@ -3,7 +3,7 @@
  * Gap between sections = previous bottom + next top (no double-stack on one element).
  *
  * Between sections (mobile / md / lg), approximate total:
- * - ~96px / ~112px / ~144px
+ * - ~128px / ~112px / ~144px
  */
 
 export const landingScrollMt = "scroll-mt-[4.25rem]";
@@ -11,8 +11,8 @@ export const landingScrollMt = "scroll-mt-[4.25rem]";
 /** Shared horizontal gutters */
 export const landingSectionPx = "px-6 md:px-12 lg:px-20";
 
-/** Space above each page section */
-export const landingSectionTop = "pt-6 md:pt-8 lg:pt-10";
+/** Space above each page section (generous on mobile) */
+export const landingSectionTop = "pt-14 md:pt-8 lg:pt-10";
 
 /** Space below each page section (and below hero) */
 export const landingSectionGap = "pb-18 md:pb-22 lg:pb-32";
@@ -22,13 +22,13 @@ export const landingSectionPad = `${landingScrollMt} ${landingSectionTop} ${land
 export const landingHeroBottomPad = landingSectionGap;
 
 /** Extra space above Need headline (first section after hero) */
-export const landingNeedTopPad = "pt-12 md:pt-16 lg:pt-20";
+export const landingNeedTopPad = "pt-20 md:pt-16 lg:pt-20";
 
 /** Need section: scroll margin + extra top + standard bottom */
 export const landingNeedSectionPad = `${landingScrollMt} ${landingNeedTopPad} ${landingSectionGap}`;
 
-/** Below fixed navbar */
-export const landingHeroTopPad = "pt-[4.25rem] sm:pt-[16.25rem]";
+/** Below fixed navbar — extra air above headline on mobile */
+export const landingHeroTopPad = "pt-44 sm:pt-[16.25rem]";
 
 /** Below fixed navbar — inner pages (legal, etc.) */
 export const landingPageTopPad = "pt-[4.25rem]";
@@ -61,10 +61,10 @@ export const landingPanelStack = "mt-8 md:mt-10";
 export const landingClosing = "mt-14 md:mt-16";
 
 /** Hero: headline → subtext row */
-export const landingHeroSubtextGap = "mt-6 sm:mt-6";
+export const landingHeroSubtextGap = "mt-10 sm:mt-6";
 
 /** Hero: subtext → dashboard */
-export const landingHeroDashboardGap = "mt-12 md:mt-14 lg:mt-16";
+export const landingHeroDashboardGap = "mt-16 sm:mt-12 md:mt-14 lg:mt-16";
 
 /** CTA: headline → map */
 export const landingCtaHeadlineGap = "mb-10 md:mb-12";

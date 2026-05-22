@@ -1041,6 +1041,29 @@ body {
     0 40px 80px rgba(var(--verdan-green-rgb), 0.09);
 }
 
+/* Hero dashboard on mobile: left gutter, bleed right; clip via body overflow-x (no nested scroll). */
+@media (max-width: 767px) {
+  .hero-dashboard-mobile-clip {
+    margin-right: -1.5rem;
+    width: calc(100% + 1.5rem);
+  }
+
+  .hero-dashboard-panel-scale {
+    width: 85rem;
+    min-width: 85rem;
+    flex-shrink: 0;
+    zoom: 0.62;
+  }
+
+  @supports not (zoom: 1) {
+    .hero-dashboard-panel-scale {
+      zoom: normal;
+      transform: scale(0.62);
+      transform-origin: top left;
+    }
+  }
+}
+
 /* —— Legal pages (privacy policy, terms, etc.) —— */
 .legal-meta p {
   font-size: 0.875rem;
