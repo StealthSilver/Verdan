@@ -89,7 +89,7 @@ function StatTile({
         : "var(--color-font)";
 
   return (
-    <div className="glass-panel-strong group relative !rounded-[8px] overflow-hidden p-6 transition-all duration-500 hover:-translate-y-1">
+    <div className="glass-panel-strong group relative !rounded-[8px] overflow-hidden p-6">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-30 blur-2xl transition-opacity duration-500 group-hover:opacity-50"
@@ -225,7 +225,7 @@ export default function NeedSection() {
               value={1.28}
               suffix="M"
               decimals={2}
-              label="sites analyzed — many depending on self-reported claims."
+              label="sites analyzed, many depending on self-reported claims."
               tone="verdan"
             />
           </div>
@@ -268,21 +268,20 @@ export default function NeedSection() {
               <div
                 className="absolute inset-y-0 left-0 transition-[width] duration-1000 ease-out"
                 style={{
-                  width: statsIn ? "70%" : "0%",
-                  background: ALERT,
+                  width: statsIn ? "100%" : "0%",
+                  background: `linear-gradient(
+                    to right,
+                    ${ALERT} 0%,
+                    ${ALERT} 70%,
+                    ${WARN} 70%,
+                    ${WARN} 80%,
+                    var(--verdan-green) 80%,
+                    var(--verdan-green) 100%
+                  )`,
                 }}
               />
-              <div
-                className="absolute inset-y-0 left-0 transition-[width] duration-1000 ease-out"
-                style={{
-                  width: statsIn ? "80%" : "0%",
-                  background:
-                    "linear-gradient(90deg, transparent 87%, var(--verdan-green) 87%)",
-                  transitionDelay: "200ms",
-                }}
-              />
-              <div className="absolute left-[70%] top-0 h-full w-px bg-black/20" />
-              <div className="absolute left-[80%] top-0 h-full w-px bg-black/20" />
+              <div className="pointer-events-none absolute left-[70%] top-0 h-full w-px bg-white/50" />
+              <div className="pointer-events-none absolute left-[80%] top-0 h-full w-px bg-white/50" />
             </div>
             <div className="mt-2 flex justify-between text-[10px] font-medium uppercase tracking-wider text-[var(--color-font)]/40">
               <span>0%</span>
@@ -316,7 +315,7 @@ export default function NeedSection() {
               <strong className="font-normal" style={{ color: ALERT }}>
                 {Math.round(failed)}%
               </strong>{" "}
-              of monitored sites are failing integrity checks — right now.
+              of monitored sites are failing integrity checks right now.
             </span>
           </div>
         </div>
@@ -368,7 +367,7 @@ export default function NeedSection() {
                 inView={ironyIn}
                 value={4500}
                 suffix=" ha"
-                label="of native vegetation destroyed by renewable projects in Brazil — in 2023 alone."
+                label="of native vegetation destroyed by renewable projects in Brazil in 2023 alone."
               />
               <StatTile
                 inView={ironyIn}
@@ -439,7 +438,7 @@ export default function NeedSection() {
                 style={{ background: "rgba(255,255,255,0.25)" }}
               />
               <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/70">
-                What Verdan changes
+                What Harit changes
               </p>
               <h4 className="mt-2 text-xl font-medium tracking-tight md:text-2xl">
                 Every tree, geolocated. Every site, monitored. Every survival
@@ -463,7 +462,7 @@ export default function NeedSection() {
               </ul>
               <p className="mt-7 text-[13px] font-light text-white/70">
                 Because compensatory plantations are now expected to offset
-                ecological damage — and without tracking, no one can prove
+                ecological damage, and without tracking, no one can prove
                 restoration actually happened.
               </p>
             </div>
