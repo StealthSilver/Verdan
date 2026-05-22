@@ -7,14 +7,8 @@ import {
   FaXTwitter,
 } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { name: "Need", href: "/#the-need" },
-  { name: "Product", href: "/#product" },
-  { name: "Features", href: "/#features" },
-  { name: "Proof", href: "/#proof" },
-  { name: "Contact", href: "/#contact" },
-];
+import { sectionHref, siteNavItems } from "@/lib/site-nav";
+import { typeUi, typeUiMedium } from "@/lib/typography";
 
 const legalLinks = [
   { name: "Terms and Conditions", href: "#" },
@@ -51,8 +45,8 @@ const Footer = () => {
     <footer
       id="contact"
       className={cn(
-        "relative w-full border-t border-white/15 bg-[var(--verdan-green)] text-white",
-        "shadow-[0_-12px_40px_rgba(0,0,0,0.12)]"
+        "relative w-full scroll-mt-[4.25rem] border-t border-white/15 bg-[var(--verdan-green)] text-white",
+        "shadow-[0_-12px_40px_rgba(0,0,0,0.12)]",
       )}
     >
       <div
@@ -83,11 +77,11 @@ const Footer = () => {
 
             <nav aria-label="On this page" className="w-full lg:ml-auto lg:w-auto">
               <ul className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3 sm:gap-x-8">
-                {navLinks.map((item) => (
+                {siteNavItems.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={item.href}
-                      className="text-[14px] font-medium text-white/90 transition-colors hover:text-white"
+                      href={sectionHref(item.sectionId)}
+                      className={cn(typeUiMedium, "text-white/90 transition-colors hover:text-white")}
                     >
                       {item.name}
                     </Link>
@@ -98,7 +92,7 @@ const Footer = () => {
           </div>
 
           <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="text-[14px] text-white/80">
+            <p className={cn(typeUi, "text-white/80")}>
               Greener Tomorrow | Better Tomorrow
             </p>
 
@@ -108,7 +102,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-[14px] text-white/75 transition-colors hover:text-white"
+                      className={cn(typeUi, "text-white/75 transition-colors hover:text-white")}
                     >
                       {item.name}
                     </Link>
@@ -122,12 +116,12 @@ const Footer = () => {
 
       <div className="w-full border-t border-white/15">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-6 sm:py-5 lg:px-8">
-          <p className="text-center text-[14px] text-white/80 sm:text-left">
+          <p className={cn("text-center sm:text-left", typeUi, "text-white/80")}>
             © {year} हरित. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-            <span className="text-[14px] text-white/80">
+            <span className={cn(typeUi, "text-white/80")}>
               Powered by Serentica
             </span>
             <span className="text-white/50" aria-hidden>

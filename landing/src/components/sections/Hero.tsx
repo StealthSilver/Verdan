@@ -5,6 +5,8 @@ import FallingLeaves from "@/components/FallingLeaves";
 import { HeroDashboardScene } from "@/components/HeroDashboardScene";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import { landingHeroBottomPad } from "@/lib/site-layout";
+import { typeHeroSubtext } from "@/lib/typography";
 
 /** Step 1 headline — 200ms delay, 700ms duration */
 const STEP1_DELAY = 200;
@@ -42,7 +44,10 @@ const Hero = () => {
 
   return (
     <section
-      className="relative flex min-h-screen w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem] lg:pb-20"
+      className={cn(
+        "relative flex min-h-screen w-full flex-col justify-start bg-[var(--background)] px-3 pt-[4.25rem] pb-12 text-[var(--color-font)] transition-colors duration-500 sm:px-5 sm:pb-16 sm:pt-[16.25rem]",
+        landingHeroBottomPad,
+      )}
     >
       <FallingLeaves className="hero-falling-leaves" />
 
@@ -62,7 +67,8 @@ const Hero = () => {
         <div className="mt-4 flex w-full flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:mt-5">
           <p
             className={cn(
-              "max-w-2xl text-[14px] font-light leading-snug text-gray-600",
+              "max-w-2xl",
+              typeHeroSubtext,
               step < 2 && "hero-pre-animate",
               step >= 2 && "hero-animate-fade-slide-up-sm"
             )}
@@ -72,7 +78,8 @@ const Hero = () => {
           </p>
           <p
             className={cn(
-              "group flex shrink-0 cursor-default items-center gap-2 text-[14px] font-light leading-snug text-gray-600 transition-colors duration-150 hover:text-black",
+              "group flex shrink-0 cursor-default items-center gap-2 transition-colors duration-150 hover:text-black",
+              typeHeroSubtext,
               step < 4 && "hero-pre-animate",
               step >= 4 && "hero-animate-fade-slide-up-step4"
             )}

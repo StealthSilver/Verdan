@@ -4,6 +4,16 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Check, MapPin, Sprout, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import { landingSectionPad } from "@/lib/site-layout";
+import {
+  typeBody,
+  typeBodyOnDark,
+  typeCaption,
+  typeEyebrow,
+  typeEyebrowLight,
+  typeSectionIntro,
+  typeTitle,
+} from "@/lib/typography";
 import HeroDashboard from "@/components/HeroDashboard";
 import { DASHBOARD_TREE_AVATARS } from "@/components/dashboardTreeAvatars";
 import dynamic from "next/dynamic";
@@ -128,22 +138,13 @@ function CardHead({
   return (
     <div className={cn("p-6 md:p-7", light ? "text-white" : "", className)}>
       {eyebrow && (
-        <p
-          className={cn(
-            "text-[11px] font-medium uppercase tracking-[0.2em]",
-            light ? "text-white/65" : "text-[var(--color-font)]/45",
-          )}
-        >
-          {eyebrow}
-        </p>
+        <p className={cn(light ? typeEyebrowLight : typeEyebrow)}>{eyebrow}</p>
       )}
-      <h3 className="mt-2 text-xl font-normal leading-snug tracking-tight md:text-2xl">
-        {title}
-      </h3>
+      <h3 className={cn("mt-2", typeTitle)}>{title}</h3>
       <p
         className={cn(
-          "mt-2 text-[15px] font-light leading-relaxed",
-          light ? "text-white/75" : "text-[var(--color-font)]/70",
+          "mt-2",
+          light ? typeBodyOnDark : typeBody,
           descClassName,
         )}
       >
@@ -258,7 +259,7 @@ function GrowthViz() {
       ref={ref}
       className="flex w-full flex-col items-center px-6 pb-4 pt-6 md:px-8 md:pt-8"
     >
-      <p className="mb-4 text-center text-[11px] font-light tracking-wide text-[var(--color-font)]/50">
+      <p className={cn("mb-4 text-center", typeCaption)}>
         <span className="font-normal tabular-nums text-[var(--color-font)]/80">
           6 trees
         </span>{" "}
@@ -2191,18 +2192,12 @@ export default function Features() {
     <section
       id="features"
       ref={sectionRef}
-      className="section-noise relative w-full overflow-hidden px-6 py-32 md:px-12 lg:px-20"
+      className={cn(
+        "section-noise relative w-full overflow-hidden px-6 md:px-12 lg:px-20",
+        landingSectionPad,
+      )}
       style={{ background: "var(--background)" }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage: `radial-gradient(900px 500px at 88% 6%, rgba(${VERDAN_RGB},0.08), transparent 60%),
-                            radial-gradient(700px 420px at 8% 92%, rgba(${VERDAN_RGB},0.05), transparent 60%)`,
-        }}
-      />
-
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
@@ -2217,7 +2212,7 @@ export default function Features() {
           />
           <p
             className={cn(
-              "mt-6 max-w-2xl text-lg font-light leading-relaxed text-[var(--color-font)]/70",
+              typeSectionIntro,
               headVisible && "hero-animate-fade-slide-up-sm",
             )}
           >
@@ -2347,7 +2342,7 @@ export default function Features() {
             <SmallFeatureCard
               title="Platform uptime"
               desc="45-day uptime history across all plantation sites."
-              descClassName="!text-[13px] !leading-snug md:!text-[14px]"
+              descClassName="!text-sm !leading-snug"
               viz={<UptimeViz />}
               delay={640}
               inView={gridIn}

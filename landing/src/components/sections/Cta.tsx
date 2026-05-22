@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
 import { DottedMap, type Marker } from "@/components/ui/DottedMap";
+import { landingSectionPad } from "@/lib/site-layout";
 
 /** 7 pulsing spots — each has a status drawer (verified or sites active) */
 const PULSING_SPOTS: Marker[] = [
@@ -70,14 +71,14 @@ const Cta = () => {
     <section
       id="cta"
       className={cn(
-        "relative flex w-full flex-col overflow-hidden scroll-mt-[4.25rem] bg-[var(--background)]",
-        "pt-8 pb-16 sm:pt-10 sm:pb-20 md:pt-12 md:pb-24",
-        "min-h-[min(65vh,480px)] sm:min-h-[min(70vh,540px)] md:min-h-[min(75vh,600px)]"
+        "relative flex w-full flex-col overflow-hidden bg-[var(--background)]",
+        landingSectionPad,
+        "min-h-[min(65vh,480px)] sm:min-h-[min(70vh,540px)] md:min-h-[min(75vh,600px)]",
       )}
     >
       <div
         className={cn(
-          "mx-auto flex w-[90%] max-w-5xl flex-col items-center"
+          "mx-auto flex w-full max-w-7xl flex-col items-center px-6 md:px-12 lg:px-20"
         )}
       >
         <PageHeadline

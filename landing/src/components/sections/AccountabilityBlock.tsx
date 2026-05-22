@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { typeBodyOnDark, typeCallout, typeEyebrowLight } from "@/lib/typography";
 
 const VERDAN = "#48845c";
 const VERDAN_RGB = "72, 132, 92";
@@ -148,13 +149,9 @@ export default function AccountabilityBlock() {
     >
       <div className="grid items-center gap-6 md:grid-cols-12">
         <div className="p-7 md:col-span-5 md:p-9">
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/70">
-            The bigger picture
-          </p>
-          <h3 className="mt-3 text-2xl font-normal leading-tight tracking-tight md:text-4xl">
-            Built for environmental accountability.
-          </h3>
-          <p className="mt-4 max-w-md text-[15px] font-light leading-relaxed text-white/80">
+          <p className={typeEyebrowLight}>The bigger picture</p>
+          <h3 className={cn("mt-3", typeCallout)}>Built for environmental accountability.</h3>
+          <p className={cn("mt-4 max-w-md", typeBodyOnDark)}>
             Harit transforms tree plantation from a one-time activity into
             measurable environmental infrastructure.
           </p>

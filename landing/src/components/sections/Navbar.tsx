@@ -6,14 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { BeginNowButton } from "@/components/ui/BeginNowButton";
-
-const navItems = [
-  { name: "Need", href: "#the-need" },
-  { name: "Product", href: "#product" },
-  { name: "Features", href: "#features" },
-  { name: "Proof", href: "#proof" },
-  { name: "Contact", href: "#contact" },
-];
+import { sectionHref, siteNavItems } from "@/lib/site-nav";
+import { typeNav, typeNavMobile } from "@/lib/typography";
 
 const navTransition =
   "transition-all duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1)";
@@ -91,12 +85,13 @@ export default function Navbar() {
 
         <div className="hidden flex-1 justify-center md:flex">
           <div className="flex translate-y-0.5 items-center gap-1 lg:gap-2">
-            {navItems.map((item) => (
+            {siteNavItems.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                href={sectionHref(item.sectionId)}
                 className={cn(
-                  "relative rounded-[8px] px-3 py-2 text-[14px] font-light text-gray-600 outline-none lg:px-4",
+                  "relative rounded-[8px] px-3 py-2 text-gray-600 outline-none lg:px-4",
+                  typeNav,
                   navLinkTransition,
                   navLinkGlassHover,
                   "hover:text-black"
@@ -137,13 +132,14 @@ export default function Navbar() {
           style={{ WebkitBackdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="flex flex-col items-center gap-1">
-            {navItems.map((item) => (
+            {siteNavItems.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                href={sectionHref(item.sectionId)}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  "w-full rounded-[8px] py-3 text-center text-[15px] font-light text-gray-600 outline-none",
+                  "w-full rounded-[8px] py-3 text-center text-gray-600 outline-none",
+                  typeNavMobile,
                   navLinkTransition,
                   navLinkGlassHover,
                   "hover:text-black focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/35"

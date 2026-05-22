@@ -17,6 +17,20 @@ import { JourneyDotTrack } from "@/components/sections/JourneyDotTrack";
 import { ReportVerificationFeed } from "@/components/sections/ReportVerificationFeed";
 import { QuarterMonitoringStack } from "@/components/QuarterMonitoringStack";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import { landingSectionPad } from "@/lib/site-layout";
+import {
+  typeBody,
+  typeCaption,
+  typeListItemStart,
+  typeMetricLabel,
+  typeMetricSuffix,
+  typeMetricValue,
+  typeSectionIntro,
+  typeStatLabel,
+  typeStatSuffix,
+  typeStatValue,
+  typeTitle,
+} from "@/lib/typography";
 
 const VERDAN = "#48845c";
 const VERDAN_RGB = "72, 132, 92";
@@ -115,18 +129,10 @@ function MetricCard({ m, inView, delay }: { m: Metric; inView: boolean; delay: n
       >
         <Icon size={22} stroke={1.5} aria-hidden />
       </div>
-      <p className="line-clamp-2 min-h-[2.6rem] text-[13px] font-medium leading-snug text-[var(--color-font)]/55">
-        {m.label}
-      </p>
+      <p className={cn("line-clamp-2 min-h-[2.6rem]", typeMetricLabel)}>{m.label}</p>
       <div className="mt-2 flex items-baseline gap-0.5">
-        <span className="text-[42px] font-light leading-none tracking-tight text-[var(--color-font)] md:text-[46px]">
-          {formatMetric(n, m.kind)}
-        </span>
-        {m.suffix && (
-          <span className="text-[24px] font-light text-[var(--color-font)]/45 md:text-[26px]">
-            {m.suffix}
-          </span>
-        )}
+        <span className={typeMetricValue}>{formatMetric(n, m.kind)}</span>
+        {m.suffix && <span className={typeMetricSuffix}>{m.suffix}</span>}
       </div>
     </div>
   );
@@ -169,15 +175,12 @@ function SurvivalStat({
       }}
     >
       <div className="flex items-baseline gap-1">
-        <span
-          className="text-[28px] font-light leading-none tracking-tight"
-          style={{ color: VERDAN }}
-        >
+        <span className={typeStatValue} style={{ color: VERDAN }}>
           {Math.round(n)}
         </span>
-        <span className="text-[16px] font-light text-[var(--color-font)]/50">{suffix}</span>
+        <span className={typeStatSuffix}>{suffix}</span>
       </div>
-      <p className="mt-2 text-[12px] leading-snug text-[var(--color-font)]/70">{label}</p>
+      <p className={cn("mt-2", typeStatLabel)}>{label}</p>
     </div>
   );
 }
@@ -196,10 +199,8 @@ function SurvivalBlock() {
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <h3 className="text-[28px] font-light leading-[1.15] tracking-tight text-[var(--color-font)] md:text-[34px]">
-            Monitoring increased plantation survival rates.
-          </h3>
-          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-[var(--color-font)]/70">
+          <h3 className={typeTitle}>Monitoring increased plantation survival rates.</h3>
+          <p className={cn("mt-4 max-w-md", typeBody)}>
             Organizations using structured monitoring and verification workflows
             reported significantly higher plantation survival consistency
             compared to untracked projects.
@@ -213,7 +214,7 @@ function SurvivalBlock() {
         </div>
         <div className="lg:col-span-3">
           <div className="flex w-full flex-col items-stretch px-0 pb-2 pt-2 md:items-center md:px-1">
-            <p className="mb-3 text-center text-[11px] font-light tracking-wide text-[var(--color-font)]/50">
+            <p className={cn("mb-3 text-center", typeCaption)}>
               Site monitoring &amp; tracking comparison
               <span className="mx-2 text-[var(--color-font)]/25">·</span>
               <span className="font-normal tabular-nums text-[var(--color-font)]/80">
@@ -313,10 +314,8 @@ function ReportsBlock() {
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <div>
-          <h3 className="text-[28px] font-light leading-[1.15] tracking-tight text-[var(--color-font)] md:text-[34px]">
-            Built for reporting, compliance & accountability.
-          </h3>
-          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-[var(--color-font)]/70">
+          <h3 className={typeTitle}>Built for reporting, compliance & accountability.</h3>
+          <p className={cn("mt-4 max-w-md", typeBody)}>
             Generate transparent plantation reports backed by GPS records,
             timestamps, and field documentation, ready for ESG, CSR and audit
             submissions.
@@ -328,7 +327,7 @@ function ReportsBlock() {
               "Tamper-evident verification logs",
               "Carbon & survival analytics rollups",
             ].map((t) => (
-              <li key={t} className="flex items-start gap-2 text-[13px] text-[var(--color-font)]/75">
+              <li key={t} className={typeListItemStart}>
                 <CheckCircle2 size={14} className="mt-[3px] shrink-0" style={{ color: VERDAN }} />
                 {t}
               </li>
@@ -371,10 +370,8 @@ function JourneyBlock() {
       }}
     >
       <div className="mx-auto max-w-2xl text-center">
-        <h3 className="text-[28px] font-light leading-[1.15] tracking-tight text-[var(--color-font)] md:text-[34px]">
-          From plantation activity to measurable infrastructure.
-        </h3>
-        <p className="mt-4 text-[14px] leading-relaxed text-[var(--color-font)]/70">
+        <h3 className={typeTitle}>From plantation activity to measurable infrastructure.</h3>
+        <p className={cn("mt-4", typeBody)}>
           Harit enables organizations to monitor plantations continuously
           instead of treating restoration as a one-time event.
         </p>
@@ -413,7 +410,7 @@ function JourneyBlock() {
                     <StepIcon size={20} stroke={1.5} aria-hidden />
                   </div>
                 </div>
-                <div className="relative z-10 mt-4 text-[11px] font-medium leading-snug text-[var(--color-font)]">
+                <div className="relative z-10 mt-4 text-sm font-medium leading-snug text-[var(--color-font)]">
                   {s.label}
                 </div>
               </div>
@@ -446,18 +443,12 @@ export default function Proof() {
     <section
       id="proof"
       ref={sectionRef}
-      className="section-noise relative w-full scroll-mt-[4.25rem] overflow-hidden px-6 pt-32 pb-16 text-[var(--color-font)] md:px-12 md:pb-20 lg:px-20"
+      className={cn(
+        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        landingSectionPad,
+      )}
       style={{ background: "var(--background)" }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage: `radial-gradient(900px 500px at 15% 10%, rgba(${VERDAN_RGB},0.08), transparent 60%),
-                            radial-gradient(700px 420px at 85% 85%, rgba(${VERDAN_RGB},0.05), transparent 60%)`,
-        }}
-      />
-
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
@@ -473,7 +464,7 @@ export default function Proof() {
           />
           <p
             className={cn(
-              "mt-6 max-w-2xl text-lg font-light leading-relaxed text-[var(--color-font)]/70",
+              typeSectionIntro,
               headVisible && "hero-animate-fade-slide-up-sm",
             )}
           >

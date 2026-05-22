@@ -2,18 +2,35 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowUpRight,
   Camera,
   Check,
   CheckCircle2,
+  FileCheck2,
+  LineChart,
   MapPin,
+  ScanLine,
   Signal,
+  Sprout,
   Upload,
 } from "lucide-react";
 import { DashboardNavbar } from "@/components/HeroDashboard";
 import { cn } from "@/lib/utils";
+import { beginNowCtaClassName } from "@/components/ui/BeginNowButton";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import { landingInSectionGap, landingSectionPad } from "@/lib/site-layout";
+import {
+  typeBody,
+  typeBullet,
+  typeCardTitle,
+  typeCaptionMedium,
+  typeEyebrow,
+  typeLedeMax,
+  typeSectionIntro,
+  typeTitle,
+} from "@/lib/typography";
 
 const VERDAN_DEEP = "#2f5b3f";
 const VERDAN_RGB = "72, 132, 92";
@@ -63,18 +80,14 @@ function BlockHeader({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-xl font-normal leading-snug tracking-tight text-[var(--color-font)] md:text-2xl">
-        {title}
-      </h3>
-      <p className="max-w-[46ch] text-[15px] font-light leading-relaxed text-[var(--color-font)]/70">
-        {desc}
-      </p>
+      <h3 className={typeTitle}>{title}</h3>
+      <p className={cn("max-w-[46ch]", typeBody)}>{desc}</p>
       {bullets && (
         <ul className="mt-1 flex flex-col gap-2.5">
           {bullets.map((b) => (
             <li
               key={b}
-              className="flex items-start gap-2.5 text-[14px] font-light text-[var(--color-font)]/85"
+              className={typeBullet}
             >
               <span
                 className="mt-[3px] inline-flex h-4 w-4 flex-none items-center justify-center rounded-full"
@@ -770,7 +783,7 @@ function BlockIndex({
 }) {
   const num = String(index).padStart(2, "0");
   return (
-    <div className="flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
+    <div className={cn("flex items-center gap-2.5", typeEyebrow)}>
       <span className="font-mono">{num}</span>
       <span>{eyebrow}</span>
     </div>
@@ -834,6 +847,235 @@ function FloatChip({
   );
 }
 
+type WorkflowStep = {
+  n: string;
+  eyebrow: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+  meta: { label: string; value: string }[];
+};
+
+const WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    n: "01",
+    eyebrow: "Onboard",
+    title: "Set up your site",
+    desc: "Draw your plantation boundary, invite your field team, and define the species and goals you're tracking.",
+    icon: <Sprout size={18} strokeWidth={1.6} />,
+    meta: [
+      { label: "Setup time", value: "< 10 min" },
+      { label: "Team roles", value: "Admin · Field · Auditor" },
+    ],
+  },
+  {
+    n: "02",
+    eyebrow: "Capture",
+    title: "Register trees from the field",
+    desc: "Field teams use the mobile app to capture each tree — GPS, photo, species — even fully offline.",
+    icon: <MapPin size={18} strokeWidth={1.6} />,
+    meta: [
+      { label: "Per-tree data", value: "GPS · Photo · Species" },
+      { label: "Connectivity", value: "Offline-ready" },
+    ],
+  },
+  {
+    n: "03",
+    eyebrow: "Verify",
+    title: "Auto-verify & audit",
+    desc: "Submissions are checked against site boundaries and duplicates, then routed to auditors with a full trail.",
+    icon: <ScanLine size={18} strokeWidth={1.6} />,
+    meta: [
+      { label: "Checks", value: "Geo-fence · Dedupe" },
+      { label: "Trail", value: "Immutable log" },
+    ],
+  },
+  {
+    n: "04",
+    eyebrow: "Monitor",
+    title: "Track growth & survival",
+    desc: "Live dashboards show survival rate, growth trends, and field activity across every site in real time.",
+    icon: <LineChart size={18} strokeWidth={1.6} />,
+    meta: [
+      { label: "Refresh", value: "Real-time" },
+      { label: "Insights", value: "Survival · Growth · Health" },
+    ],
+  },
+  {
+    n: "05",
+    eyebrow: "Report",
+    title: "Export verified impact",
+    desc: "Generate ESG, CSR and carbon-ready reports from verified plantation data — sharable in one click.",
+    icon: <FileCheck2 size={18} strokeWidth={1.6} />,
+    meta: [
+      { label: "Formats", value: "ESG · CSR · Carbon" },
+      { label: "Delivery", value: "PDF · API" },
+    ],
+  },
+];
+
+function WorkflowStepCard({
+  step,
+  index,
+  inView,
+}: {
+  step: WorkflowStep;
+  index: number;
+  inView: boolean;
+}) {
+  const delay = 120 + index * 110;
+
+  return (
+    <div
+      className={cn(
+        "group relative flex h-full flex-col gap-5 overflow-hidden glass-panel-strong !rounded-[8px] p-6 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
+        inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+      )}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(500px 240px at 50% 0%, rgba(var(--verdan-green-rgb),0.10), transparent 60%)",
+        }}
+      />
+      <div className="relative flex items-center justify-between">
+        <div className={cn("flex items-center gap-2.5", typeEyebrow)}>
+          <span className="font-mono">{step.n}</span>
+          <span>{step.eyebrow}</span>
+        </div>
+        <span
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px]"
+          style={{
+            background: "rgba(var(--verdan-green-rgb), 0.08)",
+            color: "var(--verdan-green)",
+          }}
+        >
+          {step.icon}
+        </span>
+      </div>
+      <div className="relative flex flex-col gap-3">
+        <h4 className={typeCardTitle}>{step.title}</h4>
+        <p className={typeBody}>
+          {step.desc}
+        </p>
+      </div>
+      <div className="relative mt-auto grid grid-cols-2 gap-2 border-t border-[rgba(14,14,14,0.08)] pt-4">
+        {step.meta.map((m) => (
+          <div key={m.label} className="flex flex-col gap-0.5">
+            <span className={typeCaptionMedium}>{m.label}</span>
+            <span className="text-sm font-light text-[var(--color-font)]/85">
+              {m.value}
+            </span>
+          </div>
+        ))}
+      </div>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, var(--verdan-green), transparent)",
+        }}
+      />
+    </div>
+  );
+}
+
+function HowItWorksBlock() {
+  const { ref: headRef, inView: headIn } = useInView(0.15);
+  const { ref: gridRef, inView: gridIn } = useInView(0.1);
+
+  return (
+    <div
+      id="how-it-works"
+      ref={headRef}
+      className={cn("flex scroll-mt-[4.25rem] flex-col gap-10", landingInSectionGap)}
+    >
+      <BlockIndex index={4} eyebrow="How it works" />
+      <div
+        className={cn(
+          "flex flex-col gap-4 transition-all duration-700",
+          headIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        )}
+      >
+        <PageHeadline
+          line1="From seedling to verified"
+          line2="impact, in five steps."
+          line2ClassName="text-[var(--color-font)]"
+          className={cn(headIn && "hero-animate-fade-slide-up")}
+        />
+        <p
+          className={cn(
+            typeLedeMax,
+            headIn && "hero-animate-fade-slide-up-sm",
+          )}
+        >
+          Verdan turns every plantation into a transparent, measurable workflow. Set up
+          your site, capture trees from the field, and watch verified impact unfold in
+          real time.
+        </p>
+      </div>
+
+      <div ref={gridRef} className="relative">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-1/2 hidden h-px -translate-y-1/2 lg:block"
+          style={{
+            background: `linear-gradient(90deg, transparent, rgba(${VERDAN_RGB},0.35), rgba(${VERDAN_RGB},0.35), transparent)`,
+            opacity: gridIn ? 1 : 0,
+            transition: "opacity 900ms ease-out 200ms",
+          }}
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {WORKFLOW_STEPS.map((s, i) => (
+            <WorkflowStepCard key={s.n} step={s} index={i} inView={gridIn} />
+          ))}
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-700 sm:flex-row sm:items-center sm:justify-between sm:p-8",
+          gridIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        )}
+        style={{ transitionDelay: "780ms" }}
+      >
+        <div className="flex flex-col gap-1.5">
+          <span className={typeEyebrow}>Get started</span>
+          <h4 className={typeTitle}>Start monitoring your plantation today.</h4>
+          <p className={cn("max-w-xl", typeBody)}>
+            Onboard your first site in under ten minutes — no infrastructure, no
+            hardware, just your team and the app.
+          </p>
+        </div>
+        <Link
+          href="#cta"
+          className={cn(beginNowCtaClassName, "shrink-0 px-5 py-3")}
+          style={{ WebkitBackdropFilter: "blur(16px) saturate(180%)" }}
+        >
+          <span className="begin-now-cta__label">Begin monitoring</span>
+          <svg
+            viewBox="0 0 10 10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+            className="begin-now-cta__arrow h-[0.85em] w-[0.85em] shrink-0"
+          >
+            <path d="M0.5 5.5h7" />
+            <path d="M1.5 1.5l4 4-4 4" />
+          </svg>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function Product() {
   const sectionRef = useRef<HTMLElement>(null);
   const [headVisible, setHeadVisible] = useState(false);
@@ -854,7 +1096,10 @@ export default function Product() {
     <section
       id="product"
       ref={sectionRef}
-      className="section-noise relative w-full scroll-mt-[4.25rem] overflow-hidden px-6 py-32 text-[var(--color-font)] md:px-12 lg:px-20"
+      className={cn(
+        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        landingSectionPad,
+      )}
       style={{ background: "var(--background)" }}
     >
       <div
@@ -881,7 +1126,7 @@ export default function Product() {
           />
           <p
             className={cn(
-              "mt-6 max-w-2xl text-lg font-light leading-relaxed text-[var(--color-font)]/70",
+              typeSectionIntro,
               headVisible && "hero-animate-fade-slide-up-sm",
             )}
           >
@@ -927,10 +1172,8 @@ export default function Product() {
           <div ref={mobRef} className="flex flex-col gap-10">
             <BlockIndex index={3} eyebrow="Mobile app" />
             <div className="flex flex-col gap-4">
-              <h3 className="max-w-2xl text-xl font-normal leading-snug tracking-tight text-[var(--color-font)] md:text-2xl">
-                Built for field teams.
-              </h3>
-              <p className="max-w-xl text-[15px] font-light leading-relaxed text-[var(--color-font)]/70">
+              <h3 className={cn("max-w-2xl", typeTitle)}>Built for field teams.</h3>
+              <p className={cn("max-w-xl", typeBody)}>
                 Capture plantations directly from the field: GPS, photo, species and site,
                 all synced when you&apos;re back online.
               </p>
@@ -989,6 +1232,8 @@ export default function Product() {
             </div>
           </div>
         </div>
+
+        <HowItWorksBlock />
       </div>
     </section>
   );

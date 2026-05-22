@@ -3,6 +3,27 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import { landingSectionPad } from "@/lib/site-layout";
+import {
+  typeBody,
+  typeBodyStrong,
+  typeBodyMuted,
+  typeBodyOnDark,
+  typeBodyOnDarkBright,
+  typeCallout,
+  typeCaption,
+  typeEyebrow,
+  typeEyebrowLight,
+  typeLeadCentered,
+  typeListItem,
+  typeMicro,
+  typeSectionIntro,
+  typeStatHero,
+  typeStatLabel,
+  typeStatSuffix,
+  typeStatValue,
+  typeTitleMedium,
+} from "@/lib/typography";
 
 const ALERT = "#c0432e";
 const WARN = "#b8861b";
@@ -53,11 +74,7 @@ function ActBadge({ n }: { n: string }) {
 }
 
 function ActTitle({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
-      {children}
-    </h3>
-  );
+  return <h3 className={typeEyebrow}>{children}</h3>;
 }
 
 function StatTile({
@@ -101,13 +118,13 @@ function StatTile({
         className="flex items-baseline gap-1 font-light tracking-tight"
         style={{ color: toneColor }}
       >
-        <span className="text-3xl md:text-4xl">
+        <span className={typeStatValue}>
           {prefix}
           {display}
         </span>
-        <span className="text-xl md:text-2xl">{suffix}</span>
+        <span className={typeStatSuffix}>{suffix}</span>
       </div>
-      <p className="relative mt-3 text-[13px] font-light leading-relaxed text-[var(--color-font)]/65">
+      <p className={cn("relative mt-3", typeStatLabel)}>
         {label}
       </p>
     </div>
@@ -148,21 +165,14 @@ export default function NeedSection() {
     <section
       id="the-need"
       ref={sectionRef}
-      className="section-noise relative w-full scroll-mt-[4.25rem] overflow-hidden px-6 py-28 text-[var(--color-font)] md:px-12 md:py-32 lg:px-20"
+      className={cn(
+        "section-noise relative w-full overflow-hidden px-6 text-[var(--color-font)] md:px-12 lg:px-20",
+        landingSectionPad,
+        "pt-20 md:pt-24 lg:pt-20",
+      )}
       style={{ background: "var(--background)" }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 top-24 z-0 h-[420px] w-[420px] rounded-full blur-3xl"
-        style={{ background: "rgba(var(--verdan-green-rgb), 0.09)" }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-32 bottom-16 z-0 h-[360px] w-[360px] rounded-full blur-3xl"
-        style={{ background: "rgba(192, 67, 46, 0.06)" }}
-      />
-
-      <div className="relative z-[1] mx-auto max-w-6xl">
+      <div className="relative z-[1] mx-auto w-full max-w-7xl">
         {/* Heading */}
         <div className="max-w-3xl">
           <PageHeadline
@@ -173,13 +183,13 @@ export default function NeedSection() {
           />
           <p
             className={cn(
-              "mt-6 max-w-2xl text-[15px] font-light leading-relaxed text-[var(--color-font)]/70 md:text-base",
+              typeSectionIntro,
               headVisible && "hero-animate-fade-slide-up-sm"
             )}
           >
             Governments, corporates and NGOs spend billions on afforestation each
-            year yet plantation success is still measured by trees{" "}
-            <em>planted</em>, not trees <em>surviving</em>. That single gap
+            year yet plantation success is still measured by trees planted, not
+            trees surviving. That single gap
             changes everything.
           </p>
         </div>
@@ -192,7 +202,8 @@ export default function NeedSection() {
           </div>
           <p
             className={cn(
-              "mt-4 max-w-2xl text-[15px] font-light leading-relaxed text-[var(--color-font)]/75 md:text-base",
+              "mt-4 max-w-2xl",
+              typeBodyStrong,
               statsIn && "hero-animate-fade-slide-up-sm"
             )}
           >
@@ -241,10 +252,8 @@ export default function NeedSection() {
           >
             <div className="flex flex-wrap items-baseline justify-between gap-4">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
-                  TerraFund survival thresholds
-                </p>
-                <p className="mt-2 text-[15px] font-light leading-relaxed text-[var(--color-font)]/75 md:text-base">
+                <p className={typeEyebrow}>TerraFund survival thresholds</p>
+                <p className={cn("mt-2", typeBodyStrong)}>
                   Below <strong style={{ color: ALERT }}>70%</strong> a restoration
                   project is considered <strong className="font-normal">at risk</strong>.
                   Below <strong style={{ color: WARN }}>80%</strong> requires
@@ -252,13 +261,10 @@ export default function NeedSection() {
                 </p>
               </div>
               <div className="text-right">
-                <div
-                  className="text-4xl font-light tracking-tight md:text-5xl"
-                  style={{ color: "var(--verdan-green)" }}
-                >
+                <div className={typeStatHero} style={{ color: "var(--verdan-green)" }}>
                   {Math.round(survival)}%
                 </div>
-                <div className="text-[12px] font-light text-[var(--color-font)]/50">
+                <div className={typeCaption}>
                   healthy threshold
                 </div>
               </div>
@@ -283,21 +289,22 @@ export default function NeedSection() {
               <div className="pointer-events-none absolute left-[70%] top-0 h-full w-px bg-white/50" />
               <div className="pointer-events-none absolute left-[80%] top-0 h-full w-px bg-white/50" />
             </div>
-            <div className="mt-2 flex justify-between text-[10px] font-medium uppercase tracking-wider text-[var(--color-font)]/40">
+            <div className={cn("mt-2 flex justify-between", typeMicro)}>
               <span>0%</span>
               <span style={{ color: ALERT }}>at risk · 70%</span>
               <span style={{ color: WARN }}>intervention · 80%</span>
               <span>100%</span>
             </div>
 
-            <p className="mt-6 text-[15px] font-light italic text-[var(--color-font)]/60">
+            <p className={cn("mt-6", typeBodyMuted)}>
               &ldquo;A tree not monitored is usually a tree lost.&rdquo;
             </p>
           </div>
 
           <div
             className={cn(
-              "mt-6 flex items-center gap-2.5 text-[14px] font-light text-[var(--color-font)]/60",
+              "mt-6 flex items-center gap-2.5",
+              typeBodyMuted,
               statsIn && "hero-animate-fade-slide-up-sm"
             )}
           >
@@ -334,12 +341,12 @@ export default function NeedSection() {
                 ironyIn && "hero-animate-fade-slide-up"
               )}
             >
-              <h4 className="text-2xl font-medium leading-tight tracking-tight md:text-3xl">
+              <h4 className={typeCallout}>
                 To build{" "}
                 <span className="text-[var(--color-font)]">clean energy</span>,
                 ecosystems are being cleared at industrial scale.
               </h4>
-              <p className="mt-5 text-[15px] font-light leading-relaxed text-[var(--color-font)]/65">
+              <p className={cn("mt-5", typeBody)}>
                 The world talks about net-zero while quietly removing the natural
                 carbon sinks that make net-zero possible.
               </p>
@@ -395,17 +402,15 @@ export default function NeedSection() {
             )}
           >
             <div className="glass-panel-strong relative !rounded-[8px] overflow-hidden p-7">
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45">
-                Today&apos;s reality
-              </p>
-              <h4 className="mt-2 text-xl font-medium tracking-tight md:text-2xl">
+              <p className={typeEyebrow}>Today&apos;s reality</p>
+              <h4 className={cn("mt-2", typeTitleMedium)}>
                 Most plantation programs still run on:
               </h4>
               <ul className="mt-5 space-y-3">
                 {blindSpots.map((b) => (
                   <li
                     key={b}
-                    className="flex items-center gap-3 text-[14px] font-light text-[var(--color-font)]/70"
+                    className={typeListItem}
                   >
                     <span
                       aria-hidden
@@ -435,14 +440,12 @@ export default function NeedSection() {
                 className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full opacity-40 blur-3xl"
                 style={{ background: "rgba(255,255,255,0.25)" }}
               />
-              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/70">
-                What Harit changes
-              </p>
-              <h4 className="mt-2 text-xl font-medium tracking-tight md:text-2xl">
+              <p className={typeEyebrowLight}>What Harit changes</p>
+              <h4 className={cn("mt-2", typeTitleMedium)}>
                 Every tree, geolocated. Every site, monitored. Every survival
                 rate, provable.
               </h4>
-              <ul className="mt-6 space-y-3 text-[14px] font-light">
+              <ul className="mt-6 space-y-3">
                 {[
                   "Geospatial accountability for every planting site",
                   "Species-level growth & survival analytics",
@@ -454,11 +457,11 @@ export default function NeedSection() {
                       aria-hidden
                       className="mt-[6px] h-1.5 w-1.5 flex-none rounded-full bg-white"
                     />
-                    <span className="text-white/95">{t}</span>
+                    <span className={typeBodyOnDarkBright}>{t}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-7 text-[13px] font-light text-white/70">
+              <p className={cn("mt-7", typeBodyOnDark)}>
                 Because compensatory plantations are now expected to offset
                 ecological damage, and without tracking, no one can prove
                 restoration actually happened.
@@ -468,7 +471,8 @@ export default function NeedSection() {
 
           <p
             className={cn(
-              "mt-14 text-center text-xl font-medium leading-snug tracking-tight md:mt-16 md:text-2xl",
+              "mt-14 md:mt-16",
+              typeLeadCentered,
               gapIn && "hero-animate-fade-slide-up-sm"
             )}
           >
