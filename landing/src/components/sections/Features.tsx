@@ -274,6 +274,89 @@ function GrowthViz() {
   );
 }
 
+const LANDSCAPE_BEFORE_TREES = [
+  { x: 78, y: 202 },
+  { x: 158, y: 198 },
+  { x: 238, y: 205 },
+] as const;
+
+/** Dense grid on the right half — growth animation only in "after" */
+const LANDSCAPE_AFTER_TREES = Array.from({ length: 32 }, (_, i) => {
+  const col = i % 8;
+  const row = Math.floor(i / 8);
+  return {
+    x: 312 + col * 34 + (row % 2) * 10,
+    y: 192 - row * 9 + (col % 3) * 2,
+  };
+});
+
+function LandscapeTree({
+  x,
+  y,
+  scale = 1,
+  growing = false,
+  delay = 0,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+  growing?: boolean;
+  delay?: number;
+}) {
+  const h = 16 * scale;
+  const w = 7 * scale;
+  if (!growing) {
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <path d={`M0,0 L${w},${-h} L${-w},${-h} Z`} fill="#2e6b44" opacity={0.9} />
+        <rect x={-1.2 * scale} y={-2} width={2.4 * scale} height={3 * scale} fill="#3d5c45" rx={0.5} />
+      </g>
+    );
+  }
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <path d={`M0,0 L${w},${-h} L${-w},${-h} Z`} fill="#2e6b44" opacity={0}>
+        <animate
+          attributeName="opacity"
+          values="0;0.35;1;1"
+          keyTimes="0;0.25;0.7;1"
+          dur="4.2s"
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+        <animateTransform
+          attributeName="transform"
+          type="scale"
+          values="0.15;0.5;1;1"
+          keyTimes="0;0.35;0.75;1"
+          dur="4.2s"
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+          additive="sum"
+        />
+      </path>
+      <rect
+        x={-1.2 * scale}
+        y={-2}
+        width={2.4 * scale}
+        height={3 * scale}
+        fill="#3d5c45"
+        rx={0.5}
+        opacity={0}
+      >
+        <animate
+          attributeName="opacity"
+          values="0;0;1;1"
+          keyTimes="0;0.4;0.75;1"
+          dur="4.2s"
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+      </rect>
+    </g>
+  );
+}
+
 function LandscapeViz() {
   return (
     <div className="relative h-56 w-full overflow-hidden md:h-72">
@@ -291,6 +374,12 @@ function LandscapeViz() {
             <stop offset="0%" stopColor="#9fc7a8" stopOpacity="0.9" />
             <stop offset="100%" stopColor={VERDAN} stopOpacity="1" />
           </linearGradient>
+          <clipPath id="landscapeBeforeClip">
+            <rect x="0" y="0" width="300" height="240" />
+          </clipPath>
+          <clipPath id="landscapeAfterClip">
+            <rect x="300" y="0" width="300" height="240" />
+          </clipPath>
         </defs>
         <rect width="600" height="240" fill="url(#featSky)" />
         <path
@@ -301,35 +390,25 @@ function LandscapeViz() {
           d="M0,210 C120,180 220,200 330,180 C440,160 520,200 600,180 L600,240 L0,240 Z"
           fill="url(#featHill)"
         />
-        {Array.from({ length: 18 }).map((_, i) => {
-          const x = 30 + i * 32;
-          const y = 200 - (i % 3) * 6;
-          return (
-            <g key={i} transform={`translate(${x},${y})`}>
-              <path d="M0,0 L6,-14 L-6,-14 Z" fill="#2e6b44" opacity="0">
-                <animate
-                  attributeName="opacity"
-                  values="0;1;1"
-                  keyTimes="0;0.6;1"
-                  dur="5s"
-                  begin={`${i * 0.12}s`}
-                  repeatCount="indefinite"
-                />
-                <animateTransform
-                  attributeName="transform"
-                  type="scale"
-                  values="0.2;1;1"
-                  keyTimes="0;0.6;1"
-                  dur="5s"
-                  begin={`${i * 0.12}s`}
-                  repeatCount="indefinite"
-                  additive="sum"
-                />
-              </path>
-            </g>
-          );
-        })}
-        <circle cx="510" cy="60" r="18" fill="white" opacity="0.6" />
+
+        <g clipPath="url(#landscapeBeforeClip)">
+          {LANDSCAPE_BEFORE_TREES.map((t, i) => (
+            <LandscapeTree key={`before-${i}`} x={t.x} y={t.y} scale={1.05} />
+          ))}
+        </g>
+
+        <g clipPath="url(#landscapeAfterClip)">
+          {LANDSCAPE_AFTER_TREES.map((t, i) => (
+            <LandscapeTree
+              key={`after-${i}`}
+              x={t.x}
+              y={t.y}
+              scale={0.75 + (i % 4) * 0.08}
+              growing
+              delay={i * 0.1}
+            />
+          ))}
+        </g>
       </svg>
       <div
         className="absolute inset-y-0 left-1/2 w-px"
@@ -2438,7 +2517,7 @@ export default function Features() {
                     Built for environmental accountability.
                   </h3>
                   <p className="mt-4 max-w-md text-[15px] font-light leading-relaxed text-white/80">
-                    Verdan transforms tree plantation from a one-time activity
+                    Harit transforms tree plantation from a one-time activity
                     into measurable environmental infrastructure.
                   </p>
                 </div>

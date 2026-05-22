@@ -529,7 +529,7 @@ function TestimonialsBlock() {
           />
           <Quote size={20} style={{ color: VERDAN }} className="opacity-70" />
           <p className="mt-4 text-[15px] font-light leading-relaxed text-[var(--color-font)]">
-            "{t.quote}"
+            &ldquo;{t.quote}&rdquo;
           </p>
           <div className="mt-6 flex items-center gap-3 border-t border-[rgba(14,14,14,0.06)] pt-4">
             <div

@@ -237,8 +237,8 @@ export function DottedMap<M extends Marker = Marker>({
       style={style}
       {...divProps}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG data URL from dotted-map */}
       {mounted ? (
+        // eslint-disable-next-line @next/next/no-img-element -- inline SVG data URL from dotted-map
         <img
           src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
           alt=""

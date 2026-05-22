@@ -88,7 +88,11 @@ function formatHeight(v: number) {
 }
 
 function endPointDot(color: string) {
-  return (props: { cx?: number; cy?: number; index?: number }) => {
+  function GrowthChartEndPointDot(props: {
+    cx?: number;
+    cy?: number;
+    index?: number;
+  }) {
     const { cx, cy, index } = props;
     if (cx == null || cy == null || index !== LAST_INDEX) return <g />;
     return (
@@ -101,7 +105,9 @@ function endPointDot(color: string) {
         strokeWidth={1}
       />
     );
-  };
+  }
+  GrowthChartEndPointDot.displayName = "GrowthChartEndPointDot";
+  return GrowthChartEndPointDot;
 }
 
 function MultiTreeTooltip({
