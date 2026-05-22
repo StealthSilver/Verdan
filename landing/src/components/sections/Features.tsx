@@ -280,61 +280,39 @@ const LANDSCAPE_BEFORE_TREES = [
   { x: 238, y: 205 },
 ] as const;
 
-/** Dense grid on the right half — growth animation only in "after" */
-const LANDSCAPE_AFTER_TREES = Array.from({ length: 32 }, (_, i) => {
-  const col = i % 8;
-  const row = Math.floor(i / 8);
-  return {
-    x: 312 + col * 34 + (row % 2) * 10,
-    y: 192 - row * 9 + (col % 3) * 2,
-  };
-});
+/** Static forest on the right half — spread across the panel, inset from center line */
+const LANDSCAPE_AFTER_TREES: { x: number; y: number; scale: number }[] = [
+  { x: 358, y: 172, scale: 0.82 },
+  { x: 412, y: 166, scale: 0.88 },
+  { x: 468, y: 170, scale: 0.8 },
+  { x: 522, y: 164, scale: 0.86 },
+  { x: 562, y: 168, scale: 0.84 },
+  { x: 348, y: 188, scale: 0.9 },
+  { x: 398, y: 184, scale: 0.78 },
+  { x: 448, y: 190, scale: 0.86 },
+  { x: 498, y: 186, scale: 0.8 },
+  { x: 548, y: 192, scale: 0.85 },
+  { x: 368, y: 206, scale: 0.95 },
+  { x: 428, y: 202, scale: 0.88 },
+  { x: 488, y: 208, scale: 0.92 },
+  { x: 538, y: 204, scale: 0.9 },
+  { x: 458, y: 214, scale: 0.86 },
+];
 
 function LandscapeTree({
   x,
   y,
   scale = 1,
-  growing = false,
-  delay = 0,
 }: {
   x: number;
   y: number;
   scale?: number;
-  growing?: boolean;
-  delay?: number;
 }) {
   const h = 16 * scale;
   const w = 7 * scale;
-  if (!growing) {
-    return (
-      <g transform={`translate(${x},${y})`}>
-        <path d={`M0,0 L${w},${-h} L${-w},${-h} Z`} fill="#2e6b44" opacity={0.9} />
-        <rect x={-1.2 * scale} y={-2} width={2.4 * scale} height={3 * scale} fill="#3d5c45" rx={0.5} />
-      </g>
-    );
-  }
   return (
     <g transform={`translate(${x},${y})`}>
-      <path d={`M0,0 L${w},${-h} L${-w},${-h} Z`} fill="#2e6b44" opacity={0}>
-        <animate
-          attributeName="opacity"
-          values="0;0.35;1;1"
-          keyTimes="0;0.25;0.7;1"
-          dur="4.2s"
-          begin={`${delay}s`}
-          repeatCount="indefinite"
-        />
-        <animateTransform
-          attributeName="transform"
-          type="scale"
-          values="0.15;0.5;1;1"
-          keyTimes="0;0.35;0.75;1"
-          dur="4.2s"
-          begin={`${delay}s`}
-          repeatCount="indefinite"
-          additive="sum"
-        />
-      </path>
+      <path d={`M0,0 L${w},${-h} L${-w},${-h} Z`} fill="#2e6b44" opacity={0.9} />
       <rect
         x={-1.2 * scale}
         y={-2}
@@ -342,17 +320,7 @@ function LandscapeTree({
         height={3 * scale}
         fill="#3d5c45"
         rx={0.5}
-        opacity={0}
-      >
-        <animate
-          attributeName="opacity"
-          values="0;0;1;1"
-          keyTimes="0;0.4;0.75;1"
-          dur="4.2s"
-          begin={`${delay}s`}
-          repeatCount="indefinite"
-        />
-      </rect>
+      />
     </g>
   );
 }
@@ -403,9 +371,7 @@ function LandscapeViz() {
               key={`after-${i}`}
               x={t.x}
               y={t.y}
-              scale={0.75 + (i % 4) * 0.08}
-              growing
-              delay={i * 0.1}
+              scale={t.scale}
             />
           ))}
         </g>
