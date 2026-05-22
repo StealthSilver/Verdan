@@ -454,7 +454,7 @@ export default function NeedSection() {
                 style={{ background: "rgba(255,255,255,0.25)" }}
               />
               <p className={typeEyebrowLight}>What Harit changes</p>
-              <h4 className={cn("mt-2", typeTitleMedium)}>
+              <h4 className={cn("mt-2", typeTitleMedium, "text-white")}>
                 Every tree, geolocated. Every site, monitored. Every survival
                 rate, provable.
               </h4>
