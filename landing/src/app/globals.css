@@ -701,6 +701,42 @@ body {
   filter: blur(20px);
 }
 
+/* COBE globe — satellite markers (GPS tracking card) */
+.globe-satellite {
+  position: absolute;
+  bottom: anchor(top);
+  left: anchor(center);
+  translate: -50% 0;
+  font-size: 1.15rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(var(--verdan-green-rgb), 0.45));
+  transition:
+    opacity 0.35s ease,
+    filter 0.35s ease;
+  pointer-events: none;
+}
+
+@supports not (bottom: anchor(top)) {
+  .globe-satellite {
+    display: none;
+  }
+}
+
+/* Features bento — fade dashboard bottom into glass card */
+.feature-dashboard-viz-fade {
+  height: 55%;
+  min-height: 7rem;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.94) 18%,
+    rgba(255, 255, 255, 0.78) 38%,
+    rgba(255, 255, 255, 0.42) 58%,
+    rgba(255, 255, 255, 0.12) 78%,
+    transparent 100%
+  );
+}
+
 .hero-dashboard-panel {
   position: relative;
   z-index: 1;

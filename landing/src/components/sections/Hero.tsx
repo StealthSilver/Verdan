@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import FallingLeaves from "@/components/FallingLeaves";
-import HeroDashboard from "@/components/HeroDashboard";
+import { HeroDashboardScene } from "@/components/HeroDashboardScene";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
 
@@ -100,29 +100,13 @@ const Hero = () => {
         </div>
       </div>
 
-      <div
+      <HeroDashboardScene
         className={cn(
-          "hero-dashboard-scene relative z-10 mt-11 w-full sm:mt-14 lg:mt-16",
+          "mt-11 sm:mt-14 lg:mt-16",
           step < 3 && "hero-pre-animate",
-          step >= 3 && "hero-animate-fade-slide-topleft"
+          step >= 3 && "hero-animate-fade-slide-topleft",
         )}
-      >
-        <div className="hero-dashboard-page-gradient" aria-hidden />
-        <div className="hero-dashboard-elevated relative z-[1] mx-auto w-full max-w-[85rem] overflow-visible px-3 sm:px-5">
-          <div className="hero-dashboard-effects" aria-hidden>
-            <div className="hero-dashboard-glow" />
-          </div>
-          <div className="hero-dashboard-corner-shadows" aria-hidden>
-            <div className="hero-dashboard-floor-shadow" />
-            <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--left" />
-            <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--right" />
-          </div>
-          <div className="hero-dashboard-panel-wrap relative z-[1]">
-            <div className="hero-dashboard-rim-light" aria-hidden />
-            <HeroDashboard />
-          </div>
-        </div>
-      </div>
+      />
     </section>
   );
 };

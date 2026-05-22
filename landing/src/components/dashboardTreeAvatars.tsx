@@ -195,10 +195,22 @@ export const DASHBOARD_TREE_AVATARS = [
   TreeAvatarFruit,
 ] as const;
 
-export function DashboardTreeAvatar({ index }: { index: number }) {
+export function DashboardTreeAvatar({
+  index,
+  size = "md",
+}: {
+  index: number;
+  size?: "md" | "sm";
+}) {
   const Avatar = DASHBOARD_TREE_AVATARS[index % DASHBOARD_TREE_AVATARS.length];
   return (
-    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-200">
+    <div
+      className={
+        size === "sm"
+          ? "h-7 w-7 shrink-0 overflow-hidden rounded-md ring-1 ring-gray-200"
+          : "h-11 w-11 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-200"
+      }
+    >
       <Avatar className="h-full w-full" aria-hidden />
     </div>
   );

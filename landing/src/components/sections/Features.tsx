@@ -8,9 +8,13 @@ import {
   FileBarChart,
   RefreshCw,
   Layers,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeadline } from "@/components/ui/PageHeadline";
+import HeroDashboard from "@/components/HeroDashboard";
+import { DASHBOARD_TREE_AVATARS } from "@/components/dashboardTreeAvatars";
+import { Globe } from "@/components/ui/Globe";
 
 const VERDAN = "#48845c";
 const VERDAN_RGB = "72, 132, 92";
@@ -87,14 +91,16 @@ function CardHead({
   title,
   desc,
   light = false,
+  className,
 }: {
   eyebrow?: string;
   title: string;
   desc: string;
   light?: boolean;
+  className?: string;
 }) {
   return (
-    <div className={cn("p-6 md:p-7", light ? "text-white" : "")}>
+    <div className={cn("p-6 md:p-7", light ? "text-white" : "", className)}>
       {eyebrow && (
         <p
           className={cn(
@@ -122,271 +128,103 @@ function CardHead({
 
 function DashboardViz() {
   return (
-    <div className="relative h-56 w-full overflow-hidden md:h-64">
-      <svg viewBox="0 0 480 240" className="absolute inset-0 h-full w-full">
-        <defs>
-          <linearGradient id="featGArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={VERDAN} stopOpacity="0.45" />
-            <stop offset="100%" stopColor={VERDAN} stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="featGGrid" x1="0" x2="1">
-            <stop offset="0%" stopColor="#000" stopOpacity="0.04" />
-            <stop offset="100%" stopColor="#000" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0, 1, 2, 3].map((i) => (
-          <line
-            key={i}
-            x1="24"
-            x2="456"
-            y1={50 + i * 40}
-            y2={50 + i * 40}
-            stroke="url(#featGGrid)"
-            strokeDasharray="2 6"
-          />
-        ))}
-        <path
-          d="M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70 L456,210 L24,210 Z"
-          fill="url(#featGArea)"
-        >
-          <animate
-            attributeName="d"
-            dur="6s"
-            repeatCount="indefinite"
-            values="
-              M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70 L456,210 L24,210 Z;
-              M24,160 L80,150 L130,120 L180,135 L235,95 L290,110 L345,70 L400,85 L456,55 L456,210 L24,210 Z;
-              M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70 L456,210 L24,210 Z"
-          />
-        </path>
-        <path
-          d="M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70"
-          fill="none"
-          stroke={VERDAN}
-          strokeWidth="2"
-        >
-          <animate
-            attributeName="d"
-            dur="6s"
-            repeatCount="indefinite"
-            values="
-              M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70;
-              M24,160 L80,150 L130,120 L180,135 L235,95 L290,110 L345,70 L400,85 L456,55;
-              M24,170 L80,140 L130,150 L180,110 L235,120 L290,80 L345,95 L400,55 L456,70"
-          />
-        </path>
-        {[60, 120, 180, 240, 300, 360, 420].map((x, i) => (
-          <rect
-            key={x}
-            x={x - 6}
-            y={200}
-            width="6"
-            height="12"
-            rx="2"
-            fill={VERDAN}
-            opacity="0.25"
-          >
-            <animate
-              attributeName="height"
-              values="12;28;14;22;12"
-              dur={`${3 + (i % 3)}s`}
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y"
-              values="200;184;198;190;200"
-              dur={`${3 + (i % 3)}s`}
-              repeatCount="indefinite"
-            />
-          </rect>
-        ))}
-        <g transform="translate(400,55)">
-          <circle r="5" fill={VERDAN} />
-          <circle r="5" fill={VERDAN} opacity="0.5">
-            <animate
-              attributeName="r"
-              values="5;14;5"
-              dur="2.2s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="opacity"
-              values="0.6;0;0.6"
-              dur="2.2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        </g>
-      </svg>
-      <div className="absolute left-5 top-4 flex gap-2">
-        <span className="rounded-full border border-white/50 bg-white/70 px-2.5 py-1 text-[10px] font-medium text-[var(--color-font)]/70 backdrop-blur">
-          12,486 trees
-        </span>
-        <span
-          className="rounded-full border px-2.5 py-1 text-[10px] font-medium backdrop-blur"
-          style={{
-            borderColor: `rgba(${VERDAN_RGB},0.3)`,
-            background: `rgba(${VERDAN_RGB},0.12)`,
-            color: VERDAN,
-          }}
-        >
-          <span
-            className="mr-1 inline-block h-1.5 w-1.5 -translate-y-px rounded-full align-middle"
-            style={{ background: VERDAN }}
-          />
-          live
-        </span>
+    <div className="feature-dashboard-viz w-full px-4 pt-4">
+      <div className="relative max-h-[280px] overflow-hidden sm:max-h-[320px] md:max-h-[360px]">
+        <HeroDashboard variant="feature" />
+        <div
+          aria-hidden
+          className="feature-dashboard-viz-fade pointer-events-none absolute inset-x-0 bottom-0 z-10"
+        />
       </div>
     </div>
   );
 }
 
-function MapViz() {
-  const pins = [
-    { x: 70, y: 80 },
-    { x: 160, y: 130 },
-    { x: 230, y: 60 },
-    { x: 320, y: 150 },
-    { x: 380, y: 90 },
-    { x: 110, y: 170 },
-  ];
+function GlobeViz() {
   return (
-    <div className="relative h-56 w-full overflow-hidden md:h-64">
-      <svg viewBox="0 0 440 240" className="absolute inset-0 h-full w-full">
-        <defs>
-          <pattern
-            id="featDotgrid"
-            width="14"
-            height="14"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx="1" cy="1" r="1" fill="rgba(0,0,0,0.08)" />
-          </pattern>
-          <radialGradient id="featMapGlow" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor={VERDAN} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={VERDAN} stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect width="440" height="240" fill="url(#featDotgrid)" />
-        <ellipse cx="220" cy="130" rx="220" ry="110" fill="url(#featMapGlow)" />
-        <path
-          d="M40,170 C90,120 150,150 200,120 C260,85 320,150 400,110 L400,240 L40,240 Z"
-          fill={`rgba(${VERDAN_RGB},0.08)`}
-          stroke={`rgba(${VERDAN_RGB},0.22)`}
-        />
-        <path
-          d="M30,90 C80,70 140,95 200,75 C270,55 340,80 410,55"
-          fill="none"
-          stroke={`rgba(${VERDAN_RGB},0.18)`}
-          strokeDasharray="3 5"
-        />
-        <path
-          d="M70,80 Q150,30 230,60 T380,90"
-          fill="none"
-          stroke={VERDAN}
-          strokeOpacity="0.7"
-          strokeWidth="1.2"
-          strokeDasharray="4 6"
-        >
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="-40"
-            dur="3s"
-            repeatCount="indefinite"
-          />
-        </path>
-        {pins.map((p, i) => (
-          <g key={i} transform={`translate(${p.x},${p.y})`}>
-            <circle r="4" fill={VERDAN} />
-            <circle r="4" fill={VERDAN}>
-              <animate
-                attributeName="r"
-                values="4;18;4"
-                dur="2.6s"
-                begin={`${i * 0.35}s`}
-                repeatCount="indefinite"
-              />
-              <animate
-                attributeName="opacity"
-                values="0.7;0;0.7"
-                dur="2.6s"
-                begin={`${i * 0.35}s`}
-                repeatCount="indefinite"
-              />
-            </circle>
-          </g>
-        ))}
-      </svg>
-      <div className="absolute right-4 top-4 rounded-lg border border-black/10 bg-white/70 px-2.5 py-1.5 text-[10px] font-medium text-[var(--color-font)]/70 backdrop-blur">
-        24.587° N · 73.713° E
-      </div>
+    <div className="relative flex w-full items-center justify-center overflow-hidden px-4 pb-4 pt-6 md:pt-8">
+      <Globe className="max-w-[min(100%,260px)]" />
     </div>
   );
 }
+
+const PHOTO_CARD_LABELS = [
+  "IMG 1.0",
+  "IMG 1.1",
+  "IMG 1.2",
+  "IMG 1.3",
+  "IMG 1.4",
+] as const;
+
+const PHOTO_CARD_SIZE = 216;
+const PHOTO_STACK_STEP = 44;
+const PHOTO_STACK_SHADOW_PAD = 32;
 
 function PhotoViz() {
+  const stackWidth =
+    PHOTO_CARD_SIZE + (PHOTO_CARD_LABELS.length - 1) * PHOTO_STACK_STEP;
+  const frontIndex = PHOTO_CARD_LABELS.length - 1;
+
   return (
-    <div className="relative h-44 w-full overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="absolute h-28 w-44 rounded-xl border border-white/60 bg-white/80 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.2)] transition-transform duration-700 group-hover:rotate-0"
-            style={{
-              transform: `translateX(${(i - 1) * 28}px) rotate(${(i - 1) * 6}deg)`,
-              zIndex: i,
-              background: "linear-gradient(135deg, #eef3ea, #dce8d4)",
-            }}
-          >
-            <div className="flex h-full w-full flex-col justify-between p-2">
-              <svg viewBox="0 0 40 40" className="h-10 w-10 self-center">
-                <path
-                  d="M20 6 L28 22 L23 22 L29 32 L11 32 L17 22 L12 22 Z"
-                  fill={VERDAN}
-                />
-                <rect x="18" y="32" width="4" height="5" fill="#7a5a3a" />
-              </svg>
-              <div className="flex items-center justify-between text-[9px] text-[var(--color-font)]/55">
-                <span>SITE-{i + 12}</span>
-                <span
-                  className="inline-flex h-4 w-4 items-center justify-center rounded-full text-white"
-                  style={{ background: VERDAN }}
-                >
-                  ✓
-                </span>
-              </div>
+    <div className="relative flex w-full justify-center overflow-visible px-4 pb-5 pt-8 md:pt-10">
+      <div
+        className="relative shrink-0 overflow-visible"
+        style={{
+          width: stackWidth,
+          height: PHOTO_CARD_SIZE + PHOTO_STACK_SHADOW_PAD,
+        }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-1 left-[4%] z-0 h-14 w-[96%] rounded-[50%] bg-black/[0.09] blur-2xl"
+        />
+        {PHOTO_CARD_LABELS.map((label, i) => {
+          const Avatar = DASHBOARD_TREE_AVATARS[i];
+          const isFront = i === frontIndex;
+          return (
+            <div
+              key={label}
+              className={cn(
+                "absolute top-0 rounded-[8px] border border-gray-200/90 bg-white transition-transform duration-700 group-hover:rotate-0",
+                isFront
+                  ? "overflow-visible shadow-[0_10px_28px_-8px_rgba(0,0,0,0.2)]"
+                  : "overflow-hidden shadow-[0_4px_14px_-6px_rgba(0,0,0,0.12)]",
+              )}
+              style={{
+                left: i * PHOTO_STACK_STEP,
+                width: PHOTO_CARD_SIZE,
+                height: PHOTO_CARD_SIZE,
+                zIndex: i + 1,
+                transform: `rotate(${(i - 2) * 2.5}deg)`,
+              }}
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-[8px]"
+                style={{
+                  background: `radial-gradient(circle at 100% 100%, rgba(${VERDAN_RGB}, 0.34) 0%, rgba(${VERDAN_RGB}, 0.12) 18%, transparent 38%)`,
+                }}
+              />
+              <span className="absolute left-2.5 top-2.5 z-10 text-[10px] font-medium tracking-tight text-gray-500">
+                {label}
+              </span>
+              {isFront && (
+                <div className="relative flex h-full w-full items-center justify-center px-3 pt-5">
+                  <div className="h-[6rem] w-[6rem] shrink-0 overflow-hidden rounded-[8px] ring-1 ring-gray-200">
+                    <Avatar className="h-full w-full" aria-hidden />
+                  </div>
+                </div>
+              )}
+              <span
+                className="absolute bottom-2 right-2 z-20 inline-flex h-6 w-6 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-2px_rgba(72,132,92,0.55)]"
+                style={{ background: VERDAN }}
+                aria-hidden
+              >
+                <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+              </span>
             </div>
-          </div>
-        ))}
-        <svg viewBox="0 0 60 60" className="absolute -right-2 -top-2 h-12 w-12">
-          <circle
-            cx="30"
-            cy="30"
-            r="26"
-            fill="white"
-            stroke={VERDAN}
-            strokeWidth="2"
-          />
-          <path
-            d="M18 30 L27 39 L43 22"
-            fill="none"
-            stroke={VERDAN}
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="40"
-            strokeDashoffset="40"
-          >
-            <animate
-              attributeName="stroke-dashoffset"
-              values="40;0;0;40"
-              keyTimes="0;0.4;0.8;1"
-              dur="3.5s"
-              repeatCount="indefinite"
-            />
-          </path>
-        </svg>
+          );
+        })}
       </div>
     </div>
   );
@@ -913,7 +751,7 @@ export default function Features() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-6xl">
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
             "max-w-3xl transition-all duration-700",
@@ -938,63 +776,61 @@ export default function Features() {
 
         <div
           ref={gridRef}
-          className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-6 md:items-stretch"
+          className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2 md:items-stretch"
         >
-          {/* Row 1: dashboard (4) + map start (2, spans 2 rows) */}
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-1 md:col-span-4 md:row-start-1 h-full"
-          >
-            <BentoCard inView={gridIn} delay={0} className="h-full">
-              <CardHead
-                eyebrow="Command center"
-                title="Real-time plantation dashboard"
-                desc="Monitor all plantation activities, growth updates, and team operations from one centralized view."
-              />
+          {/* Full width: plantation dashboard */}
+          <div onMouseMove={onMove} className="md:col-span-2">
+            <BentoCard inView={gridIn} delay={0} className="flex h-full flex-col">
               <DashboardViz />
-            </BentoCard>
-          </div>
-
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-5 md:col-span-2 md:row-start-1 md:row-span-2 h-full"
-          >
-            <BentoCard inView={gridIn} delay={80} className="h-full">
-              <CardHead
-                eyebrow="Geospatial"
-                title="GPS-based tree tracking"
-                desc="Every planted tree is mapped with precise coordinates and live location records."
-              />
-              <MapViz />
-              <div className="flex items-center gap-2 px-6 pb-6 text-[11px] font-light text-[var(--color-font)]/55 md:px-7">
-                <MapPin
-                  className="h-3.5 w-3.5"
-                  style={{ color: "var(--verdan-green)" }}
+              <div className="mt-auto">
+                <CardHead
+                  title="Real-time plantation dashboard"
+                  desc="Monitor all plantation activities, growth updates, and team operations from one centralized view."
                 />
-                <span>2,418 sites mapped this month</span>
               </div>
             </BentoCard>
           </div>
 
-          {/* Row 2: photo + growth (under dashboard) */}
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-1 md:col-span-2 md:row-start-2 h-full"
-          >
-            <BentoCard inView={gridIn} delay={160} className="h-full">
-              <CardHead
-                eyebrow="Verification"
-                title="Photo verification system"
-                desc="Timestamped tree photos flow into clean approval workflows."
-              />
-              <PhotoViz />
+          {/* GPS + photo verification */}
+          <div onMouseMove={onMove} className="h-full">
+            <BentoCard inView={gridIn} delay={80} className="flex h-full flex-col">
+              <GlobeViz />
+              <div className="mt-auto">
+                <CardHead
+                  title="GPS-based tree tracking"
+                  desc="Every planted tree is mapped with precise coordinates and live location records."
+                  className="!pt-2 md:!pt-3"
+                />
+                <div className="flex items-center gap-2 px-6 pb-6 text-[11px] font-light text-[var(--color-font)]/55 md:px-7">
+                  <MapPin
+                    className="h-3.5 w-3.5"
+                    style={{ color: "var(--verdan-green)" }}
+                  />
+                  <span>2,418 sites mapped this month</span>
+                </div>
+              </div>
             </BentoCard>
           </div>
 
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-3 md:col-span-2 md:row-start-2 h-full"
-          >
+          <div onMouseMove={onMove} className="h-full">
+            <BentoCard
+              inView={gridIn}
+              delay={160}
+              className="flex h-full flex-col overflow-visible"
+            >
+              <PhotoViz />
+              <div className="mt-auto">
+                <CardHead
+                  title="Photo verification system"
+                  desc="Timestamped tree photos flow into clean approval workflows."
+                  className="!pt-2 md:!pt-3"
+                />
+              </div>
+            </BentoCard>
+          </div>
+
+          {/* Growth + data export */}
+          <div onMouseMove={onMove} className="h-full">
             <BentoCard inView={gridIn} delay={240} className="h-full">
               <CardHead
                 eyebrow="Analytics"
@@ -1005,61 +841,8 @@ export default function Features() {
             </BentoCard>
           </div>
 
-          {/* Row 3: sites + teams + mobile (beside map) */}
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-1 md:col-span-2 md:row-start-3 h-full"
-          >
-            <SmallFeatureCard
-              icon={Layers}
-              eyebrow="Sites"
-              title="Site management"
-              desc="Manage multiple plantation locations efficiently."
-              viz={<SitesViz />}
-              delay={320}
-              inView={gridIn}
-              className="h-full"
-            />
-          </div>
-
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-3 md:col-span-2 md:row-start-3 h-full"
-          >
-            <SmallFeatureCard
-              icon={Users}
-              eyebrow="Teams"
-              title="Team administration"
-              desc="Assign field teams to specific plantation sites."
-              viz={<TeamViz />}
-              delay={400}
-              inView={gridIn}
-              className="h-full"
-            />
-          </div>
-
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-5 md:col-span-2 md:row-start-3 h-full"
-          >
-            <SmallFeatureCard
-              icon={Smartphone}
-              eyebrow="Anywhere"
-              title="Mobile friendly"
-              desc="Built for field teams on any device."
-              viz={<DeviceViz />}
-              delay={480}
-              inView={gridIn}
-              className="h-full"
-            />
-          </div>
-
-          {/* Row 4: reports + sync */}
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-1 md:col-span-3 md:row-start-4 h-full"
-          >
-            <BentoCard inView={gridIn} delay={560} className="h-full">
+          <div onMouseMove={onMove} className="h-full">
+            <BentoCard inView={gridIn} delay={320} className="h-full">
               <CardHead
                 eyebrow="Reporting"
                 title="Data export & reports"
@@ -1076,10 +859,48 @@ export default function Features() {
             </BentoCard>
           </div>
 
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-4 md:col-span-3 md:row-start-4 h-full"
-          >
+          {/* Site management + team administration */}
+          <div onMouseMove={onMove} className="h-full">
+            <SmallFeatureCard
+              icon={Layers}
+              eyebrow="Sites"
+              title="Site management"
+              desc="Manage multiple plantation locations efficiently."
+              viz={<SitesViz />}
+              delay={400}
+              inView={gridIn}
+              className="h-full"
+            />
+          </div>
+
+          <div onMouseMove={onMove} className="h-full">
+            <SmallFeatureCard
+              icon={Users}
+              eyebrow="Teams"
+              title="Team administration"
+              desc="Assign field teams to specific plantation sites."
+              viz={<TeamViz />}
+              delay={480}
+              inView={gridIn}
+              className="h-full"
+            />
+          </div>
+
+          {/* Mobile friendly + real-time sync */}
+          <div onMouseMove={onMove} className="h-full">
+            <SmallFeatureCard
+              icon={Smartphone}
+              eyebrow="Anywhere"
+              title="Mobile friendly"
+              desc="Built for field teams on any device."
+              viz={<DeviceViz />}
+              delay={560}
+              inView={gridIn}
+              className="h-full"
+            />
+          </div>
+
+          <div onMouseMove={onMove} className="h-full">
             <SmallFeatureCard
               icon={RefreshCw}
               eyebrow="Sync"
@@ -1092,11 +913,8 @@ export default function Features() {
             />
           </div>
 
-          {/* Row 5: brand banner */}
-          <div
-            onMouseMove={onMove}
-            className="md:col-start-1 md:col-span-6 md:row-start-5 h-full"
-          >
+          {/* Full width: environmental accountability */}
+          <div onMouseMove={onMove} className="md:col-span-2">
             <BentoCard inView={gridIn} delay={720} tone="brand">
               <div className="grid items-center gap-6 md:grid-cols-12">
                 <div className="p-7 md:col-span-5 md:p-9">

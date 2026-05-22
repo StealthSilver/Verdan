@@ -1,8 +1,12 @@
 import Image from "next/image";
 import { ArrowLeft, BarChart3, ChevronLeft, ChevronRight, FileSpreadsheet, Plus } from "lucide-react";
 import { DashboardTreeAvatar } from "@/components/dashboardTreeAvatars";
+import { cn } from "@/lib/utils";
+
+export type HeroDashboardVariant = "hero" | "compact" | "feature";
 
 const iconSm = "h-3.5 w-3.5 shrink-0";
+const iconXs = "h-3 w-3 shrink-0";
 
 const actionBtn =
   "flex items-center justify-center gap-1.5 rounded bg-[#48845c] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#3d7149] active:bg-[#356340]";
@@ -32,10 +36,15 @@ const MOCK_CURRENT_PAGE: number = 1;
 const MOCK_TOTAL_PAGES: number = 3;
 const MOCK_PAGE_NUMBERS = [1, 2, 3] as const;
 
-function TablePagination() {
+function TablePagination({ small = false }: { small?: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 bg-white px-5 py-3 sm:flex-row">
-      <p className="text-xs text-gray-600">
+    <div
+      className={cn(
+        "flex flex-col items-center justify-between gap-2 border-t border-gray-200 bg-white sm:flex-row",
+        small ? "px-3 py-2" : "gap-3 px-5 py-3",
+      )}
+    >
+      <p className={cn("text-gray-600", small ? "text-[9px]" : "text-xs")}>
         Showing{" "}
         <span className="font-medium text-gray-800">1</span> to{" "}
         <span className="font-medium text-gray-800">8</span> of{" "}
@@ -44,11 +53,14 @@ function TablePagination() {
       <div className="flex items-center gap-1">
         <button
           type="button"
-          className={pageNavBtn}
+          className={cn(pageNavBtn, small && "gap-0.5 px-2 py-0.5 text-[10px]")}
           disabled={MOCK_CURRENT_PAGE === 1}
           aria-label="Previous page"
         >
-          <ChevronLeft className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <ChevronLeft
+            className={cn("shrink-0", small ? "h-3 w-3" : "h-3.5 w-3.5")}
+            aria-hidden
+          />
           Previous
         </button>
         <div className="flex items-center gap-0.5 px-0.5">
@@ -56,7 +68,10 @@ function TablePagination() {
             <button
               key={page}
               type="button"
-              className={page === MOCK_CURRENT_PAGE ? pageBtnActive : pageBtn}
+              className={cn(
+                page === MOCK_CURRENT_PAGE ? pageBtnActive : pageBtn,
+                small && "min-w-[1.5rem] px-1.5 py-0.5 text-[10px]",
+              )}
               aria-label={`Page ${page}`}
               aria-current={page === MOCK_CURRENT_PAGE ? "page" : undefined}
             >
@@ -66,12 +81,15 @@ function TablePagination() {
         </div>
         <button
           type="button"
-          className={pageNavBtn}
+          className={cn(pageNavBtn, small && "gap-0.5 px-2 py-0.5 text-[10px]")}
           disabled={MOCK_CURRENT_PAGE === MOCK_TOTAL_PAGES}
           aria-label="Next page"
         >
           Next
-          <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <ChevronRight
+            className={cn("shrink-0", small ? "h-3 w-3" : "h-3.5 w-3.5")}
+            aria-hidden
+          />
         </button>
       </div>
     </div>
@@ -145,11 +163,14 @@ const TABLE_ROWS = [
   },
 ] as const;
 
-function BellIcon() {
+function BellIcon({ small = false }: { small?: boolean }) {
   return (
     <button
       type="button"
-      className="group flex items-center justify-center rounded-md border border-gray-200 bg-white p-1.5 transition-colors hover:border-[#48845c]/30 hover:bg-gray-50"
+      className={cn(
+        "group flex items-center justify-center rounded-md border border-gray-200 bg-white transition-colors hover:border-[#48845c]/30 hover:bg-gray-50",
+        small ? "p-1" : "p-1.5",
+      )}
       aria-label="Notifications"
     >
       <svg
@@ -157,7 +178,10 @@ function BellIcon() {
         fill="none"
         stroke="currentColor"
         strokeWidth="1.75"
-        className="h-4 w-4 text-gray-500 transition-colors group-hover:text-[#48845c]"
+        className={cn(
+          "text-gray-500 transition-colors group-hover:text-[#48845c]",
+          small ? "h-3.5 w-3.5" : "h-4 w-4",
+        )}
         aria-hidden
       >
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
@@ -168,10 +192,13 @@ function BellIcon() {
 }
 
 /** Purple bonsai avatar (matches frontend avatars.ts index 3). */
-function AdminAvatar() {
+function AdminAvatar({ small = false }: { small?: boolean }) {
   return (
     <span
-      className="inline-flex h-6 w-6 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200"
+      className={cn(
+        "inline-flex shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200",
+        small ? "h-5 w-5" : "h-6 w-6",
+      )}
       aria-hidden
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" className="h-full w-full">
@@ -204,17 +231,37 @@ function InfoIcon() {
   );
 }
 
-const HeroDashboard = () => {
+const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant }) => {
+  const compact = variant === "compact";
+  const feature = variant === "feature";
+  const small = compact || feature;
+  const fullContent = !compact;
+  const displayRows = compact ? TABLE_ROWS.slice(0, 5) : TABLE_ROWS;
+  const icon = small ? iconXs : iconSm;
+
   return (
     <div
       className="w-full"
       role="img"
       aria-label="Harit plantation dashboard preview with tree records, GPS coordinates, and verification status"
     >
-      <div className="hero-dashboard-panel overflow-hidden rounded-[8px] bg-[#f8fafc]">
+      <div
+        className={cn(
+          "overflow-hidden rounded-[8px] bg-[#f8fafc]",
+          variant === "hero" && "hero-dashboard-panel",
+          variant === "compact" &&
+            "hero-dashboard-panel shadow-[0_8px_28px_-8px_rgba(0,0,0,0.12),0_0_24px_rgba(72,132,92,0.12)]",
+          feature && "border border-black/[0.06] shadow-sm",
+        )}
+      >
         <div className="flex w-full flex-col overflow-hidden bg-white">
             {/* Top navbar */}
-            <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-5 py-3">
+            <header
+              className={cn(
+                "flex shrink-0 items-center justify-between border-b border-gray-200 bg-white",
+                small ? "px-3 py-2" : "px-5 py-3",
+              )}
+            >
               <div className="flex items-center gap-2">
                 <Image
                   src="/icon.svg"
@@ -222,59 +269,132 @@ const HeroDashboard = () => {
                   width={30}
                   height={30}
                   unoptimized
-                  className="h-6 w-6 shrink-0"
+                  className={cn("shrink-0", small ? "h-5 w-5" : "h-6 w-6")}
                 />
-                <span className="text-sm font-bold text-gray-900">हरित</span>
+                <span
+                  className={cn(
+                    "font-bold text-gray-900",
+                    small ? "text-xs" : "text-sm",
+                  )}
+                >
+                  हरित
+                </span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <BellIcon />
-                <AdminAvatar />
-                <span className="text-xs font-medium text-gray-700">Admin</span>
+              <div className="flex items-center gap-2">
+                <BellIcon small={small} />
+                <AdminAvatar small={small} />
+                {fullContent && (
+                  <span
+                    className={cn(
+                      "font-medium text-gray-700",
+                      small ? "text-[10px]" : "text-xs",
+                    )}
+                  >
+                    Admin
+                  </span>
+                )}
               </div>
             </header>
 
             {/* Main content */}
-            <div className="flex flex-col overflow-hidden bg-[#f8fafc] px-5 py-4">
+            <div
+              className={cn(
+                "flex flex-col overflow-hidden bg-[#f8fafc]",
+                small ? "px-3 py-2.5" : "px-5 py-4",
+              )}
+            >
               {/* Page title section */}
-              <div className="mb-4 flex shrink-0 gap-6">
+              <div
+                className={cn(
+                  "flex shrink-0",
+                  small ? "mb-2 gap-2" : "mb-4 gap-6",
+                  feature && "flex-col sm:flex-row sm:items-start",
+                )}
+              >
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base font-bold leading-snug text-gray-900">
+                  <h2
+                    className={cn(
+                      "font-bold leading-snug text-gray-900",
+                      small ? "text-[11px]" : "text-base",
+                    )}
+                  >
                     Coastal Mangrove Restoration — Block C
                   </h2>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-gray-500">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={cn(
+                        "text-gray-500",
+                        small ? "text-[9px]" : "text-xs",
+                      )}
+                    >
                       ID: a9f2e841c73b056d2e8f4a1c
                     </span>
-                    <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-[#2d6a4f]">
+                    <span
+                      className={cn(
+                        "rounded-full bg-green-100 font-medium text-[#2d6a4f]",
+                        small
+                          ? "px-1.5 py-px text-[8px]"
+                          : "px-2.5 py-0.5 text-xs",
+                      )}
+                    >
                       active
                     </span>
                   </div>
-                  <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-snug text-gray-500">
-                    <span className="line-clamp-1">
-                      Velore Creek Sanctuary, Alappuzha, Kerala 688003 — 145 ha
-                      coastal wetland plantation
-                    </span>
-                    <InfoIcon />
-                  </p>
+                  {fullContent && (
+                    <p
+                      className={cn(
+                        "mt-1 flex items-start gap-1 leading-snug text-gray-500",
+                        small ? "text-[9px]" : "text-xs",
+                      )}
+                    >
+                      <span className="line-clamp-1">
+                        Velore Creek Sanctuary, Alappuzha, Kerala 688003 — 145 ha
+                        coastal wetland plantation
+                      </span>
+                      <InfoIcon />
+                    </p>
+                  )}
                 </div>
 
-                <div className="grid shrink-0 grid-cols-2 gap-2">
-                  <button type="button" className={outlineBtn}>
-                    <ArrowLeft className={iconSm} aria-hidden />
-                    Back
-                  </button>
-                  <button type="button" className={actionBtn}>
-                    <Plus className={iconSm} aria-hidden />
+                <div
+                  className={cn(
+                    "grid shrink-0 gap-1.5",
+                    compact ? "grid-cols-1" : "grid-cols-2",
+                    !small && "gap-2",
+                  )}
+                >
+                  {fullContent && (
+                    <button
+                      type="button"
+                      className={cn(outlineBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                    >
+                      <ArrowLeft className={icon} aria-hidden />
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                  >
+                    <Plus className={icon} aria-hidden />
                     Add Plants
                   </button>
-                  <button type="button" className={actionBtn}>
-                    <BarChart3 className={iconSm} aria-hidden />
+                  <button
+                    type="button"
+                    className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                  >
+                    <BarChart3 className={icon} aria-hidden />
                     Analytics
                   </button>
-                  <button type="button" className={actionBtn}>
-                    <FileSpreadsheet className={iconSm} aria-hidden />
-                    Export as Excel
-                  </button>
+                  {fullContent && (
+                    <button
+                      type="button"
+                      className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                    >
+                      <FileSpreadsheet className={icon} aria-hidden />
+                      Export as Excel
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -282,88 +402,196 @@ const HeroDashboard = () => {
               <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
                 <table className="w-full table-fixed border-collapse text-left">
                   <colgroup>
-                    <col className="w-[5%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[11%]" />
-                    <col className="w-[12%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[22%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[22%]" />
+                    {fullContent ? (
+                      <>
+                        <col className="w-[5%]" />
+                        <col className="w-[8%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[9%]" />
+                        <col className="w-[9%]" />
+                        <col className="w-[20%]" />
+                        <col className="w-[9%]" />
+                        <col className="w-[18%]" />
+                      </>
+                    ) : (
+                      <>
+                        <col className="w-[6%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[18%]" />
+                        <col className="w-[14%]" />
+                        <col className="w-[36%]" />
+                        <col className="w-[15%]" />
+                      </>
+                    )}
                   </colgroup>
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
                       {[
-                        { label: "NO.", align: "text-left" },
-                        { label: "IMAGE", align: "text-left" },
-                        { label: "TREE ID", align: "text-left" },
-                        { label: "NAME", align: "text-left" },
-                        { label: "DATE", align: "text-left" },
-                        { label: "TIME", align: "text-left" },
-                        { label: "COORDINATES", align: "text-left" },
-                        { label: "VERIFIED", align: "text-left" },
-                        { label: "ACTIONS", align: "text-right" },
-                      ].map(({ label, align }) => (
-                        <th
-                          key={label}
-                          className={`whitespace-nowrap px-5 py-3 text-[10px] font-semibold uppercase tracking-wide text-gray-500 ${align}`}
-                        >
-                          {label}
-                        </th>
-                      ))}
+                        { label: "NO.", align: "text-left", show: true },
+                        { label: "IMAGE", align: "text-left", show: true },
+                        { label: "TREE ID", align: "text-left", show: true },
+                        { label: "NAME", align: "text-left", show: true },
+                        { label: "DATE", align: "text-left", show: fullContent },
+                        { label: "TIME", align: "text-left", show: fullContent },
+                        { label: "COORDINATES", align: "text-left", show: true },
+                        { label: "VERIFIED", align: "text-left", show: true },
+                        { label: "ACTIONS", align: "text-right", show: fullContent },
+                      ]
+                        .filter((col) => col.show)
+                        .map(({ label, align }) => (
+                          <th
+                            key={label}
+                            className={cn(
+                              "whitespace-nowrap font-semibold uppercase tracking-wide text-gray-500",
+                              small
+                                ? "px-2 py-1.5 text-[8px]"
+                                : "px-5 py-3 text-[10px]",
+                              align,
+                            )}
+                          >
+                            {label}
+                          </th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {TABLE_ROWS.map((row, rowIndex) => (
+                    {displayRows.map((row, rowIndex) => (
                       <tr
                         key={row.no}
                         className="border-b border-gray-100 bg-white last:border-b-0"
                       >
-                        <td className="whitespace-nowrap px-5 py-3 text-xs text-gray-500">
+                        <td
+                          className={cn(
+                            "whitespace-nowrap text-gray-500",
+                            small ? "px-2 py-1.5 text-[9px]" : "px-5 py-3 text-xs",
+                          )}
+                        >
                           {row.no}
                         </td>
-                        <td className="px-5 py-3">
-                          <DashboardTreeAvatar index={rowIndex} />
+                        <td className={small ? "px-2 py-1.5" : "px-5 py-3"}>
+                          <DashboardTreeAvatar
+                            index={rowIndex}
+                            size={small ? "sm" : "md"}
+                          />
                         </td>
-                        <td className="truncate px-5 py-3 font-mono text-xs text-gray-500">
+                        <td
+                          className={cn(
+                            "truncate font-mono text-gray-500",
+                            small
+                              ? "px-2 py-1.5 text-[8px]"
+                              : "px-5 py-3 text-xs",
+                          )}
+                        >
                           {row.treeId}
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-gray-900">
+                        <td
+                          className={cn(
+                            "whitespace-nowrap font-semibold text-gray-900",
+                            small ? "px-2 py-1.5 text-[9px]" : "px-5 py-3 text-xs",
+                          )}
+                        >
                           {row.name}
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-xs text-gray-600">
-                          {row.date}
-                        </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-xs text-gray-600">
-                          {row.time}
-                        </td>
-                        <td className="truncate px-5 py-3 font-mono text-[11px] text-gray-500">
+                        {fullContent && (
+                          <>
+                            <td
+                              className={cn(
+                                "whitespace-nowrap text-gray-600",
+                                small
+                                  ? "px-2 py-1.5 text-[8px]"
+                                  : "px-5 py-3 text-xs",
+                              )}
+                            >
+                              {row.date}
+                            </td>
+                            <td
+                              className={cn(
+                                "whitespace-nowrap text-gray-600",
+                                small
+                                  ? "px-2 py-1.5 text-[8px]"
+                                  : "px-5 py-3 text-xs",
+                              )}
+                            >
+                              {row.time}
+                            </td>
+                          </>
+                        )}
+                        <td
+                          className={cn(
+                            "truncate font-mono text-gray-500",
+                            small
+                              ? "px-2 py-1.5 text-[8px]"
+                              : "px-5 py-3 text-[11px]",
+                          )}
+                        >
                           {row.coords}
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3">
-                          <span className="inline-flex rounded-full border border-[#48845c] px-2.5 py-0.5 text-[10px] font-medium text-[#48845c]">
+                        <td
+                          className={cn(
+                            "whitespace-nowrap",
+                            small ? "px-2 py-1.5" : "px-5 py-3",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full border border-[#48845c] font-medium text-[#48845c]",
+                              small
+                                ? "px-1.5 py-px text-[7px]"
+                                : "px-2.5 py-0.5 text-[10px]",
+                            )}
+                          >
                             Verified
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button type="button" className={editBtn}>
-                              Edit
-                            </button>
-                            <button type="button" className={detailsBtn}>
-                              Details
-                            </button>
-                            <button type="button" className={deleteBtn}>
-                              Delete
-                            </button>
-                          </div>
-                        </td>
+                        {fullContent && (
+                          <td
+                            className={cn(
+                              "whitespace-nowrap text-right",
+                              small ? "px-2 py-1.5" : "px-5 py-3",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center justify-end",
+                                small ? "gap-1" : "gap-2",
+                              )}
+                            >
+                              <button
+                                type="button"
+                                className={cn(
+                                  editBtn,
+                                  small && "px-1.5 py-0.5 text-[8px]",
+                                )}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className={cn(
+                                  detailsBtn,
+                                  small && "px-1.5 py-0.5 text-[8px]",
+                                )}
+                              >
+                                Details
+                              </button>
+                              <button
+                                type="button"
+                                className={cn(
+                                  deleteBtn,
+                                  small && "px-1.5 py-0.5 text-[8px]",
+                                )}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <TablePagination />
+                {fullContent && <TablePagination small={small} />}
               </div>
             </div>
           </div>
