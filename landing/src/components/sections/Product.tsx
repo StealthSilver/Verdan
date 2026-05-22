@@ -129,9 +129,8 @@ function Panel({
     <div
       className={cn(
         "group relative overflow-hidden !rounded-[8px] transition-all duration-700",
-        heroPanel
-          ? "hover:-translate-y-1"
-          : "glass-panel-strong hover:-translate-y-1 hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
+        !heroPanel &&
+          "glass-panel-strong hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         className,
       )}
