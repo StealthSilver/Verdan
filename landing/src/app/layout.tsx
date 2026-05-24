@@ -56,6 +56,12 @@ export default function RootLayout({
       className={`${inter.variable} font-sans antialiased`}
     >
       <head>
+        <link
+          rel="preload"
+          href="/icon.svg"
+          as="image"
+          type="image/svg+xml"
+        />
         <ThemeHeadIcons />
       </head>
       <body className="font-sans">
