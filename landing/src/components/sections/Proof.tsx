@@ -198,8 +198,8 @@ function SurvivalBlock() {
       className="glass-panel-strong !rounded-[8px] p-6 md:p-10"
       style={{
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 400ms ease, transform 400ms ease",
+        transform: inView ? "translateY(0)" : "translateY(10px)",
+        transition: "opacity 220ms ease-out, transform 220ms ease-out",
       }}
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
@@ -313,8 +313,8 @@ function ReportsBlock() {
       className="glass-panel-strong relative !rounded-[8px] p-6 md:p-10"
       style={{
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 400ms ease, transform 400ms ease",
+        transform: inView ? "translateY(0)" : "translateY(10px)",
+        transition: "opacity 220ms ease-out, transform 220ms ease-out",
       }}
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
@@ -397,8 +397,8 @@ function JourneyBlock() {
       className="glass-panel-strong !rounded-[8px] p-6 md:p-10"
       style={{
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 400ms ease, transform 400ms ease",
+        transform: inView ? "translateY(0)" : "translateY(10px)",
+        transition: "opacity 220ms ease-out, transform 220ms ease-out",
       }}
     >
       <div className="mx-auto max-w-2xl text-center">
@@ -469,7 +469,7 @@ export default function Proof() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => e.isIntersecting && setHeadVisible(true),
-      { threshold: 0.15 },
+      { threshold: 0.06 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -487,22 +487,21 @@ export default function Proof() {
       style={{ background: "var(--background)" }}
     >
       <div className="relative z-10 mx-auto max-w-7xl">
-        <div
-          className={cn(
-            "max-w-3xl transition-all duration-300",
-            headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-          )}
-        >
+        <div className="max-w-3xl">
           <PageHeadline
             line1="Proof that restoration"
             line2="can be measured."
             line2ClassName="text-[var(--color-font)]"
-            className={cn(headVisible && "hero-animate-fade-slide-up")}
+            className={cn(
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-animate",
+            )}
           />
           <p
             className={cn(
               typeSectionIntro,
-              headVisible && "hero-animate-fade-slide-up-sm",
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-intro-animate",
             )}
           >
             Harit helps organizations transform plantation activities into

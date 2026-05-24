@@ -90,7 +90,9 @@ class LeafScene {
     const vhCap = window.innerHeight * 1.14;
     this.height = Math.min(this.viewport.offsetHeight, vhCap);
     const containerRect = this.viewport.getBoundingClientRect();
-    this.clipY = window.innerHeight * 0.85 - containerRect.top;
+    const clipVh = this.isMobile ? 0.8 : 0.85;
+    const leafPad = this.isMobile ? 16 : 0;
+    this.clipY = window.innerHeight * clipVh - containerRect.top - leafPad;
     this._updateSpawnSpacing();
   };
 

@@ -159,7 +159,7 @@ export default function NeedSection() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => e.isIntersecting && setHeadVisible(true),
-      { threshold: 0.12 }
+      { threshold: 0.06 }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -183,12 +183,16 @@ export default function NeedSection() {
             line1="The world is planting more trees than ever."
             line2="Almost no one is watching them grow."
             line2ClassName="text-alert"
-            className={cn(headVisible && "hero-animate-fade-slide-up")}
+            className={cn(
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-animate",
+            )}
           />
           <p
             className={cn(
               typeSectionIntro,
-              headVisible && "hero-animate-fade-slide-up-sm"
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-intro-animate",
             )}
           >
             Governments, corporates and NGOs spend billions on afforestation each
@@ -351,7 +355,8 @@ export default function NeedSection() {
             <div
               className={cn(
                 "md:col-span-5",
-                ironyIn && "hero-animate-fade-slide-up"
+                !ironyIn && "opacity-0",
+                ironyIn && "section-headline-animate",
               )}
             >
               <h4 className={typeCallout}>

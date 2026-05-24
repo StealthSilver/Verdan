@@ -104,9 +104,9 @@ function BentoCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden transition-all duration-300",
+        "relative overflow-hidden transition-all duration-200",
         surfaces[tone],
-        inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
         className,
       )}
       style={{
@@ -161,7 +161,7 @@ function CardHead({
 function DashboardViz() {
   return (
     <div className="feature-dashboard-viz w-full px-4 pt-4 max-md:px-2 max-md:pt-3">
-      <div className="relative max-h-[280px] overflow-hidden max-md:max-h-[252px] sm:max-h-[320px] md:max-h-[360px]">
+      <div className="relative max-h-[280px] overflow-hidden max-md:max-h-[268px] sm:max-h-[320px] md:max-h-[360px]">
         <HeroDashboard variant="feature" />
         <div
           aria-hidden
@@ -2197,7 +2197,7 @@ export default function Features() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => e.isIntersecting && setHeadVisible(true),
-      { threshold: 0.2 },
+      { threshold: 0.06 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -2215,21 +2215,20 @@ export default function Features() {
       style={{ background: "var(--background)" }}
     >
       <div className="relative z-10 mx-auto max-w-7xl">
-        <div
-          className={cn(
-            "max-w-3xl transition-all duration-300",
-            headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-          )}
-        >
+        <div className="max-w-3xl">
           <PageHeadline
             line1="Everything needed to monitor"
             line2="modern plantations."
-            className={cn(headVisible && "hero-animate-fade-slide-up")}
+            className={cn(
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-animate",
+            )}
           />
           <p
             className={cn(
               typeSectionIntro,
-              headVisible && "hero-animate-fade-slide-up-sm",
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-intro-animate",
             )}
           >
             Built for administrators, field teams, and large-scale environmental

@@ -36,12 +36,19 @@ const MOCK_CURRENT_PAGE: number = 1;
 const MOCK_TOTAL_PAGES: number = 3;
 const MOCK_PAGE_NUMBERS = [1, 2, 3] as const;
 
-function TablePagination({ small = false }: { small?: boolean }) {
+function TablePagination({
+  small = false,
+  className,
+}: {
+  small?: boolean;
+  className?: string;
+}) {
   return (
     <div
       className={cn(
         "flex flex-col items-center justify-between gap-2 border-t border-gray-200 bg-white sm:flex-row",
         small ? "px-3 py-2" : "gap-3 px-5 py-3",
+        className,
       )}
     >
       <p className={cn("text-gray-600", small ? "text-[9px]" : "text-xs")}>
@@ -166,15 +173,20 @@ const TABLE_ROWS = [
 export function DashboardNavbar({
   small = false,
   showAdmin = true,
+  hideAdminLabelOnMobile = false,
+  className,
 }: {
   small?: boolean;
   showAdmin?: boolean;
+  hideAdminLabelOnMobile?: boolean;
+  className?: string;
 }) {
   return (
     <header
       className={cn(
         "flex shrink-0 items-center justify-between border-b border-gray-200 bg-white",
         small ? "px-3 py-2" : "px-5 py-3",
+        className,
       )}
     >
       <div className="flex items-center gap-2">
@@ -200,6 +212,7 @@ export function DashboardNavbar({
             className={cn(
               "font-medium text-gray-700",
               small ? "text-[10px]" : "text-xs",
+              hideAdminLabelOnMobile && "max-md:hidden",
             )}
           >
             Admin
@@ -278,10 +291,10 @@ function InfoIcon() {
   );
 }
 
-/** Features bento dashboard — tighter controls below md only */
+/** Features bento dashboard — compact toolbar below md only */
 const featureBtnMobile =
-  "max-md:min-h-0 max-md:gap-0.5 max-md:px-1.5 max-md:py-0.5 max-md:text-[8px] max-md:leading-tight";
-const featureIconMobile = "max-md:h-2.5 max-md:w-2.5";
+  "max-md:min-h-0 max-md:min-w-0 max-md:w-full max-md:flex-col max-md:items-center max-md:justify-center max-md:gap-0.5 max-md:px-1 max-md:py-1 max-md:text-[9px] max-md:leading-tight";
+const featureIconMobile = "max-md:h-3 max-md:w-3";
 
 const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant }) => {
   const compact = variant === "compact";
@@ -308,13 +321,19 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
         )}
       >
         <div className="flex w-full flex-col overflow-hidden bg-white">
-            <DashboardNavbar small={small} showAdmin={fullContent} />
+            <DashboardNavbar
+              small={small}
+              showAdmin={fullContent}
+              hideAdminLabelOnMobile={feature}
+              className={feature ? "max-md:px-2 max-md:py-1.5" : undefined}
+            />
 
             {/* Main content */}
             <div
               className={cn(
                 "flex flex-col overflow-hidden bg-[#f8fafc]",
                 small ? "px-3 py-2.5" : "px-5 py-4",
+                feature && "max-md:px-2 max-md:py-2",
               )}
             >
               {/* Page title section */}
@@ -322,7 +341,8 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                 className={cn(
                   "flex shrink-0",
                   small ? "mb-2 gap-2" : "mb-4 gap-6",
-                  feature && "flex-col sm:flex-row sm:items-start max-md:mb-1.5 max-md:gap-1.5",
+                  feature &&
+                    "flex-col md:flex-row md:items-start max-md:mb-2 max-md:gap-2",
                 )}
               >
                 <div className="min-w-0 flex-1">
@@ -330,6 +350,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                     className={cn(
                       "font-bold leading-snug text-gray-900",
                       small ? "text-[11px]" : "text-base",
+                      feature && "max-md:line-clamp-1 max-md:text-[10px]",
                     )}
                   >
                     Coastal Mangrove Restoration — Block C
@@ -359,6 +380,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                       className={cn(
                         "mt-1 flex items-start gap-1 leading-snug text-gray-500",
                         small ? "text-[9px]" : "text-xs",
+                        feature && "max-md:hidden",
                       )}
                     >
                       <span className="line-clamp-1">
@@ -375,7 +397,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                     "grid shrink-0 gap-1.5",
                     compact ? "grid-cols-1" : "grid-cols-2",
                     !small && "gap-2",
-                    feature && "max-md:w-full max-md:gap-1",
+                    feature && "max-md:w-full max-md:grid-cols-4 max-md:grid-rows-1 max-md:gap-1.5",
                   )}
                 >
                   {fullContent && (
@@ -384,11 +406,14 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                       className={cn(
                         outlineBtn,
                         small && "gap-1 px-2 py-1 text-[10px]",
-                        feature && cn(featureBtnMobile, "max-md:justify-center"),
+                        feature && featureBtnMobile,
                       )}
+                      aria-label="Back"
                     >
                       <ArrowLeft className={btnIcon} aria-hidden />
-                      <span className={cn(feature && "max-md:sr-only")}>Back</span>
+                      <span className={cn(feature ? "max-md:sr-only" : undefined)}>
+                        Back
+                      </span>
                     </button>
                   )}
                   <button
@@ -410,9 +435,10 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                       small && "gap-1 px-2 py-1 text-[10px]",
                       feature && featureBtnMobile,
                     )}
+                    aria-label="Analytics"
                   >
                     <BarChart3 className={btnIcon} aria-hidden />
-                    Analytics
+                    <span className={cn(feature && "max-md:sr-only")}>Analytics</span>
                   </button>
                   {fullContent && (
                     <button
@@ -432,7 +458,12 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
               </div>
 
               {/* Data table */}
-              <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
+              <div
+                className={cn(
+                  "w-full overflow-hidden rounded-lg border border-gray-200 bg-white",
+                  feature && "feature-dashboard-table",
+                )}
+              >
                 <table className="w-full table-fixed border-collapse text-left">
                   <colgroup>
                     {fullContent ? (
@@ -624,7 +655,12 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                     ))}
                   </tbody>
                 </table>
-                {fullContent && <TablePagination small={small} />}
+                {fullContent && (
+                  <TablePagination
+                    small={small}
+                    className={feature ? "max-md:hidden" : undefined}
+                  />
+                )}
               </div>
             </div>
           </div>

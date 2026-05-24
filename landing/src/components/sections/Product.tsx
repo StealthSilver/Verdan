@@ -128,10 +128,10 @@ function Panel({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden !rounded-[8px] transition-all duration-300",
+        "group relative overflow-hidden !rounded-[8px] transition-all duration-200",
         !heroPanel &&
           "glass-panel-strong hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
-        inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
         className,
       )}
       style={{ transitionDelay: `${delay}ms` }}
@@ -934,8 +934,8 @@ function WorkflowStepCard({
   return (
     <div
       className={cn(
-        "flex h-full flex-col gap-3 glass-panel-strong !rounded-[8px] p-5 transition-all duration-300",
-        inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+        "flex h-full flex-col gap-3 glass-panel-strong !rounded-[8px] p-5 transition-all duration-200",
+        inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
       )}
       style={{ transitionDelay: `${delay}ms` }}
     >
@@ -954,7 +954,7 @@ function WorkflowStepCard({
 }
 
 function HowItWorksBlock() {
-  const { ref: headRef, inView: headIn } = useInView(0.15);
+  const { ref: headRef, inView: headIn } = useInView(0.08);
   const { ref: gridRef, inView: gridIn } = useInView(0.1);
 
   return (
@@ -964,22 +964,21 @@ function HowItWorksBlock() {
       className={cn("flex scroll-mt-[4.25rem] flex-col gap-10", landingInSectionGap)}
     >
       <BlockIndex index={4} eyebrow="How it works" />
-      <div
-        className={cn(
-          "flex flex-col gap-4 transition-all duration-300",
-          headIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-        )}
-      >
+      <div className="flex flex-col gap-4">
         <PageHeadline
           line1="From seedling to verified"
           line2="impact, in five steps."
           line2ClassName="text-[var(--color-font)]"
-          className={cn(headIn && "hero-animate-fade-slide-up")}
+          className={cn(
+            !headIn && "opacity-0",
+            headIn && "section-headline-animate",
+          )}
         />
         <p
           className={cn(
             typeLedeMax,
-            headIn && "hero-animate-fade-slide-up-sm",
+            !headIn && "opacity-0",
+            headIn && "section-headline-intro-animate",
           )}
         >
           Harit turns every plantation into a transparent, measurable workflow. Set up
@@ -996,8 +995,8 @@ function HowItWorksBlock() {
 
       <div
         className={cn(
-          "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-300 sm:flex-row sm:items-center sm:justify-between sm:p-8",
-          gridIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+          "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between sm:p-8",
+          gridIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
         )}
         style={{ transitionDelay: "120ms" }}
       >
@@ -1025,7 +1024,7 @@ export default function Product() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => e.isIntersecting && setHeadVisible(true),
-      { threshold: 0.2 },
+      { threshold: 0.06 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -1043,22 +1042,21 @@ export default function Product() {
       style={{ background: "var(--background)" }}
     >
       <div className="relative z-10 mx-auto max-w-7xl">
-        <div
-          className={cn(
-            "max-w-3xl transition-all duration-300",
-            headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-          )}
-        >
+        <div className="max-w-3xl">
           <PageHeadline
             line1="Built for real-world"
             line2="plantation operations."
             line2ClassName="text-[var(--color-font)]"
-            className={cn(headVisible && "hero-animate-fade-slide-up")}
+            className={cn(
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-animate",
+            )}
           />
           <p
             className={cn(
               typeSectionIntro,
-              headVisible && "hero-animate-fade-slide-up-sm",
+              !headVisible && "opacity-0",
+              headVisible && "section-headline-intro-animate",
             )}
           >
             From field tracking to growth analytics, Harit connects every stage of
