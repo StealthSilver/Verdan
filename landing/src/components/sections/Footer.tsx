@@ -63,7 +63,7 @@ const Footer = () => {
         )}
       >
         <div className="flex w-full flex-col gap-8">
-          <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <Link
               href="/"
               className="inline-flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/50"
@@ -82,8 +82,12 @@ const Footer = () => {
               </span>
             </Link>
 
+            <p className={cn(typeUi, "text-white/80 lg:hidden")}>
+              Greener Tomorrow | Better Tomorrow
+            </p>
+
             <nav aria-label="On this page" className="w-full lg:ml-auto lg:w-auto">
-              <ul className="flex flex-wrap items-center justify-end gap-x-6 gap-y-3 sm:gap-x-8">
+              <ul className="flex flex-wrap items-center justify-start gap-x-6 gap-y-3 sm:gap-x-8 lg:justify-end">
                 {footerNavItems.map((item) => (
                   <li key={item.name}>
                     <Link
@@ -99,7 +103,7 @@ const Footer = () => {
           </div>
 
           <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className={cn(typeUi, "text-white/80")}>
+            <p className={cn(typeUi, "hidden text-white/80 lg:block")}>
               Greener Tomorrow | Better Tomorrow
             </p>
 

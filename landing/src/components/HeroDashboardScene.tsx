@@ -19,7 +19,7 @@ export function HeroDashboardScene({ className }: HeroDashboardSceneProps) {
           <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--left" />
           <div className="hero-dashboard-corner-shadow hero-dashboard-corner-shadow--right" />
         </div>
-        <div className="hero-dashboard-mobile-clip max-md:-mr-6 max-md:w-[calc(100%+1.5rem)]">
+        <div className="hero-dashboard-mobile-clip">
           <div className="hero-dashboard-panel-wrap relative z-[1]">
             <div className="hero-dashboard-rim-light" aria-hidden />
             <div className="hero-dashboard-panel-scale">

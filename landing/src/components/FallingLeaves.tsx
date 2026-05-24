@@ -6,6 +6,7 @@ const LEAF_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 2C10 2 5 8 5 12C5 15.3 7.2 18 10 18C12.8 18 15 15.3 15 12C15 8 10 2 10 2Z' fill='%2348845c'/%3E%3Cpath d='M10 18C11.1 18 12 17.1 12 16C12 15.9 11.9 15.8 11.8 15.7C10.6 16.2 9.4 16.2 8.2 15.7C8.1 15.8 8 15.9 8 16C8 17.1 8.9 18 10 18Z' fill='%233d7149'/%3E%3C/svg%3E";
 
 const DASHBOARD_CLIP_SELECTOR = ".hero-dashboard-panel-wrap";
+const MOBILE_MAX_WIDTH_PX = 767;
 
 /** Deterministic 0..1 from leaf index (stable per lane, no Math.random per frame). */
 function hash01(index: number, salt: number): number {
@@ -38,6 +39,7 @@ class LeafScene {
   frame = 0;
   rafId = 0;
   paused = false;
+  isMobile = false;
   /** Next frame index when a leaf may enter (evenly spaced queue). */
   spawnQueueTail = 0;
   resizeObserver: ResizeObserver | null = null;
@@ -77,6 +79,13 @@ class LeafScene {
   };
 
   measureBounds = (): void => {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.matchMedia(
+      `(max-width: ${MOBILE_MAX_WIDTH_PX}px)`,
+    ).matches;
+    if (this.leaves.length > 0 && wasMobile !== this.isMobile) {
+      this._staggerAllRespawns();
+    }
     this.width = this.viewport.offsetWidth;
     const vhCap = window.innerHeight * 1.14;
     this.height = Math.min(this.viewport.offsetHeight, vhCap);
@@ -125,8 +134,12 @@ class LeafScene {
 
   _placeAtSpawn = (leaf: Leaf): void => {
     const n = this.options.numLeaves;
-    const spread = Math.min(this.width * 0.9, 860);
-    const zoneLeft = Math.max(8, this.width - spread);
+    const spread = this.isMobile
+      ? this.width * 0.82
+      : Math.min(this.width * 0.9, 860);
+    const zoneLeft = this.isMobile
+      ? (this.width - spread) * 0.5
+      : Math.max(8, this.width - spread);
     const laneT = (leaf.lane + hash01(leaf.lane, 6) * 0.72) / n;
     leaf.x = zoneLeft + laneT * spread;
 
@@ -165,12 +178,17 @@ class LeafScene {
       return;
     }
 
-    leaf.x -= this.options.windDrift + leaf.windBias + leaf.xDrift;
+    const horizontalDrift = this.isMobile
+      ? leaf.windBias + leaf.xDrift
+      : this.options.windDrift + leaf.windBias + leaf.xDrift;
+    leaf.x -= horizontalDrift;
     leaf.y += leaf.ySpeed;
     leaf.rotation += leaf.rotationSpeed;
     this._applyTransform(leaf);
 
-    if (leaf.x < -28 || leaf.y > this.clipY) {
+    const offLeft = leaf.x < -28;
+    const offRight = this.isMobile && leaf.x > this.width + 28;
+    if (offLeft || offRight || leaf.y > this.clipY) {
       this._scheduleRespawn(leaf);
     }
   };

@@ -104,7 +104,7 @@ function BentoCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden transition-all duration-700",
+        "relative overflow-hidden transition-all duration-300",
         surfaces[tone],
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         className,
@@ -160,8 +160,8 @@ function CardHead({
 
 function DashboardViz() {
   return (
-    <div className="feature-dashboard-viz w-full px-4 pt-4">
-      <div className="relative max-h-[280px] overflow-hidden sm:max-h-[320px] md:max-h-[360px]">
+    <div className="feature-dashboard-viz w-full px-4 pt-4 max-md:px-2 max-md:pt-3">
+      <div className="relative max-h-[280px] overflow-hidden max-md:max-h-[252px] sm:max-h-[320px] md:max-h-[360px]">
         <HeroDashboard variant="feature" />
         <div
           aria-hidden
@@ -188,22 +188,17 @@ const PHOTO_CARD_LABELS = [
   "IMG 1.4",
 ] as const;
 
-const PHOTO_CARD_SIZE = 182;
-const PHOTO_STACK_STEP = 34;
-const PHOTO_STACK_SHADOW_PAD = 24;
-
 function PhotoViz() {
-  const stackWidth =
-    PHOTO_CARD_SIZE + (PHOTO_CARD_LABELS.length - 1) * PHOTO_STACK_STEP;
+  const stackSteps = PHOTO_CARD_LABELS.length - 1;
   const frontIndex = PHOTO_CARD_LABELS.length - 1;
 
   return (
     <div className="relative flex w-full justify-center overflow-visible px-4 pb-4 pt-2 md:px-5 md:pb-5">
       <div
-        className="relative shrink-0 overflow-visible"
+        className="photo-viz-stack relative shrink-0 overflow-visible"
         style={{
-          width: stackWidth,
-          height: PHOTO_CARD_SIZE + PHOTO_STACK_SHADOW_PAD,
+          width: `calc(var(--photo-card-size) + ${stackSteps} * var(--photo-stack-step))`,
+          height: `calc(var(--photo-card-size) + var(--photo-stack-shadow-pad))`,
         }}
       >
         <div
@@ -217,35 +212,41 @@ function PhotoViz() {
             <div
               key={label}
               className={cn(
-                "absolute top-0 rounded-[8px] border border-gray-200/90 bg-[var(--background)] transition-transform duration-700 group-hover:rotate-0",
+                "absolute top-0 rounded-[8px] border border-gray-200/90 bg-[var(--background)] transition-transform duration-300 group-hover:rotate-0",
                 isFront
                   ? "overflow-visible shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)]"
                   : "overflow-hidden shadow-[0_6px_20px_-6px_rgba(0,0,0,0.14)]",
               )}
               style={{
-                left: i * PHOTO_STACK_STEP,
-                width: PHOTO_CARD_SIZE,
-                height: PHOTO_CARD_SIZE,
+                left: `calc(${i} * var(--photo-stack-step))`,
+                width: "var(--photo-card-size)",
+                height: "var(--photo-card-size)",
                 zIndex: i + 1,
                 transform: `rotate(${(i - 2) * 2.5}deg)`,
               }}
             >
-              <span className="absolute left-2 top-2 z-10 text-[9px] font-medium tracking-tight text-gray-500">
+              <span className="absolute left-2 top-2 z-10 text-[8px] font-medium tracking-tight text-gray-500 md:text-[9px]">
                 {label}
               </span>
               {isFront && (
-                <div className="relative flex h-full w-full items-center justify-center px-2 pt-3.5">
-                  <div className="h-[4.75rem] w-[4.75rem] shrink-0 overflow-hidden rounded-[8px] bg-[var(--background)] ring-1 ring-gray-200">
+                <div className="relative flex h-full w-full items-center justify-center px-2 pt-3 md:pt-3.5">
+                  <div
+                    className="shrink-0 overflow-hidden rounded-[8px] bg-[var(--background)] ring-1 ring-gray-200"
+                    style={{
+                      width: "var(--photo-avatar-size)",
+                      height: "var(--photo-avatar-size)",
+                    }}
+                  >
                     <Avatar className="h-full w-full" aria-hidden />
                   </div>
                 </div>
               )}
               <span
-                className="absolute bottom-1.5 right-1.5 z-20 inline-flex h-5 w-5 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-2px_rgba(72,132,92,0.55)]"
+                className="absolute bottom-1 right-1.5 z-20 inline-flex h-4 w-4 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-2px_rgba(72,132,92,0.55)] md:bottom-1.5 md:h-5 md:w-5"
                 style={{ background: VERDAN }}
                 aria-hidden
               >
-                <Check className="h-3 w-3 stroke-[2.5]" />
+                <Check className="h-2.5 w-2.5 stroke-[2.5] md:h-3 md:w-3" />
               </span>
             </div>
           );
@@ -856,15 +857,15 @@ function TeamViz() {
         />
         <ReportsDottedPath
           d={`M ${centerX} ${junctionY} H ${leftX} V ${managerTopY}`}
-          delay={0.35}
+          delay={0.1}
         />
         <ReportsDottedPath
           d={`M ${centerX} ${junctionY} V ${managerTopY}`}
-          delay={0.7}
+          delay={0.2}
         />
         <ReportsDottedPath
           d={`M ${centerX} ${junctionY} H ${rightX} V ${managerTopY}`}
-          delay={1.05}
+          delay={0.28}
         />
 
         <TeamHierarchyCard
@@ -1661,18 +1662,28 @@ function DeviceViz() {
       className="relative flex h-full min-h-[16rem] w-full flex-col items-center justify-center px-2 py-3 md:min-h-[18rem]"
     >
       <p
-        className="mb-4 text-center text-[12px] font-medium text-[rgba(14,14,14,0.55)]"
+        className="device-sync-caption mb-4 w-full max-w-[20rem] text-center md:max-w-none"
         aria-live="polite"
       >
-        <span className="inline-flex items-center justify-center gap-1.5">
-          <span className="relative flex h-2 w-2" aria-hidden>
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--verdan-green)] opacity-40" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--verdan-green)]" />
+        <span className="flex flex-col items-center gap-2 md:inline-flex md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-1.5">
+          <span className="inline-flex items-center justify-center gap-1.5 text-[13px] font-medium leading-snug text-[rgba(14,14,14,0.58)] md:text-[12px] md:text-[rgba(14,14,14,0.55)]">
+            <span className="relative flex h-2.5 w-2.5 shrink-0 md:h-2 md:w-2" aria-hidden>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--verdan-green)] opacity-40" />
+              <span className="relative inline-flex h-full w-full rounded-full bg-[var(--verdan-green)]" />
+            </span>
+            Synced on laptop, tablet &amp; phone
           </span>
-          Synced on laptop, tablet &amp; phone —{" "}
           <span
-            className="device-sync-caption-event font-semibold text-[rgba(14,14,14,0.78)]"
-            style={{ opacity: contentVisible ? 1 : 0 }}
+            className="hidden text-[12px] font-medium text-[rgba(14,14,14,0.55)] md:inline"
+            aria-hidden
+          >
+            —
+          </span>
+          <span
+            className={cn(
+              "device-sync-caption-event font-semibold md:text-[rgba(14,14,14,0.78)]",
+              contentVisible ? "opacity-100" : "opacity-25 md:opacity-0",
+            )}
           >
             {activePhase.event}
           </span>
@@ -2029,11 +2040,11 @@ function ReportsViz() {
         />
         <ReportsDottedPath
           d={`M ${sourceX} ${xlsxY} H ${endX}`}
-          delay={0.35}
+          delay={0.1}
         />
         <ReportsDottedPath
           d={`M ${sourceX} ${bottomY} H ${bendX} V ${pdfY} H ${endX}`}
-          delay={0.7}
+          delay={0.2}
         />
 
         <CsvOutputIcon x={endX + 4} y={csvY} />
@@ -2206,7 +2217,7 @@ export default function Features() {
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
-            "max-w-3xl transition-all duration-700",
+            "max-w-3xl transition-all duration-300",
             headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
           )}
         >
@@ -2248,7 +2259,7 @@ export default function Features() {
 
           {/* GPS + photo verification */}
           <div className="h-full">
-            <BentoCard inView={gridIn} delay={80} className="flex h-full flex-col">
+            <BentoCard inView={gridIn} delay={20} className="flex h-full flex-col">
               <GlobeViz />
               <div className="mt-auto">
                 <CardHead
@@ -2263,7 +2274,7 @@ export default function Features() {
           <div className="h-full">
             <BentoCard
               inView={gridIn}
-              delay={160}
+              delay={40}
               className="flex h-full flex-col overflow-visible"
             >
               <div className="mt-auto">
@@ -2281,7 +2292,7 @@ export default function Features() {
           <div className="h-full">
             <BentoCard
               inView={gridIn}
-              delay={240}
+              delay={60}
               className="flex h-full flex-col"
             >
               <GrowthViz />
@@ -2298,7 +2309,7 @@ export default function Features() {
           <div className="h-full">
             <BentoCard
               inView={gridIn}
-              delay={320}
+              delay={80}
               className="flex h-full flex-col"
             >
               <div className="mt-auto">
@@ -2318,7 +2329,7 @@ export default function Features() {
               title="Team administration"
               desc="Assign field teams to specific plantation sites."
               viz={<TeamViz />}
-              delay={400}
+              delay={100}
               inView={gridIn}
             />
           </div>
@@ -2328,7 +2339,7 @@ export default function Features() {
               title="Site management"
               desc="Manage multiple plantation locations efficiently."
               viz={<SitesViz />}
-              delay={480}
+              delay={120}
               inView={gridIn}
               className="!overflow-visible"
             />
@@ -2340,7 +2351,7 @@ export default function Features() {
               title="Mobile friendly"
               desc="Built for field teams on any device."
               viz={<DeviceViz />}
-              delay={560}
+              delay={140}
               inView={gridIn}
               className="!overflow-visible"
             />
@@ -2352,7 +2363,7 @@ export default function Features() {
               desc="45-day uptime history across all plantation sites."
               descClassName="!text-sm !leading-snug"
               viz={<UptimeViz />}
-              delay={640}
+              delay={160}
               inView={gridIn}
               className="!overflow-visible"
             />

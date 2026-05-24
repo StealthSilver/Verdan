@@ -128,7 +128,7 @@ export default function Navbar() {
         )}
       >
         <div
-          className="w-full max-w-7xl rounded-2xl border border-white/50 bg-white/45 px-4 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl backdrop-saturate-[180%]"
+          className="w-full max-w-7xl rounded-2xl border border-white/80 bg-white/95 px-4 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.14)] backdrop-blur-xl backdrop-saturate-[180%]"
           style={{ WebkitBackdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="flex flex-col items-center gap-1">

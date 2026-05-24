@@ -122,7 +122,7 @@ function MetricCard({ m, inView, delay }: { m: Metric; inView: boolean; delay: n
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(16px)",
-        transition: `opacity 700ms ease-out ${delay}ms, transform 700ms ease-out ${delay}ms`,
+        transition: `opacity 350ms ease-out ${delay}ms, transform 350ms ease-out ${delay}ms`,
       }}
     >
       <div
@@ -148,7 +148,7 @@ function MetricsStrip() {
   return (
     <div ref={ref} className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
       {METRICS.map((m, i) => (
-        <MetricCard key={m.label} m={m} inView={inView} delay={i * 70} />
+        <MetricCard key={m.label} m={m} inView={inView} delay={i * 18} />
       ))}
     </div>
   );
@@ -176,7 +176,7 @@ function SurvivalStat({
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(10px)",
-        transition: `opacity 600ms ease ${delay}ms, transform 600ms ease ${delay}ms`,
+        transition: `opacity 320ms ease ${delay}ms, transform 320ms ease ${delay}ms`,
       }}
     >
       <div className="flex items-baseline gap-1">
@@ -199,7 +199,7 @@ function SurvivalBlock() {
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 800ms ease, transform 800ms ease",
+        transition: "opacity 400ms ease, transform 400ms ease",
       }}
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
@@ -211,10 +211,10 @@ function SurvivalBlock() {
             compared to untracked projects.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3">
-            <SurvivalStat value={34} suffix="%" label="Increase in monitored survival consistency" inView={inView} delay={150} />
-            <SurvivalStat value={61} suffix="%" label="Faster issue detection" inView={inView} delay={250} />
-            <SurvivalStat value={4} suffix="×" label="Increase in field visibility" inView={inView} delay={350} />
-            <SurvivalStat value={82} suffix="%" label="Verification completion rate" inView={inView} delay={450} />
+            <SurvivalStat value={34} suffix="%" label="Increase in monitored survival consistency" inView={inView} delay={40} />
+            <SurvivalStat value={61} suffix="%" label="Faster issue detection" inView={inView} delay={70} />
+            <SurvivalStat value={4} suffix="×" label="Increase in field visibility" inView={inView} delay={100} />
+            <SurvivalStat value={82} suffix="%" label="Verification completion rate" inView={inView} delay={130} />
           </div>
         </div>
         <div className="lg:col-span-3">
@@ -259,7 +259,7 @@ function ReportsStack({ inView }: { inView: boolean }) {
                   ? `translate(${offset}px, ${-Math.abs(offset) * 0.35}px) rotate(${rotate}deg)`
                   : "translate(0, 36px) rotate(0deg)",
                 opacity: inView ? 1 : 0,
-                transitionDelay: `${i * 120}ms`,
+                transitionDelay: `${i * 30}ms`,
                 zIndex: i,
               }}
             >
@@ -314,7 +314,7 @@ function ReportsBlock() {
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 800ms ease, transform 800ms ease",
+        transition: "opacity 400ms ease, transform 400ms ease",
       }}
     >
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
@@ -362,6 +362,33 @@ const JOURNEY_STEPS: { label: string; Icon: JourneyIcon }[] = [
   { label: "Impact measured", Icon: IconShieldCheck },
 ];
 
+function JourneyStepIcon({
+  index,
+  inView,
+  Icon: StepIcon,
+}: {
+  index: number;
+  inView: boolean;
+  Icon: JourneyIcon;
+}) {
+  return (
+    <div className="journey-step-icon-wrap shrink-0">
+      <div
+        className={cn(
+          "journey-step-icon flex h-12 w-12 items-center justify-center rounded-full border-2",
+          inView && "journey-step-icon--animating",
+        )}
+        style={{
+          color: VERDAN,
+          ["--journey-step" as string]: String(index),
+        }}
+      >
+        <StepIcon size={20} stroke={1.5} aria-hidden />
+      </div>
+    </div>
+  );
+}
+
 function JourneyBlock() {
   const { ref, inView } = useInView(0.08);
 
@@ -371,7 +398,7 @@ function JourneyBlock() {
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 800ms ease, transform 800ms ease",
+        transition: "opacity 400ms ease, transform 400ms ease",
       }}
     >
       <div className="mx-auto max-w-2xl text-center">
@@ -382,45 +409,49 @@ function JourneyBlock() {
         </p>
       </div>
 
-      <div
-        ref={ref}
-        className="relative mt-12 overflow-x-auto py-10 md:py-12"
-      >
-        <div className="journey-timeline relative mx-auto flex min-w-[760px] items-start justify-between gap-3 px-4">
-          <JourneyDotTrack active={inView} />
+      <div ref={ref} className="mt-10 md:mt-12">
+        {/* Mobile — vertical list (no horizontal scroll) */}
+        <ol className="journey-timeline-mobile relative flex flex-col gap-5 md:hidden">
+          {JOURNEY_STEPS.map((s, i) => (
+            <li
+              key={s.label}
+              className="relative z-10 flex items-center gap-4"
+              style={{
+                opacity: inView ? 1 : 0,
+                transform: inView ? "translateY(0)" : "translateY(10px)",
+                transition: `opacity 280ms ease ${60 + i * 45}ms, transform 280ms ease ${60 + i * 45}ms`,
+              }}
+            >
+              <JourneyStepIcon index={i} inView={inView} Icon={s.Icon} />
+              <span className="text-sm font-medium leading-snug text-[var(--color-font)]">
+                {s.label}
+              </span>
+            </li>
+          ))}
+        </ol>
 
-          {JOURNEY_STEPS.map((s, i) => {
-            const StepIcon = s.Icon;
-            return (
+        {/* Desktop — horizontal timeline (unchanged) */}
+        <div className="relative hidden overflow-x-auto py-10 md:block md:py-12">
+          <div className="journey-timeline relative mx-auto flex min-w-[760px] items-start justify-between gap-3 px-4">
+            <JourneyDotTrack active={inView} />
+
+            {JOURNEY_STEPS.map((s, i) => (
               <div
                 key={s.label}
                 className="relative z-10 flex w-[124px] flex-col items-center px-1 pb-2 pt-1 text-center"
                 style={{
                   opacity: inView ? 1 : 0,
                   transform: inView ? "translateY(0)" : "translateY(10px)",
-                  transition: `opacity 500ms ease ${300 + i * 180}ms, transform 500ms ease ${300 + i * 180}ms`,
+                  transition: `opacity 280ms ease ${60 + i * 45}ms, transform 280ms ease ${60 + i * 45}ms`,
                 }}
               >
-                <div className="journey-step-icon-wrap">
-                  <div
-                    className={cn(
-                      "journey-step-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2",
-                      inView && "journey-step-icon--animating",
-                    )}
-                    style={{
-                      color: VERDAN,
-                      ["--journey-step" as string]: String(i),
-                    }}
-                  >
-                    <StepIcon size={20} stroke={1.5} aria-hidden />
-                  </div>
-                </div>
+                <JourneyStepIcon index={i} inView={inView} Icon={s.Icon} />
                 <div className="relative z-10 mt-4 text-sm font-medium leading-snug text-[var(--color-font)]">
                   {s.label}
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -458,7 +489,7 @@ export default function Proof() {
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
-            "max-w-3xl transition-all duration-700",
+            "max-w-3xl transition-all duration-300",
             headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
           )}
         >

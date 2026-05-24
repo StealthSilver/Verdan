@@ -278,6 +278,11 @@ function InfoIcon() {
   );
 }
 
+/** Features bento dashboard — tighter controls below md only */
+const featureBtnMobile =
+  "max-md:min-h-0 max-md:gap-0.5 max-md:px-1.5 max-md:py-0.5 max-md:text-[8px] max-md:leading-tight";
+const featureIconMobile = "max-md:h-2.5 max-md:w-2.5";
+
 const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant }) => {
   const compact = variant === "compact";
   const feature = variant === "feature";
@@ -285,6 +290,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
   const fullContent = !compact;
   const displayRows = compact ? TABLE_ROWS.slice(0, 5) : TABLE_ROWS;
   const icon = small ? iconXs : iconSm;
+  const btnIcon = cn(icon, feature && featureIconMobile);
 
   return (
     <div
@@ -316,7 +322,7 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                 className={cn(
                   "flex shrink-0",
                   small ? "mb-2 gap-2" : "mb-4 gap-6",
-                  feature && "flex-col sm:flex-row sm:items-start",
+                  feature && "flex-col sm:flex-row sm:items-start max-md:mb-1.5 max-md:gap-1.5",
                 )}
               >
                 <div className="min-w-0 flex-1">
@@ -369,38 +375,57 @@ const HeroDashboard = ({ variant = "hero" }: { variant?: HeroDashboardVariant })
                     "grid shrink-0 gap-1.5",
                     compact ? "grid-cols-1" : "grid-cols-2",
                     !small && "gap-2",
+                    feature && "max-md:w-full max-md:gap-1",
                   )}
                 >
                   {fullContent && (
                     <button
                       type="button"
-                      className={cn(outlineBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                      className={cn(
+                        outlineBtn,
+                        small && "gap-1 px-2 py-1 text-[10px]",
+                        feature && cn(featureBtnMobile, "max-md:justify-center"),
+                      )}
                     >
-                      <ArrowLeft className={icon} aria-hidden />
-                      Back
+                      <ArrowLeft className={btnIcon} aria-hidden />
+                      <span className={cn(feature && "max-md:sr-only")}>Back</span>
                     </button>
                   )}
                   <button
                     type="button"
-                    className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                    className={cn(
+                      actionBtn,
+                      small && "gap-1 px-2 py-1 text-[10px]",
+                      feature && featureBtnMobile,
+                    )}
                   >
-                    <Plus className={icon} aria-hidden />
-                    Add Plants
+                    <Plus className={btnIcon} aria-hidden />
+                    <span className="max-md:hidden">Add Plants</span>
+                    <span className="hidden max-md:inline">Add</span>
                   </button>
                   <button
                     type="button"
-                    className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                    className={cn(
+                      actionBtn,
+                      small && "gap-1 px-2 py-1 text-[10px]",
+                      feature && featureBtnMobile,
+                    )}
                   >
-                    <BarChart3 className={icon} aria-hidden />
+                    <BarChart3 className={btnIcon} aria-hidden />
                     Analytics
                   </button>
                   {fullContent && (
                     <button
                       type="button"
-                      className={cn(actionBtn, small && "gap-1 px-2 py-1 text-[10px]")}
+                      className={cn(
+                        actionBtn,
+                        small && "gap-1 px-2 py-1 text-[10px]",
+                        feature && featureBtnMobile,
+                      )}
                     >
-                      <FileSpreadsheet className={icon} aria-hidden />
-                      Export as Excel
+                      <FileSpreadsheet className={btnIcon} aria-hidden />
+                      <span className="max-md:hidden">Export as Excel</span>
+                      <span className="hidden max-md:inline">Export</span>
                     </button>
                   )}
                 </div>

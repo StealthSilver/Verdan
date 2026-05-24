@@ -343,7 +343,7 @@ export function DottedMap<M extends Marker = Marker>({
           kind={drawer.kind}
           left={drawer.left}
           top={drawer.top}
-          delayMs={index * 120}
+          delayMs={index * 35}
         />
       ))}
     </div>

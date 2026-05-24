@@ -81,7 +81,7 @@ export function ReportVerificationFeed({ active }: { active: boolean }) {
   return (
     <AnimatedList
       active={active}
-      delay={1400}
+      delay={350}
       className="w-full max-w-[260px] items-stretch gap-3"
     >
       {VERIFICATION_STEPS.map((step) => (

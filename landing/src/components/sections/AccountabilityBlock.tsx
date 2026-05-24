@@ -139,7 +139,7 @@ export default function AccountabilityBlock() {
     <div
       ref={ref}
       className={cn(
-        "relative overflow-hidden rounded-[8px] border border-white/20 text-white transition-all duration-700",
+        "relative overflow-hidden rounded-[8px] border border-white/20 text-white transition-all duration-300",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
       )}
       style={{

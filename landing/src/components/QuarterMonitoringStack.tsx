@@ -258,31 +258,43 @@ function MonitoringCard({
   stackIndex,
   isFront,
   animate,
+  layout = "desktop",
 }: {
   card: QuarterCard;
   stackIndex: number;
   isFront: boolean;
   animate: boolean;
+  layout?: "desktop" | "mobile";
 }) {
+  const isMobile = layout === "mobile";
   const offsetX = stackIndex * STACK_OFFSET;
   const offsetY = (2 - stackIndex) * 3;
 
   return (
     <article
       className={cn(
-        "quarter-monitoring-card absolute rounded-[10px] border border-[rgba(14,14,14,0.08)] bg-white p-4 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.14)] transition-[transform,opacity,box-shadow] duration-500 sm:p-5",
-        isFront && "z-30 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.18)]",
-        stackIndex === 1 && "z-20",
-        stackIndex === 0 && "z-10",
-        !isFront && "pointer-events-none",
+        "quarter-monitoring-card rounded-[10px] border border-[rgba(14,14,14,0.08)] bg-white p-4 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.14)] sm:p-5",
+        isMobile
+          ? "relative w-full"
+          : cn(
+              "absolute transition-[transform,opacity,box-shadow] duration-500",
+              isFront && "z-30 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.18)]",
+              stackIndex === 1 && "z-20",
+              stackIndex === 0 && "z-10",
+              !isFront && "pointer-events-none",
+            ),
       )}
-      style={{
-        left: offsetX,
-        top: offsetY,
-        width: CARD_WIDTH,
-        maxWidth: "100%",
-        opacity: isFront ? 1 : 0.94,
-      }}
+      style={
+        isMobile
+          ? undefined
+          : {
+              left: offsetX,
+              top: offsetY,
+              width: CARD_WIDTH,
+              maxWidth: "100%",
+              opacity: isFront ? 1 : 0.94,
+            }
+      }
     >
       <header className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -298,7 +310,7 @@ function MonitoringCard({
             {card.title}
           </h4>
         </div>
-        {isFront && (
+        {(isFront || isMobile) && (
           <div className="flex shrink-0 items-center gap-1.5 text-[var(--color-font)]/35">
             <IconStar size={14} stroke={1.5} aria-hidden />
             <IconDots size={14} stroke={1.5} aria-hidden />
@@ -341,49 +353,73 @@ function MonitoringCard({
 const STACK_WIDTH =
   CARD_WIDTH + STACK_OFFSET * (QUARTERS.length - 1);
 
+function ChartLegend() {
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+      <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
+        <span className="h-2 w-2 rounded-[2px] bg-[rgba(14,14,14,0.22)]" />
+        Sites in scope
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
+        <span className="h-2 w-2 rounded-[2px]" style={{ background: TRACKING }} />
+        Active tracking
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
+        <span className="h-2 w-2 rounded-[2px]" style={{ background: VERDAN }} />
+        Verified monitoring
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
+        <span
+          className="h-2 w-1 rounded-[1px]"
+          style={{ background: `rgba(${VERDAN_RGB}, 0.35)` }}
+        />
+        Field checks
+      </span>
+    </div>
+  );
+}
+
 export function QuarterMonitoringStack({ animate = false }: { animate?: boolean }) {
   return (
-    <div className="relative mx-auto w-full max-w-[920px] overflow-x-auto pb-1">
-      <div
-        className="relative mx-auto overflow-visible"
-        style={{
-          height: 318,
-          width: STACK_WIDTH,
-          minWidth: STACK_WIDTH,
-        }}
-      >
+    <>
+      {/* Mobile — full-width cards stacked vertically (no horizontal scroll) */}
+      <div className="flex w-full flex-col gap-4 md:hidden">
         {QUARTERS.map((card, i) => (
           <MonitoringCard
             key={card.id}
             card={card}
             stackIndex={i}
-            isFront={i === QUARTERS.length - 1}
+            isFront
             animate={animate}
+            layout="mobile"
           />
         ))}
+        <ChartLegend />
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-        <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
-          <span className="h-2 w-2 rounded-[2px] bg-[rgba(14,14,14,0.22)]" />
-          Sites in scope
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
-          <span className="h-2 w-2 rounded-[2px]" style={{ background: TRACKING }} />
-          Active tracking
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
-          <span className="h-2 w-2 rounded-[2px]" style={{ background: VERDAN }} />
-          Verified monitoring
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[9px] text-[var(--color-font)]/45">
-          <span
-            className="h-2 w-1 rounded-[1px]"
-            style={{ background: `rgba(${VERDAN_RGB}, 0.35)` }}
-          />
-          Field checks
-        </span>
+      {/* Desktop — overlapping horizontal stack (unchanged) */}
+      <div className="relative mx-auto hidden w-full max-w-[920px] overflow-x-auto pb-1 md:block">
+        <div
+          className="relative mx-auto overflow-visible"
+          style={{
+            height: 318,
+            width: STACK_WIDTH,
+            minWidth: STACK_WIDTH,
+          }}
+        >
+          {QUARTERS.map((card, i) => (
+            <MonitoringCard
+              key={card.id}
+              card={card}
+              stackIndex={i}
+              isFront={i === QUARTERS.length - 1}
+              animate={animate}
+              layout="desktop"
+            />
+          ))}
+        </div>
+        <ChartLegend />
       </div>
-    </div>
+    </>
   );
 }

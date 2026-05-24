@@ -128,7 +128,7 @@ function Panel({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden !rounded-[8px] transition-all duration-700",
+        "group relative overflow-hidden !rounded-[8px] transition-all duration-300",
         !heroPanel &&
           "glass-panel-strong hover:shadow-[0_24px_60px_-28px_rgba(var(--verdan-green-rgb),0.28)]",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
@@ -198,10 +198,10 @@ const SCATTER_POINTS = [
 ] as const;
 
 function DashboardMock({ inView }: { inView: boolean }) {
-  const trees = useCountUp(48213, inView, 1800);
-  const sites = useCountUp(127, inView, 1400);
-  const online = useCountUp(34, inView, 1200);
-  const survival = useCountUp(86.4, inView, 1600);
+  const trees = useCountUp(48213, inView, 900);
+  const sites = useCountUp(127, inView, 700);
+  const online = useCountUp(34, inView, 600);
+  const survival = useCountUp(86.4, inView, 800);
 
   const stats = [
     { label: "Total Trees", value: Math.round(trees).toLocaleString(), delta: "+2,140" },
@@ -225,7 +225,7 @@ function DashboardMock({ inView }: { inView: boolean }) {
                 <div
                   key={s.label}
                   className="rounded-lg border border-black/5 bg-white/70 p-3"
-                  style={{ transitionDelay: `${i * 80}ms` }}
+                  style={{ transitionDelay: `${i * 20}ms` }}
                 >
                   <div className="text-[10.5px] uppercase tracking-wider text-[var(--color-font)]/45">
                     {s.label}
@@ -273,8 +273,8 @@ function DashboardMock({ inView }: { inView: boolean }) {
                         fill="#48845c"
                         opacity={0.85}
                         style={{
-                          transition: "all 900ms cubic-bezier(0.16,1,0.3,1)",
-                          transitionDelay: `${i * 60}ms`,
+                          transition: "all 400ms cubic-bezier(0.16,1,0.3,1)",
+                          transitionDelay: `${i * 15}ms`,
                         }}
                       />
                     );
@@ -288,7 +288,7 @@ function DashboardMock({ inView }: { inView: boolean }) {
                     style={{
                       strokeDasharray: 600,
                       strokeDashoffset: inView ? 0 : 600,
-                      transition: "stroke-dashoffset 1600ms ease-out 300ms",
+                      transition: "stroke-dashoffset 550ms ease-out 80ms",
                     }}
                   />
                 </svg>
@@ -331,8 +331,8 @@ function DashboardMock({ inView }: { inView: boolean }) {
                       strokeWidth="1.2"
                       strokeOpacity={0.7}
                       style={{
-                        transition: "all 700ms cubic-bezier(0.16,1,0.3,1)",
-                        transitionDelay: `${200 + i * 35}ms`,
+                        transition: "all 350ms cubic-bezier(0.16,1,0.3,1)",
+                        transitionDelay: `${50 + i * 10}ms`,
                       }}
                     />
                   ))}
@@ -345,7 +345,7 @@ function DashboardMock({ inView }: { inView: boolean }) {
                     strokeLinecap="round"
                     style={{
                       opacity: inView ? 0.55 : 0,
-                      transition: "opacity 1200ms ease-out 400ms",
+                      transition: "opacity 500ms ease-out 100ms",
                     }}
                   />
                 </svg>
@@ -414,7 +414,7 @@ function MapMock({ inView }: { inView: boolean }) {
               top: `${p.y}%`,
               opacity: inView ? 1 : 0,
               transform: `translate(-50%, ${inView ? "-50%" : "-30%"})`,
-              transition: `opacity 500ms ease-out ${i * 70}ms, transform 600ms cubic-bezier(0.16,1,0.3,1) ${i * 70}ms`,
+              transition: `opacity 280ms ease-out ${i * 18}ms, transform 320ms cubic-bezier(0.16,1,0.3,1) ${i * 18}ms`,
             }}
           >
             <span className="relative flex h-2.5 w-2.5">
@@ -440,7 +440,7 @@ function MapMock({ inView }: { inView: boolean }) {
           boxShadow: "0 12px 30px -16px rgba(0,0,0,0.15)",
           opacity: inView ? 1 : 0,
           transform: inView ? "translateY(0)" : "translateY(6px)",
-          transition: "all 600ms ease-out 900ms",
+          transition: "all 320ms ease-out 200ms",
         }}
       >
         <div
@@ -528,8 +528,7 @@ function PhoneAppHeader({
 const phoneScreenPadX = "px-3.5";
 
 /** Phone body: fills frame, no internal scroll */
-const phoneScreenBody =
-  "min-h-0 flex-1 overflow-hidden overscroll-none bg-[#f8fafc]";
+const phoneScreenBody = "min-h-0 flex-1 overflow-hidden bg-[#f8fafc]";
 
 function PhoneCard({
   children,
@@ -582,7 +581,7 @@ function PhoneFrame({
           ? `rotate(${rotate}deg) translateY(0)`
           : `rotate(${rotate}deg) translateY(18px)`,
         opacity: inView ? 1 : 0,
-        transition: `all 900ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+        transition: `all 400ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
       }}
     >
       <div
@@ -593,7 +592,7 @@ function PhoneFrame({
         }}
       >
         <div className="absolute left-1/2 top-[13px] z-10 h-[17px] w-[72px] -translate-x-1/2 rounded-full bg-black" />
-        <div className="relative flex h-full w-full flex-col overflow-hidden overscroll-none rounded-[28px] border border-gray-200/60 bg-white">
+        <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[28px] border border-gray-200/60 bg-white">
           {children}
         </div>
       </div>
@@ -871,7 +870,7 @@ function FloatChip({
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(8px)",
-        transition: `all 700ms ease ${delay}ms`,
+        transition: `all 350ms ease ${delay}ms`,
       }}
     >
       <span className="text-[#48845c]">{icon}</span>
@@ -930,12 +929,12 @@ function WorkflowStepCard({
   index: number;
   inView: boolean;
 }) {
-  const delay = 80 + index * 60;
+  const delay = 20 + index * 15;
 
   return (
     <div
       className={cn(
-        "flex h-full flex-col gap-3 glass-panel-strong !rounded-[8px] p-5 transition-all duration-700",
+        "flex h-full flex-col gap-3 glass-panel-strong !rounded-[8px] p-5 transition-all duration-300",
         inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
       )}
       style={{ transitionDelay: `${delay}ms` }}
@@ -967,7 +966,7 @@ function HowItWorksBlock() {
       <BlockIndex index={4} eyebrow="How it works" />
       <div
         className={cn(
-          "flex flex-col gap-4 transition-all duration-700",
+          "flex flex-col gap-4 transition-all duration-300",
           headIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         )}
       >
@@ -997,10 +996,10 @@ function HowItWorksBlock() {
 
       <div
         className={cn(
-          "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-700 sm:flex-row sm:items-center sm:justify-between sm:p-8",
+          "glass-panel-strong flex flex-col gap-4 !rounded-[8px] p-6 transition-all duration-300 sm:flex-row sm:items-center sm:justify-between sm:p-8",
           gridIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
         )}
-        style={{ transitionDelay: "480ms" }}
+        style={{ transitionDelay: "120ms" }}
       >
         <div className="flex flex-col gap-1.5">
           <span className={typeEyebrow}>Get started</span>
@@ -1037,7 +1036,7 @@ export default function Product() {
       id="product"
       ref={sectionRef}
       className={cn(
-        "section-noise relative w-full overflow-hidden text-[var(--color-font)]",
+        "section-noise relative w-full overflow-x-clip text-[var(--color-font)] md:overflow-hidden",
         landingSectionPx,
         landingSectionPad,
       )}
@@ -1046,7 +1045,7 @@ export default function Product() {
       <div className="relative z-10 mx-auto max-w-7xl">
         <div
           className={cn(
-            "max-w-3xl transition-all duration-700",
+            "max-w-3xl transition-all duration-300",
             headVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
           )}
         >
@@ -1111,7 +1110,7 @@ export default function Product() {
               </p>
             </div>
 
-            <div className="relative flex w-full items-center justify-center pt-8 md:pt-10">
+            <div className="product-mobile-phones relative flex w-full items-center justify-center overflow-x-clip pt-8 max-md:pointer-events-none max-md:touch-pan-y md:pt-10">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-1/2 h-[80%] -translate-y-1/2 rounded-full opacity-40"
@@ -1119,19 +1118,19 @@ export default function Product() {
                   background: `radial-gradient(ellipse at center, rgba(${VERDAN_RGB},0.12), transparent 70%)`,
                 }}
               />
-              <div className="flex items-end justify-center sm:gap-2">
+              <div className="flex items-end justify-center max-md:scale-[0.94] max-md:origin-bottom sm:gap-2">
                 <div className="hidden sm:block">
-                  <PhoneFrame rotate={-6} delay={100} inView={mobIn}>
+                  <PhoneFrame rotate={-6} delay={25} inView={mobIn}>
                     <PhoneScreenMap />
                   </PhoneFrame>
                 </div>
-                <div className="-mx-6 sm:mx-0 sm:-mb-6 sm:scale-110">
-                  <PhoneFrame rotate={0} delay={250} inView={mobIn}>
+                <div className="-mx-6 max-md:mx-0 sm:mx-0 sm:-mb-6 sm:scale-110">
+                  <PhoneFrame rotate={0} delay={60} inView={mobIn}>
                     <PhoneScreenRegister />
                   </PhoneFrame>
                 </div>
                 <div className="hidden sm:block">
-                  <PhoneFrame rotate={6} delay={400} inView={mobIn}>
+                  <PhoneFrame rotate={6} delay={100} inView={mobIn}>
                     <PhoneScreenProfile />
                   </PhoneFrame>
                 </div>
@@ -1142,7 +1141,7 @@ export default function Product() {
                   label="GPS locked"
                   icon={<MapPin size={11} />}
                   inView={mobIn}
-                  delay={600}
+                  delay={150}
                 />
               </div>
               <div className="pointer-events-none absolute right-[6%] top-[28%] hidden sm:block">
@@ -1150,7 +1149,7 @@ export default function Product() {
                   label="Uploading 3 photos"
                   icon={<Upload size={11} />}
                   inView={mobIn}
-                  delay={750}
+                  delay={190}
                 />
               </div>
               <div className="pointer-events-none absolute bottom-[10%] right-[10%] hidden sm:block">
@@ -1158,7 +1157,7 @@ export default function Product() {
                   label="Offline · synced"
                   icon={<CheckCircle2 size={11} />}
                   inView={mobIn}
-                  delay={900}
+                  delay={230}
                 />
               </div>
             </div>
