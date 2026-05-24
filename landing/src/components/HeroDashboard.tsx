@@ -191,7 +191,7 @@ export function DashboardNavbar({
     >
       <div className="flex items-center gap-2">
         <Image
-          src="/icon.svg"
+          src="/harit-icon.svg"
           alt=""
           width={30}
           height={30}

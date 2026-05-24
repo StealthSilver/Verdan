@@ -38,10 +38,6 @@ export const metadata: Metadata = {
     creator: SITE.twitterHandle,
     images: [SITE.ogImage],
   },
-  icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
-  },
 };
 
 export default function RootLayout({
@@ -58,7 +54,7 @@ export default function RootLayout({
       <head>
         <link
           rel="preload"
-          href="/icon.svg"
+          href="/harit-icon.svg"
           as="image"
           type="image/svg+xml"
         />

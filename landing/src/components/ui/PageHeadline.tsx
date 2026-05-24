@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
+import { typeDisplayTracking } from "@/lib/typography";
 
 export const pageHeadlineLine1Class =
-  "text-[1.75rem] font-medium leading-[1.1] sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]";
+  `text-[1.75rem] font-medium leading-[1.1] ${typeDisplayTracking} sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]`;
 
 export const pageHeadlineLine2Class =
-  "mt-0.5 text-[1.75rem] font-medium leading-[1.1] sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]";
+  `mt-0.5 text-[1.75rem] font-medium leading-[1.1] ${typeDisplayTracking} sm:mt-1 sm:text-[2.125rem] md:text-[2.375rem] lg:text-[3.25rem]`;
 
 type PageHeadlineProps = {
   line1: string;

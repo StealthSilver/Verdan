@@ -23,7 +23,7 @@ export default function ThemeHeadIcons() {
 
   if (!mounted) return null;
 
-  const icon = theme === "dark" ? "/icon_d.svg" : "/icon.svg";
+  const icon = theme === "dark" ? "/icon_d.svg" : "/harit-icon.svg";
 
   return (
     <>

@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { footerNavItems, sectionHref } from "@/lib/site-nav";
 import { landingSectionPx, landingSectionTop } from "@/lib/site-layout";
-import { typeUi, typeUiMedium } from "@/lib/typography";
+import { typeDisplayTracking, typeUi, typeUiMedium } from "@/lib/typography";
 
 const legalLinks = [
   { name: "Terms and Conditions", href: "#" },
@@ -70,14 +70,19 @@ const Footer = () => {
               aria-label="Harit home"
             >
               <Image
-                src="/icon.svg"
+                src="/harit-icon.svg"
                 alt=""
                 width={44}
                 height={44}
                 unoptimized
                 className="h-10 w-10 brightness-0 invert sm:h-11 sm:w-11"
               />
-              <span className="text-3xl font-bold text-white sm:text-4xl">
+              <span
+                className={cn(
+                  "text-3xl font-bold text-white sm:text-4xl",
+                  typeDisplayTracking,
+                )}
+              >
                 हरित
               </span>
             </Link>

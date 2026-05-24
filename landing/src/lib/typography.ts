@@ -13,6 +13,12 @@
  * - Micro: 10px (data-viz axis labels only)
  */
 
+/** Two-line section headlines (hero, need, product, features, proof, CTA). */
+export const typeDisplayTracking = "tracking-tight";
+
+/** Block titles, callouts, and emphasis lines under section headlines. */
+export const typeHeadingTracking = "tracking-tight";
+
 export const typeEyebrow =
   "text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--color-font)]/45";
 
@@ -54,22 +60,22 @@ export const typeBodyOnDarkBright =
   "text-sm font-light text-white/95";
 
 export const typeTitle =
-  "text-xl font-normal leading-snug tracking-tight text-[var(--color-font)] md:text-2xl";
+  `text-xl font-normal leading-snug ${typeHeadingTracking} text-[var(--color-font)] md:text-2xl`;
 
 export const typeTitleMedium =
-  "text-xl font-medium leading-snug tracking-tight text-[var(--color-font)] md:text-2xl";
+  `text-xl font-medium leading-snug ${typeHeadingTracking} text-[var(--color-font)] md:text-2xl`;
 
 export const typeCallout =
-  "text-2xl font-medium leading-tight tracking-tight text-[var(--color-font)] md:text-3xl";
+  `text-2xl font-medium leading-tight ${typeHeadingTracking} text-[var(--color-font)] md:text-3xl`;
 
 export const typeLead =
-  "text-lg font-medium leading-snug tracking-tight md:text-xl";
+  `text-lg font-medium leading-snug ${typeHeadingTracking} md:text-xl`;
 
 export const typeLeadCentered =
-  "text-center text-lg font-medium leading-snug tracking-tight md:text-xl";
+  `text-center text-lg font-medium leading-snug ${typeHeadingTracking} md:text-xl`;
 
 export const typeCardTitle =
-  "text-sm font-normal leading-snug tracking-tight text-[var(--color-font)] sm:text-base";
+  `text-sm font-normal leading-snug ${typeHeadingTracking} text-[var(--color-font)] sm:text-base`;
 
 export const typeListItem =
   "flex items-center gap-3 text-sm font-light text-[var(--color-font)]/70";

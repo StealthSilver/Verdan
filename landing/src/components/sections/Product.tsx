@@ -503,7 +503,7 @@ function PhoneAppHeader({
       <div className="flex items-center justify-between px-3.5 pb-2 pt-1">
         <div className="flex items-center gap-1.5">
           <Image
-            src="/icon.svg"
+            src="/harit-icon.svg"
             alt=""
             width={20}
             height={20}

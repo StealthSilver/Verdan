@@ -71,7 +71,7 @@ export default function Navbar() {
           className="flex flex-shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[rgb(74,137,92)]/40"
         >
           <Image
-            src="/icon.svg"
+            src="/harit-icon.svg"
             alt=""
             width={30}
             height={30}
