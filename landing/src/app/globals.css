@@ -688,6 +688,21 @@ body {
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.06));
 }
 
+@media (max-width: 767px) {
+  .cta-status-drawer__card {
+    gap: 0.3rem;
+    padding: 0.28rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.5625rem;
+  }
+
+  .cta-status-drawer__caret {
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 5px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cta-status-drawer {
     animation: none;
@@ -1041,11 +1056,24 @@ body {
     0 40px 80px rgba(var(--verdan-green-rgb), 0.09);
 }
 
-/* Hero dashboard on mobile: left gutter, bleed right; clip via body overflow-x (no nested scroll). */
+/* Hero dashboard on mobile: left gutter, bleed right; clip panel (no scroll). */
 @media (max-width: 767px) {
+  section:has(.hero-dashboard-scene) {
+    overflow-x: clip;
+  }
+
+  .hero-dashboard-elevated {
+    overflow: hidden;
+  }
+
   .hero-dashboard-mobile-clip {
     margin-right: -1.5rem;
     width: calc(100% + 1.5rem);
+    overflow: hidden;
+  }
+
+  .hero-dashboard-panel-wrap {
+    overflow: hidden;
   }
 
   .hero-dashboard-panel-scale {

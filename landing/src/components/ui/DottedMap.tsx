@@ -95,7 +95,8 @@ type DrawerLayout = {
 };
 
 function StatusGrowthIcon({ kind }: { kind: "verified" | "sites" }) {
-  const className = "h-3.5 w-3.5 shrink-0 text-[var(--verdan-green)]";
+  const className =
+    "h-3 w-3 shrink-0 text-[var(--verdan-green)] md:h-3.5 md:w-3.5";
   if (kind === "verified") {
     return <Sprout className={className} strokeWidth={2} aria-hidden />;
   }
