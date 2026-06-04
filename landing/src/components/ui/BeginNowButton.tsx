@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 export const beginNowCtaClassName =
   "begin-now-cta group flex items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-[8px] border border-[rgb(74,137,92)]/35 bg-white/15 text-sm font-normal uppercase leading-none tracking-wide text-black shadow-[0_2px_6px_rgba(0,0,0,0.11)] backdrop-blur-md outline-none transition-[border-color] duration-[320ms] ease-in-out hover:border-[#48845c] focus-visible:ring-2 focus-visible:ring-[#48845c]/45";
 
-const BEGIN_NOW_HREF = "https://verdan-beige.vercel.app/";
+const BEGIN_NOW_HREF = "https://harit-infield.serenticaglobal.com/";
 
 function BeginNowArrow() {
   return (

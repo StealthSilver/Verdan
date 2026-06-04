@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 import { PageHeadline } from "@/components/ui/PageHeadline";
 import { cn } from "@/lib/utils";
-import { landingPageTopPad, landingSectionPx } from "@/lib/site-layout";
-import { typeEyebrow, typeLede, typeNav } from "@/lib/typography";
+import { landingSectionPx, landingSectionTop } from "@/lib/site-layout";
+import { typeEyebrow, typeLede } from "@/lib/typography";
 
 type LegalPageShellProps = {
   line1: string;
-  line2: string;
+  line2?: string;
   lede?: string;
   meta?: React.ReactNode;
   children: React.ReactNode;
@@ -25,11 +24,10 @@ export function LegalPageShell({
 }: LegalPageShellProps) {
   return (
     <>
-      <Navbar />
       <main
         className={cn(
           "min-h-screen bg-[var(--background)] text-[var(--color-font)]",
-          landingPageTopPad,
+          landingSectionTop,
         )}
       >
         <article
@@ -38,18 +36,12 @@ export function LegalPageShell({
             landingSectionPx,
           )}
         >
-          <Link
-            href="/"
-            className={cn(
-              typeNav,
-              "inline-flex items-center gap-2 text-[var(--color-font)]/55 transition-colors hover:text-[var(--verdan-green)]",
-            )}
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
+          <Link href="/" className="legal-back-link">
+            <ArrowLeft className="h-3.5 w-3.5 shrink-0" aria-hidden />
             Back to home
           </Link>
 
-          <p className={cn(typeEyebrow, "mt-4")}>Legal</p>
+          <p className={cn(typeEyebrow, "mt-6")}>Legal</p>
 
           <PageHeadline
             line1={line1}

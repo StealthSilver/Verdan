@@ -1199,6 +1199,21 @@ body {
 }
 
 /* —— Legal pages (privacy policy, terms, etc.) —— */
+.legal-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.625;
+  color: rgba(14, 14, 14, 0.6);
+  transition: color 0.15s ease;
+}
+
+.legal-back-link:hover {
+  color: rgba(14, 14, 14, 0.88);
+}
+
 .legal-meta p {
   font-size: 0.875rem;
   font-weight: 300;

@@ -12,7 +12,6 @@ export default function PrivacyPolicy() {
   return (
     <LegalPageShell
       line1="Privacy Policy"
-      line2="Transparency & trust"
       lede="Harit (हरित) — tree planting and environmental conservation. How we collect, use, and safeguard your information."
       meta={
         <>

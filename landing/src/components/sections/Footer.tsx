@@ -12,7 +12,7 @@ import { landingSectionPx, landingSectionTop } from "@/lib/site-layout";
 import { typeDisplayTracking, typeUi, typeUiMedium } from "@/lib/typography";
 
 const legalLinks = [
-  { name: "Terms and Conditions", href: "#" },
+  { name: "Terms and Conditions", href: "/privacy-policy" },
   { name: "Privacy Policy", href: "/privacy-policy" },
 ];
 

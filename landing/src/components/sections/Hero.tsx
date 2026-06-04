@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import FallingLeaves from "@/components/FallingLeaves";
 import { HeroDashboardScene } from "@/components/HeroDashboardScene";
@@ -89,9 +90,10 @@ const Hero = () => {
             Track plantations with GPS, photos, growth insights, and team
             coordination
           </p>
-          <p
+          <Link
+            href="/"
             className={cn(
-              "group flex shrink-0 cursor-default items-center gap-2 transition-colors duration-150 hover:text-black",
+              "group flex shrink-0 items-center gap-2 transition-colors duration-150 hover:text-black",
               typeHeroSubtext,
               step < 4 && "hero-pre-animate",
               step >= 4 && "hero-animate-fade-slide-up-step4"
@@ -116,7 +118,7 @@ const Hero = () => {
               <path d="M0.5 5.5h7" />
               <path d="M1.5 1.5l4 4-4 4" />
             </svg>
-          </p>
+          </Link>
         </div>
       </div>
 
